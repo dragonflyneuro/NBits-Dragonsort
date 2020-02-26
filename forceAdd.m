@@ -1,21 +1,27 @@
-function [c, t, orphanBool] = forceAdd(c, t, selectedIdx, rawSpikesTimes, orphanBool, clustNum, batchNum, offset, waves)
+function c = forceAdd(c, matchesIdx, matchesWaves, unitNum)
+% Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
+% Forces a unit to accept a spike without matching
+% 
+% INPUT
+% c = DragonSort unit-wave structure
+% matchesIdx = spike times to add
+% matchesWaves = spike waves to add
+% unitNum = unit to add spikes to
+% 
+% fuzzyBool = allows adjustment of threshold based on deviation metric distribution
+% 		FORMAT {1, 0}
+% OUTPUT
+% c = DragonSort unit-wave structure
 
-if ~isempty(selectedIdx)
-	orphanSpikes = rawSpikesTimes(orphanBool);
-	selectedSpikes = orphanSpikes(selectedIdx);
-	orphanIdx = find(orphanBool);
-	orphanBool(orphanIdx(selectedIdx)) = 0; %update orphan_ind
-	
-	if ~isfield(c,"unit_"+clustNum)
-		c.clusters(length(c.clusters)+1)=clustNum;
-		c.("unit_"+clustNum)= selectedSpikes + offset;
-		c.("waves_"+clustNum)=waves;
-		t.("spikeBatchNum_"+clustNum) = batchNum*ones(1,length(orphanIdx(selectedIdx)));
-		t.("spikeIdxInBatch_"+clustNum) = orphanIdx(selectedIdx);
+if ~isempty(matchesIdx)
+	if ~isfield(c,"unit_"+unitNum)
+		c.clusters(length(c.clusters)+1)=unitNum;
+		c.("unit_"+unitNum)= matchesIdx;
+		c.("waves_"+unitNum)= matchesWaves;
 	else
-		c.("unit_"+clustNum)= [c.("unit_"+clustNum) selectedSpikes + offset];
-		c.("waves_"+clustNum)= [c.("waves_"+clustNum); waves];
-		t.("spikeBatchNum_"+clustNum) = [t.("spikeBatchNum_"+clustNum) batchNum*ones(1,length(orphanIdx(selectedIdx)))];
-		t.("spikeIdxInBatch_"+clustNum) = [t.("spikeIdxInBatch_"+clustNum) orphanIdx(selectedIdx)];
+		c.("unit_"+unitNum)= [c.("unit_"+unitNum) matchesIdx];
+		c.("waves_"+unitNum)= [c.("waves_"+unitNum); matchesWaves];
 	end
+end
+
 end
