@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef refineGUI < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        SortingrefinerUIFigure      matlab.ui.Figure
+        GridLayout                  matlab.ui.container.GridLayout
+        GridLayout2                 matlab.ui.container.GridLayout
+        LockoriginalButton          matlab.ui.control.StateButton
+        ScalingdirectionLabel       matlab.ui.control.Label
+        DownButton                  matlab.ui.control.Button
+        UpButton                    matlab.ui.control.Button
+        ScalingmultiplierEditFieldLabel  matlab.ui.control.Label
+        ScalingmultiplierEditField  matlab.ui.control.NumericEditField
+        DoneButton                  matlab.ui.control.Button
+        devHist1DropDownLabel       matlab.ui.control.Label
+        devHist1DropDown            matlab.ui.control.DropDown
+        devHist2DropDownLabel       matlab.ui.control.Label
+        devHist2DropDown            matlab.ui.control.DropDown
+        ScalinglowerlimitEditFieldLabel  matlab.ui.control.Label
+        ScalinglowerlimitEditField  matlab.ui.control.NumericEditField
+        TabGroup                    matlab.ui.container.TabGroup
+        ScalingsTab                 matlab.ui.container.Tab
+        GridLayout3                 matlab.ui.container.GridLayout
+        scalingTable                matlab.ui.control.Table
+        devMatrixTab                matlab.ui.container.Tab
+        GridLayout4                 matlab.ui.container.GridLayout
+        devmatrixAx                 matlab.ui.control.UIAxes
+        devHistogramTab             matlab.ui.container.Tab
+        GridLayout5                 matlab.ui.container.GridLayout
+        devhistAx1                  matlab.ui.control.UIAxes
+        devhistAx2                  matlab.ui.control.UIAxes
+    end
+
+    
+    properties (Access = private)
+        CallingApp
+        d = [];
+        f = [];
+        p
+        iterations = 0
+        lastHist = [1 1];
+    end
+    
+    methods (Access = private)
+        function [] = updateHist(app, ax, unit)
+            unit = str2double(unit);
+            devScaled=app.d.devMatrix(:,unit)*app.d.scaleArray(unit); %scale the deviation matrix
+            h = histogram(ax, devScaled, 'Linestyle','none');
+            hold(ax,'on');
+            plot(ax, [app.p.t.add2UnitThr(1)^2 app.p.t.add2UnitThr(1)^2], [0 max(h.Values)], 'r', 'LineWidth', 2);
+            hold(ax,'off');
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app, mainapp, input)
+            app.CallingApp = mainapp;
+            app.p = input;
+            
+            %    buggy matlab workaround for tabs lol
+            app.TabGroup.Layout.Column = 1;
+            drawnow
+            app.TabGroup.Layout.Column = 2;
+            
+            app.d.scaleArray = app.p.refineSettings;
+            Scaling = app.d.scaleArray';
+            app.UpButton.UserData = 1;
+            app.DownButton.UserData = -1;
+            Unit = app.p.s.clusters';
+            ScalingLock = false(size(app.p.s.clusters))';
+            StealingLock = false(size(app.p.s.clusters))';
+            app.scalingTable.Data = table(Unit,Scaling,ScalingLock,StealingLock);
+            
+            ylabel(app.devmatrixAx, 'Spike number');
+            xlabel(app.devmatrixAx, 'Unit number');
+            zlabel(app.devmatrixAx, 'Deviation');
+            
+            app.devHist1DropDown.Items = app.p.s.clusters;
+            app.devHist2DropDown.Items = app.p.s.clusters;
+            
+        end
+
+        % Button pushed function: DownButton, UpButton
+        function DownButtonPushed(app, event)
+            scaleDirection = event.Source.UserData;
+            scaling = app.ScalingmultiplierEditField.Value;
+            exception = app.scalingTable.Data.ScalingLock;
+            stealLock = app.scalingTable.Data.StealingLock;
+            
+            if isempty(app.f) || ~ishandle(app.f)
+                app.f = figure; set(app.f, 'Position',  [300, 100, 1350, 850]);
+            end
+            if app.LockoriginalButton.Value == 0
+                w = app.p.rawSpikeWaves;
+            else
+                w = app.p.rawSpikeWaves(app.p.orphansInBatchBool,:,:);
+            end
+            
+            app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
+                app.p.numTemplates, app.p.m.sRateHz, scaleDirection, scaling, exception, ...
+                app.ScalinglowerlimitEditField.Value, app.d);
+            
+            % update table
+            app.scalingTable.Data.Scaling = app.d.scaleArray';
+            
+            if ~isempty(app.d)
+                noStealIdx = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(stealLock)));
+                noStealVal = app.d.prevAssignment(noStealIdx);
+                app.d.spikeAssignmentUnit(noStealIdx) = noStealVal;
+            end
+            
+            app.f = refinePlot(app.p.xi, app.p.m, app.p.s.clusters, app.p.spikesInBatch, w, app.p.spikeClustInBatch, app.f, app.d);
+            
+            app.iterations = app.iterations + 1;
+            
+            % devMatrix plot
+            for ii=1:size(app.d.devMatrix,2)
+               	devScaled(:,ii)=app.d.devMatrix(:,ii)*app.d.scaleArray(ii); %scale the deviation matrix
+            end
+            devScaled(devScaled < app.p.t.add2UnitThr(1)) = 0;
+            imagesc(app.devmatrixAx, log10(devScaled));
+            colorbar(app.devmatrixAx);
+            
+            % devHist plots
+            app.devHist1DropDown.Enable = 'on';
+            app.devHist2DropDown.Enable = 'on';
+            app.updateHist(app.devhistAx1, app.devHist1DropDown.Value);
+            app.updateHist(app.devhistAx2, app.devHist2DropDown.Value);
+            
+            app.DoneButton.Enable = 'on';
+            
+        end
+
+        % Close request function: SortingrefinerUIFigure
+        function SortingrefinerUIFigureCloseRequest(app, event)
+            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,3);
+            close all
+            delete(app)
+            
+        end
+
+        % Button pushed function: DoneButton
+        function DoneButtonPushed(app, event)
+            if ~isempty(app.d)
+                if app.LockoriginalButton.Value == 1
+                    tempClust = app.p.spikeClustInBatch;
+                    tempClust(app.p.orphansInBatchBool) = app.d.spikeAssignmentUnit;
+                    app.d.spikeAssignmentUnit = tempClust;
+                end
+                updateUnits(app.CallingApp, app.d);
+            end
+            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,3);
+            close all
+            delete(app)
+            
+        end
+
+        % Value changed function: LockoriginalButton
+        function LockoriginalButtonValueChanged(app, event)
+            app.d = [];
+            delete(app.f);
+            
+        end
+
+        % Value changed function: devHist1DropDown, devHist2DropDown
+        function devHist1DropDownValueChanged(app, event)
+            value(1) = app.devHist1DropDown.Value;
+            value(2) = app.devHist2DropDown.Value;
+            if app.lastHist(1) == value(1)
+                app.updateHist(app.devhistAx2, value(2))
+            else
+                app.updateHist(app.devhistAx1, value(1))
+            end
+            app.lastHist = value;
+            
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create SortingrefinerUIFigure and hide until all components are created
+            app.SortingrefinerUIFigure = uifigure('Visible', 'off');
+            app.SortingrefinerUIFigure.Position = [100 100 612 489];
+            app.SortingrefinerUIFigure.Name = 'Sorting refiner';
+            app.SortingrefinerUIFigure.CloseRequestFcn = createCallbackFcn(app, @SortingrefinerUIFigureCloseRequest, true);
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.SortingrefinerUIFigure);
+            app.GridLayout.ColumnWidth = {'1x', '2x'};
+            app.GridLayout.RowHeight = {'1x'};
+            app.GridLayout.ColumnSpacing = 5;
+            app.GridLayout.RowSpacing = 5;
+            app.GridLayout.Padding = [5 5 5 5];
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.GridLayout);
+            app.GridLayout2.ColumnWidth = {'1x', '5x', '5x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.ColumnSpacing = 0;
+            app.GridLayout2.RowSpacing = 3;
+            app.GridLayout2.Padding = [0 0 0 0];
+            app.GridLayout2.Layout.Row = 1;
+            app.GridLayout2.Layout.Column = 1;
+
+            % Create LockoriginalButton
+            app.LockoriginalButton = uibutton(app.GridLayout2, 'state');
+            app.LockoriginalButton.ValueChangedFcn = createCallbackFcn(app, @LockoriginalButtonValueChanged, true);
+            app.LockoriginalButton.Text = {'Reset refine & lock pre-refine'; 'spike assignments'};
+            app.LockoriginalButton.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.LockoriginalButton.Layout.Row = [2 3];
+            app.LockoriginalButton.Layout.Column = [2 3];
+
+            % Create ScalingdirectionLabel
+            app.ScalingdirectionLabel = uilabel(app.GridLayout2);
+            app.ScalingdirectionLabel.HorizontalAlignment = 'center';
+            app.ScalingdirectionLabel.FontWeight = 'bold';
+            app.ScalingdirectionLabel.Layout.Row = 13;
+            app.ScalingdirectionLabel.Layout.Column = [2 3];
+            app.ScalingdirectionLabel.Text = 'Scaling direction';
+
+            % Create DownButton
+            app.DownButton = uibutton(app.GridLayout2, 'push');
+            app.DownButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonPushed, true);
+            app.DownButton.BackgroundColor = [0 1 0];
+            app.DownButton.FontWeight = 'bold';
+            app.DownButton.Layout.Row = [14 15];
+            app.DownButton.Layout.Column = 3;
+            app.DownButton.Text = '-1';
+
+            % Create UpButton
+            app.UpButton = uibutton(app.GridLayout2, 'push');
+            app.UpButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonPushed, true);
+            app.UpButton.BackgroundColor = [0 1 0];
+            app.UpButton.FontWeight = 'bold';
+            app.UpButton.Layout.Row = [14 15];
+            app.UpButton.Layout.Column = 2;
+            app.UpButton.Text = '+1';
+
+            % Create ScalingmultiplierEditFieldLabel
+            app.ScalingmultiplierEditFieldLabel = uilabel(app.GridLayout2);
+            app.ScalingmultiplierEditFieldLabel.HorizontalAlignment = 'center';
+            app.ScalingmultiplierEditFieldLabel.FontWeight = 'bold';
+            app.ScalingmultiplierEditFieldLabel.Layout.Row = 11;
+            app.ScalingmultiplierEditFieldLabel.Layout.Column = [2 3];
+            app.ScalingmultiplierEditFieldLabel.Text = 'Scaling multiplier';
+
+            % Create ScalingmultiplierEditField
+            app.ScalingmultiplierEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.ScalingmultiplierEditField.HorizontalAlignment = 'center';
+            app.ScalingmultiplierEditField.Layout.Row = 12;
+            app.ScalingmultiplierEditField.Layout.Column = [2 3];
+            app.ScalingmultiplierEditField.Value = 0.1;
+
+            % Create DoneButton
+            app.DoneButton = uibutton(app.GridLayout2, 'push');
+            app.DoneButton.ButtonPushedFcn = createCallbackFcn(app, @DoneButtonPushed, true);
+            app.DoneButton.Enable = 'off';
+            app.DoneButton.Layout.Row = 17;
+            app.DoneButton.Layout.Column = [2 3];
+            app.DoneButton.Text = 'Done';
+
+            % Create devHist1DropDownLabel
+            app.devHist1DropDownLabel = uilabel(app.GridLayout2);
+            app.devHist1DropDownLabel.HorizontalAlignment = 'right';
+            app.devHist1DropDownLabel.Enable = 'off';
+            app.devHist1DropDownLabel.Layout.Row = 5;
+            app.devHist1DropDownLabel.Layout.Column = 2;
+            app.devHist1DropDownLabel.Text = 'devHist 1';
+
+            % Create devHist1DropDown
+            app.devHist1DropDown = uidropdown(app.GridLayout2);
+            app.devHist1DropDown.Items = {'1'};
+            app.devHist1DropDown.ValueChangedFcn = createCallbackFcn(app, @devHist1DropDownValueChanged, true);
+            app.devHist1DropDown.Enable = 'off';
+            app.devHist1DropDown.Layout.Row = 5;
+            app.devHist1DropDown.Layout.Column = 3;
+            app.devHist1DropDown.Value = '1';
+
+            % Create devHist2DropDownLabel
+            app.devHist2DropDownLabel = uilabel(app.GridLayout2);
+            app.devHist2DropDownLabel.HorizontalAlignment = 'right';
+            app.devHist2DropDownLabel.Enable = 'off';
+            app.devHist2DropDownLabel.Layout.Row = 6;
+            app.devHist2DropDownLabel.Layout.Column = 2;
+            app.devHist2DropDownLabel.Text = 'devHist 2';
+
+            % Create devHist2DropDown
+            app.devHist2DropDown = uidropdown(app.GridLayout2);
+            app.devHist2DropDown.Items = {'1'};
+            app.devHist2DropDown.ValueChangedFcn = createCallbackFcn(app, @devHist1DropDownValueChanged, true);
+            app.devHist2DropDown.Enable = 'off';
+            app.devHist2DropDown.Layout.Row = 6;
+            app.devHist2DropDown.Layout.Column = 3;
+            app.devHist2DropDown.Value = '1';
+
+            % Create ScalinglowerlimitEditFieldLabel
+            app.ScalinglowerlimitEditFieldLabel = uilabel(app.GridLayout2);
+            app.ScalinglowerlimitEditFieldLabel.HorizontalAlignment = 'center';
+            app.ScalinglowerlimitEditFieldLabel.FontWeight = 'bold';
+            app.ScalinglowerlimitEditFieldLabel.Layout.Row = 8;
+            app.ScalinglowerlimitEditFieldLabel.Layout.Column = [2 3];
+            app.ScalinglowerlimitEditFieldLabel.Text = 'Scaling lower limit';
+
+            % Create ScalinglowerlimitEditField
+            app.ScalinglowerlimitEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.ScalinglowerlimitEditField.Limits = [0 Inf];
+            app.ScalinglowerlimitEditField.HorizontalAlignment = 'center';
+            app.ScalinglowerlimitEditField.Layout.Row = 9;
+            app.ScalinglowerlimitEditField.Layout.Column = [2 3];
+            app.ScalinglowerlimitEditField.Value = 0.0001;
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.GridLayout);
+            app.TabGroup.Layout.Row = 1;
+            app.TabGroup.Layout.Column = 2;
+
+            % Create ScalingsTab
+            app.ScalingsTab = uitab(app.TabGroup);
+            app.ScalingsTab.Title = 'Scalings';
+
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.ScalingsTab);
+            app.GridLayout3.ColumnWidth = {'1x'};
+            app.GridLayout3.RowHeight = {'1x'};
+            app.GridLayout3.ColumnSpacing = 0;
+            app.GridLayout3.RowSpacing = 0;
+            app.GridLayout3.Padding = [0 0 0 0];
+
+            % Create scalingTable
+            app.scalingTable = uitable(app.GridLayout3);
+            app.scalingTable.ColumnName = {'Unit'; 'Scaling'; 'ScalingLock'; 'StealingLock'};
+            app.scalingTable.RowName = {};
+            app.scalingTable.ColumnSortable = false;
+            app.scalingTable.ColumnEditable = [false false true];
+            app.scalingTable.Layout.Row = 1;
+            app.scalingTable.Layout.Column = 1;
+
+            % Create devMatrixTab
+            app.devMatrixTab = uitab(app.TabGroup);
+            app.devMatrixTab.Title = 'devMatrix';
+
+            % Create GridLayout4
+            app.GridLayout4 = uigridlayout(app.devMatrixTab);
+            app.GridLayout4.ColumnWidth = {'1x'};
+            app.GridLayout4.RowHeight = {'1x'};
+            app.GridLayout4.ColumnSpacing = 0;
+            app.GridLayout4.RowSpacing = 0;
+            app.GridLayout4.Padding = [0 0 0 0];
+
+            % Create devmatrixAx
+            app.devmatrixAx = uiaxes(app.GridLayout4);
+            title(app.devmatrixAx, 'Title')
+            xlabel(app.devmatrixAx, 'X')
+            ylabel(app.devmatrixAx, 'Y')
+            app.devmatrixAx.PlotBoxAspectRatio = [1 1.14161849710983 1];
+            app.devmatrixAx.FontName = 'Arial';
+            app.devmatrixAx.Layout.Row = 1;
+            app.devmatrixAx.Layout.Column = 1;
+
+            % Create devHistogramTab
+            app.devHistogramTab = uitab(app.TabGroup);
+            app.devHistogramTab.Title = 'devHistogram';
+
+            % Create GridLayout5
+            app.GridLayout5 = uigridlayout(app.devHistogramTab);
+            app.GridLayout5.ColumnWidth = {'1x'};
+            app.GridLayout5.ColumnSpacing = 0;
+            app.GridLayout5.RowSpacing = 0;
+            app.GridLayout5.Padding = [0 0 0 0];
+
+            % Create devhistAx1
+            app.devhistAx1 = uiaxes(app.GridLayout5);
+            title(app.devhistAx1, 'devHist 1')
+            xlabel(app.devhistAx1, 'Deviation')
+            ylabel(app.devhistAx1, 'Frequency')
+            app.devhistAx1.PlotBoxAspectRatio = [2.04093567251462 1 1];
+            app.devhistAx1.FontName = 'Arial';
+            app.devhistAx1.Layout.Row = 1;
+            app.devhistAx1.Layout.Column = 1;
+
+            % Create devhistAx2
+            app.devhistAx2 = uiaxes(app.GridLayout5);
+            title(app.devhistAx2, 'devHist 2')
+            xlabel(app.devhistAx2, 'Deviation')
+            ylabel(app.devhistAx2, 'Frequency')
+            app.devhistAx2.PlotBoxAspectRatio = [2.02906976744186 1 1];
+            app.devhistAx2.FontName = 'Arial';
+            app.devhistAx2.Layout.Row = 2;
+            app.devhistAx2.Layout.Column = 1;
+
+            % Show the figure after all components are created
+            app.SortingrefinerUIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = refineGUI(varargin)
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.SortingrefinerUIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.SortingrefinerUIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>
