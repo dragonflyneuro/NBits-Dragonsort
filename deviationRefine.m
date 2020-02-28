@@ -24,19 +24,19 @@ function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates,
 thr = t.add2UnitThr(1);
 
 if ~isempty(d)
-	if isfield(d, 'devMatrix')
-		devMatrix = d.devMatrix;
-		scaleArray = d.scaleArray;
-		prevAssignment = d.spikeAssignmentUnit; %keep the very last spike assignment for reference
-	elseif isfield(d, 'scaleArray')
-		scaleArray = d.scaleArray;
-		[devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
-		prevAssignment = zeros(size(rawSpikeWaves,1),1);
-	end
+    if isfield(d, 'devMatrix')
+        devMatrix = d.devMatrix;
+        scaleArray = d.scaleArray;
+        prevAssignment = d.spikeAssignmentUnit; %keep the very last spike assignment for reference
+    elseif isfield(d, 'scaleArray')
+        scaleArray = d.scaleArray;
+        [devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
+        prevAssignment = zeros(size(rawSpikeWaves,1),1);
+    end
 else
-	[devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
-	scaleArray = ones(1,length(c.clusters));
-	prevAssignment = zeros(size(rawSpikeWaves,1),1);
+    [devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
+    scaleArray = ones(1,length(c.clusters));
+    prevAssignment = zeros(size(rawSpikeWaves,1),1);
 end
 
 spikeAssignmentUnit=zeros(size(rawSpikeWaves,1),1); %reinitialize the spike_clusters
@@ -46,14 +46,17 @@ hitLimit = scaleArray < limit;
 scaleArray(hitLimit) = limit; %make sure no scaling factor goes to zero
 
 for ii=1:length(c.clusters)
-	devScaled(:,ii)=devMatrix(:,ii)*scaleArray(ii); %scale the deviation matrix
+    devScaled(:,ii)=devMatrix(:,ii)*scaleArray(ii); %scale the deviation matrix
 end
-reassigned = devScaled < thr^2;
+[reassigned, ~] = find(devScaled < thr^2);
 tempDev = devScaled(reassigned,:); %gather all the spikes that can be distributed
 [~,redisClustNum] = min(tempDev,[],2); %make sure we go for the minimum deviation
 
-if any(reassigned)
-    spikeAssignmentUnit(reassigned)=str2double(c.clusters(redisClustNum)); %distribute the spike
+if ~isempty(reassigned)
+    for ii=1:size(reassigned,1) %go through each spike that can be distributed; we don't attempt to update structure c here
+        clustName=c.clusters(redisClustNum(ii));
+        spikeAssignmentUnit(reassigned(ii))=str2double(clustName); %distribute the spike
+    end
 end
 
 d.prevAssignment = prevAssignment;
