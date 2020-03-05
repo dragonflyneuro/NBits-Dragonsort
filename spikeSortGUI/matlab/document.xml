@@ -2,140 +2,140 @@
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIBase                         matlab.ui.Figure
-        SessionMenu                    matlab.ui.container.Menu
-        InitialiseMenu                 matlab.ui.container.Menu
-        LoadMenu                       matlab.ui.container.Menu
-        LoadtemplatesMenu              matlab.ui.container.Menu
-        SaveMenu                       matlab.ui.container.Menu
-        AddtimestampMenu               matlab.ui.container.Menu
-        UndoredoMenu                   matlab.ui.container.Menu
-        TimelineMenu                   matlab.ui.container.Menu
-        PreviousbatchMenu              matlab.ui.container.Menu
-        NextbatchMenu                  matlab.ui.container.Menu
-        UnitfrequencyMenu              matlab.ui.container.Menu
-        ScrubthroughunitMenu           matlab.ui.container.Menu
-        UnitMenu                       matlab.ui.container.Menu
-        NewunitMenu                    matlab.ui.container.Menu
-        AddspikeMenu                   matlab.ui.container.Menu
-        ForceaddMenu                   matlab.ui.container.Menu
-        RemovespikeMenu                matlab.ui.container.Menu
-        SplitMenu                      matlab.ui.container.Menu
-        MergeMenu                      matlab.ui.container.Menu
-        AutosplitMenu                  matlab.ui.container.Menu
-        RefinebatchMenu                matlab.ui.container.Menu
-        FigureshortcutsMenu            matlab.ui.container.Menu
-        LZoomMenu                      matlab.ui.container.Menu
-        LResetMenu                     matlab.ui.container.Menu
-        LPanMenu                       matlab.ui.container.Menu
-        LPointerMenu                   matlab.ui.container.Menu
-        TZoomMenu                      matlab.ui.container.Menu
-        TResetMenu                     matlab.ui.container.Menu
-        TPanMenu                       matlab.ui.container.Menu
-        TPointerMenu                   matlab.ui.container.Menu
-        MatchunityaxisMenu             matlab.ui.container.Menu
-        OthersMenu                     matlab.ui.container.Menu
-        HelpMenu                       matlab.ui.container.Menu
-        GridMain                       matlab.ui.container.GridLayout
-        StatusLabel                    matlab.ui.control.EditField
-        LGrid                          matlab.ui.container.GridLayout
-        LeftUnitDropDown               matlab.ui.control.DropDown
-        LTabs                          matlab.ui.container.TabGroup
-        MainChLTab                     matlab.ui.container.Tab
-        GridMainChLTab                 matlab.ui.container.GridLayout
-        LeftUnit                       matlab.ui.control.UIAxes
-        AllChLTab                      matlab.ui.container.Tab
-        RGrid                          matlab.ui.container.GridLayout
-        RightUnitDropDown              matlab.ui.control.DropDown
-        RTabs                          matlab.ui.container.TabGroup
-        MainChRTab                     matlab.ui.container.Tab
-        GridMainChRTab                 matlab.ui.container.GridLayout
-        RightUnit                      matlab.ui.control.UIAxes
-        AllChRTab                      matlab.ui.container.Tab
-        TTabs                          matlab.ui.container.TabGroup
-        MainChTTab                     matlab.ui.container.Tab
-        GridMainChTTab                 matlab.ui.container.GridLayout
-        Trace                          matlab.ui.control.UIAxes
-        AllChTTab                      matlab.ui.container.Tab
-        ControlTabs                    matlab.ui.container.TabGroup
-        GeneralTab                     matlab.ui.container.Tab
-        GridLayout2                    matlab.ui.container.GridLayout
-        DatascrubGrid                  matlab.ui.container.GridLayout
-        ScrubdataLabel                 matlab.ui.control.Label
-        PreviousbatchButton            matlab.ui.control.Button
-        NextbatchButton                matlab.ui.control.Button
-        AutosortButton                 matlab.ui.control.Button
-        uptoField                      matlab.ui.control.NumericEditField
-        ResortbatchButton              matlab.ui.control.Button
-        RefinebatchButton              matlab.ui.control.Button
-        GotobatchButton                matlab.ui.control.Button
-        GotobatchField                 matlab.ui.control.NumericEditField
-        ManualGrid                     matlab.ui.container.GridLayout
-        ManualmanipulationLabel        matlab.ui.control.Label
-        DeleteunitButton               matlab.ui.control.Button
-        AddspikeButton                 matlab.ui.control.Button
-        RemovespikeButton              matlab.ui.control.Button
-        SplitunitButton                matlab.ui.control.Button
-        MergeButton                    matlab.ui.control.Button
-        UnitscrubButton                matlab.ui.control.Button
-        RemoveplottedButton            matlab.ui.control.Button
-        SplitplottedButton             matlab.ui.control.Button
-        NewunitButton                  matlab.ui.control.Button
-        ForceaddButton                 matlab.ui.control.Button
-        AutoGrid                       matlab.ui.container.GridLayout
-        AutomanipulationLabel          matlab.ui.control.Label
-        CleanupButton                  matlab.ui.control.Button
-        AutosplitButton                matlab.ui.control.Button
-        AutosplitBatchButton           matlab.ui.control.Button
-        AutosplitField                 matlab.ui.control.NumericEditField
-        AutocreatejunkunitsBETAButton  matlab.ui.control.Button
-        MarkasjunkButton               matlab.ui.control.Button
-        CreateunitsBETAButton_2        matlab.ui.control.Button
-        ParametersDataTab              matlab.ui.container.Tab
-        GridLayout                     matlab.ui.container.GridLayout
-        ViewingGrid                    matlab.ui.container.GridLayout
-        SpikestotalLabel               matlab.ui.control.Label
-        SpikeshownField                matlab.ui.control.NumericEditField
-        PastbatchesLabel               matlab.ui.control.Label
-        PastbatchesField               matlab.ui.control.NumericEditField
-        DataviewingLabel               matlab.ui.control.Label
-        FuturebatchesLabel             matlab.ui.control.Label
-        FuturebatchesField             matlab.ui.control.NumericEditField
-        PlotallchButton                matlab.ui.control.StateButton
-        TraceylimitLabel               matlab.ui.control.Label
-        yLimLowField                   matlab.ui.control.NumericEditField
-        yLimHighField                  matlab.ui.control.NumericEditField
-        BatchSizesamplesLabel          matlab.ui.control.Label
-        BatchsizeEditField             matlab.ui.control.NumericEditField
-        ThresholdsGrid                 matlab.ui.container.GridLayout
-        ThresholdsLabel                matlab.ui.control.Label
-        CurrentunitsLabel              matlab.ui.control.Label
-        OldField                       matlab.ui.control.NumericEditField
-        NewField                       matlab.ui.control.NumericEditField
-        NewunitLabel                   matlab.ui.control.Label
-        SpikedetectionEditFieldLabel   matlab.ui.control.Label
-        DetectThrEditField             matlab.ui.control.NumericEditField
-        FuzzyButton                    matlab.ui.control.StateButton
-        InfoGrid                       matlab.ui.container.GridLayout
-        BinaryEditField                matlab.ui.control.EditField
-        BinaryEditFieldLabel           matlab.ui.control.Label
-        SavenameEditFieldLabel         matlab.ui.control.Label
-        SavenameEditField              matlab.ui.control.EditField
-        BinarynamecopyButton           matlab.ui.control.Button
-        SavenamecopyButton             matlab.ui.control.Button
-        DatasummaryGrid                matlab.ui.container.GridLayout
-        ShowloadedtemplatesButton      matlab.ui.control.Button
-        ShowallButton                  matlab.ui.control.Button
-        DatasummaryLabel               matlab.ui.control.Label
-        UnitfreqButton                 matlab.ui.control.Button
-        TemplategenerateionGrid        matlab.ui.container.GridLayout
-        FuturebatchesLabel_2           matlab.ui.control.Label
-        FuturebatchesTField            matlab.ui.control.NumericEditField
-        SpikestotalEditFieldLabel      matlab.ui.control.Label
-        SpikesusedEditField            matlab.ui.control.NumericEditField
-        TemplategenerationLabel        matlab.ui.control.Label
-        PastbatchesLabel_2             matlab.ui.control.Label
-        PastbatchesTField              matlab.ui.control.NumericEditField
+        UIBase                        matlab.ui.Figure
+        SessionMenu                   matlab.ui.container.Menu
+        InitialiseMenu                matlab.ui.container.Menu
+        LoadMenu                      matlab.ui.container.Menu
+        LoadtemplatesMenu             matlab.ui.container.Menu
+        SaveMenu                      matlab.ui.container.Menu
+        AddtimestampMenu              matlab.ui.container.Menu
+        UndoredoMenu                  matlab.ui.container.Menu
+        TimelineMenu                  matlab.ui.container.Menu
+        PreviousbatchMenu             matlab.ui.container.Menu
+        NextbatchMenu                 matlab.ui.container.Menu
+        UnitfrequencyMenu             matlab.ui.container.Menu
+        ScrubthroughunitMenu          matlab.ui.container.Menu
+        UnitMenu                      matlab.ui.container.Menu
+        NewunitMenu                   matlab.ui.container.Menu
+        AddspikeMenu                  matlab.ui.container.Menu
+        ForceaddMenu                  matlab.ui.container.Menu
+        RemovespikeMenu               matlab.ui.container.Menu
+        SplitMenu                     matlab.ui.container.Menu
+        MergeMenu                     matlab.ui.container.Menu
+        AutosplitMenu                 matlab.ui.container.Menu
+        RefinebatchMenu               matlab.ui.container.Menu
+        FigureshortcutsMenu           matlab.ui.container.Menu
+        LZoomMenu                     matlab.ui.container.Menu
+        LResetMenu                    matlab.ui.container.Menu
+        LPanMenu                      matlab.ui.container.Menu
+        LPointerMenu                  matlab.ui.container.Menu
+        TZoomMenu                     matlab.ui.container.Menu
+        TResetMenu                    matlab.ui.container.Menu
+        TPanMenu                      matlab.ui.container.Menu
+        TPointerMenu                  matlab.ui.container.Menu
+        MatchunityaxisMenu            matlab.ui.container.Menu
+        OthersMenu                    matlab.ui.container.Menu
+        HelpMenu                      matlab.ui.container.Menu
+        GridMain                      matlab.ui.container.GridLayout
+        StatusLabel                   matlab.ui.control.EditField
+        LGrid                         matlab.ui.container.GridLayout
+        LeftUnitDropDown              matlab.ui.control.DropDown
+        LTabs                         matlab.ui.container.TabGroup
+        MainChLTab                    matlab.ui.container.Tab
+        GridMainChLTab                matlab.ui.container.GridLayout
+        LeftUnit                      matlab.ui.control.UIAxes
+        AllChLTab                     matlab.ui.container.Tab
+        RGrid                         matlab.ui.container.GridLayout
+        RightUnitDropDown             matlab.ui.control.DropDown
+        RTabs                         matlab.ui.container.TabGroup
+        MainChRTab                    matlab.ui.container.Tab
+        GridMainChRTab                matlab.ui.container.GridLayout
+        RightUnit                     matlab.ui.control.UIAxes
+        AllChRTab                     matlab.ui.container.Tab
+        TTabs                         matlab.ui.container.TabGroup
+        MainChTTab                    matlab.ui.container.Tab
+        GridMainChTTab                matlab.ui.container.GridLayout
+        Trace                         matlab.ui.control.UIAxes
+        AllChTTab                     matlab.ui.container.Tab
+        ControlTabs                   matlab.ui.container.TabGroup
+        GeneralTab                    matlab.ui.container.Tab
+        GridLayout2                   matlab.ui.container.GridLayout
+        DatascrubGrid                 matlab.ui.container.GridLayout
+        ScrubdataLabel                matlab.ui.control.Label
+        PreviousbatchButton           matlab.ui.control.Button
+        NextbatchButton               matlab.ui.control.Button
+        AutosortButton                matlab.ui.control.Button
+        uptoField                     matlab.ui.control.NumericEditField
+        ResortbatchButton             matlab.ui.control.Button
+        RefinebatchButton             matlab.ui.control.Button
+        GotobatchButton               matlab.ui.control.Button
+        GotobatchField                matlab.ui.control.NumericEditField
+        ManualGrid                    matlab.ui.container.GridLayout
+        ManualmanipulationLabel       matlab.ui.control.Label
+        DeleteunitButton              matlab.ui.control.Button
+        AddspikeButton                matlab.ui.control.Button
+        RemovespikeButton             matlab.ui.control.Button
+        SplitunitButton               matlab.ui.control.Button
+        MergeButton                   matlab.ui.control.Button
+        UnitscrubButton               matlab.ui.control.Button
+        RemoveplottedButton           matlab.ui.control.Button
+        SplitplottedButton            matlab.ui.control.Button
+        NewunitButton                 matlab.ui.control.Button
+        ForceaddButton                matlab.ui.control.Button
+        AutoGrid                      matlab.ui.container.GridLayout
+        AutomanipulationLabel         matlab.ui.control.Label
+        CleanupButton                 matlab.ui.control.Button
+        AutosplitButton               matlab.ui.control.Button
+        AutosplitBatchButton          matlab.ui.control.Button
+        AutosplitField                matlab.ui.control.NumericEditField
+        AutocreatejunkunitsButton     matlab.ui.control.Button
+        MarkasjunkButton              matlab.ui.control.Button
+        AutocreateunitsButton         matlab.ui.control.Button
+        ParametersDataTab             matlab.ui.container.Tab
+        GridLayout                    matlab.ui.container.GridLayout
+        ViewingGrid                   matlab.ui.container.GridLayout
+        SpikestotalLabel              matlab.ui.control.Label
+        SpikeshownField               matlab.ui.control.NumericEditField
+        PastbatchesLabel              matlab.ui.control.Label
+        PastbatchesField              matlab.ui.control.NumericEditField
+        DataviewingLabel              matlab.ui.control.Label
+        FuturebatchesLabel            matlab.ui.control.Label
+        FuturebatchesField            matlab.ui.control.NumericEditField
+        PlotallchButton               matlab.ui.control.StateButton
+        TraceylimitLabel              matlab.ui.control.Label
+        yLimLowField                  matlab.ui.control.NumericEditField
+        yLimHighField                 matlab.ui.control.NumericEditField
+        BatchSizesamplesLabel         matlab.ui.control.Label
+        BatchsizeEditField            matlab.ui.control.NumericEditField
+        ThresholdsGrid                matlab.ui.container.GridLayout
+        ThresholdsLabel               matlab.ui.control.Label
+        CurrentunitsLabel             matlab.ui.control.Label
+        OldField                      matlab.ui.control.NumericEditField
+        NewField                      matlab.ui.control.NumericEditField
+        NewunitLabel                  matlab.ui.control.Label
+        SpikedetectionEditFieldLabel  matlab.ui.control.Label
+        DetectThrEditField            matlab.ui.control.NumericEditField
+        FuzzyButton                   matlab.ui.control.StateButton
+        InfoGrid                      matlab.ui.container.GridLayout
+        BinaryEditField               matlab.ui.control.EditField
+        BinaryEditFieldLabel          matlab.ui.control.Label
+        SavenameEditFieldLabel        matlab.ui.control.Label
+        SavenameEditField             matlab.ui.control.EditField
+        BinarynamecopyButton          matlab.ui.control.Button
+        SavenamecopyButton            matlab.ui.control.Button
+        DatasummaryGrid               matlab.ui.container.GridLayout
+        ShowloadedtemplatesButton     matlab.ui.control.Button
+        ShowallButton                 matlab.ui.control.Button
+        DatasummaryLabel              matlab.ui.control.Label
+        UnitfreqButton                matlab.ui.control.Button
+        TemplategenerateionGrid       matlab.ui.container.GridLayout
+        FuturebatchesLabel_2          matlab.ui.control.Label
+        FuturebatchesTField           matlab.ui.control.NumericEditField
+        SpikestotalEditFieldLabel     matlab.ui.control.Label
+        SpikesusedEditField           matlab.ui.control.NumericEditField
+        TemplategenerationLabel       matlab.ui.control.Label
+        PastbatchesLabel_2            matlab.ui.control.Label
+        PastbatchesTField             matlab.ui.control.NumericEditField
     end
 
     
@@ -178,104 +178,6 @@
     end
     
     methods (Access = public)
-        
-        function [] = switchButtons(app, opt)
-            switch opt
-                case 0
-                    app.InitialiseMenu.Enable = 'off';
-                    app.LoadMenu.Enable = 'off';
-                case 1
-                    app.InitialiseMenu.Enable = 'on';
-                    app.LoadMenu.Enable = 'on';
-                    
-                case 2
-                    app.AddspikeButton.Enable = 'off';
-                    app.AddspikeMenu.Enable = 'off';
-                    app.AutosplitBatchButton.Enable = 'off';
-                    app.AutosplitButton.Enable = 'off';
-                    app.AutosplitMenu.Enable = 'off';
-                    app.BinarynamecopyButton.Enable = 'off';
-                    app.CleanupButton.Enable = 'off';
-                    app.DeleteunitButton.Enable = 'off';
-                    app.ForceaddButton.Enable = 'off';
-                    app.ForceaddMenu.Enable = 'off';
-                    app.GotobatchButton.Enable = 'off';
-                    app.LeftUnitDropDown.Enable = 'off';
-                    app.LoadtemplatesMenu.Enable = 'off';
-                    app.MergeButton.Enable = 'off';
-                    app.MergeMenu.Enable = 'off';
-                    app.NewunitButton.Enable = 'off';
-                    app.NewunitMenu.Enable = 'off';
-                    app.NextbatchButton.Enable = 'off';
-                    app.NextbatchMenu.Enable = 'off';
-                    app.PreviousbatchButton.Enable = 'off';
-                    app.PreviousbatchMenu.Enable = 'off';
-                    app.RefinebatchButton.Enable = 'off';
-                    app.RefinebatchMenu.Enable = 'off';
-                    app.RemoveplottedButton.Enable = 'off';
-                    app.RemovespikeButton.Enable = 'off';
-                    app.RemovespikeMenu.Enable = 'off';
-                    app.ResortbatchButton.Enable = 'off';
-                    app.RightUnitDropDown.Enable = 'off';
-                    app.SaveMenu.Enable = 'off';
-                    app.SavenamecopyButton.Enable = 'off';
-                    app.ScrubthroughunitMenu.Enable = 'off';
-                    app.ShowallButton.Enable = 'off';
-                    app.ShowloadedtemplatesButton.Enable = 'off';
-                    app.SplitMenu.Enable = 'off';
-                    app.SplitplottedButton.Enable = 'off';
-                    app.SplitunitButton.Enable = 'off';
-                    app.UndoredoMenu.Enable = 'off';
-                    app.UnitfreqButton.Enable = 'off';
-                    app.UnitfrequencyMenu.Enable = 'off';
-                    app.UnitscrubButton.Enable = 'off';
-                    app.AutosortButton.Enable = 'off';
-                case 3
-                    app.AddspikeButton.Enable = 'on';
-                    app.AddspikeMenu.Enable = 'on';
-                    app.AutosplitBatchButton.Enable = 'on';
-                    app.AutosplitButton.Enable = 'on';
-                    app.AutosplitMenu.Enable = 'on';
-                    app.BinarynamecopyButton.Enable = 'on';
-                    app.CleanupButton.Enable = 'on';
-                    app.DeleteunitButton.Enable = 'on';
-                    app.ForceaddButton.Enable = 'on';
-                    app.ForceaddMenu.Enable = 'on';
-                    app.GotobatchButton.Enable = 'on';
-                    app.LeftUnitDropDown.Enable = 'on';
-                    app.LoadtemplatesMenu.Enable = 'on';
-                    app.MergeButton.Enable = 'on';
-                    app.MergeMenu.Enable = 'on';
-                    app.NewunitButton.Enable = 'on';
-                    app.NewunitMenu.Enable = 'on';
-                    app.NextbatchButton.Enable = 'on';
-                    app.NextbatchMenu.Enable = 'off';
-                    app.PreviousbatchButton.Enable = 'on';
-                    app.PreviousbatchMenu.Enable = 'on';
-                    app.RefinebatchButton.Enable = 'on';
-                    app.RefinebatchMenu.Enable = 'on';
-                    app.RemoveplottedButton.Enable = 'on';
-                    app.RemovespikeButton.Enable = 'on';
-                    app.RemovespikeMenu.Enable = 'on';
-                    app.ResortbatchButton.Enable = 'on';
-                    app.RightUnitDropDown.Enable = 'on';
-                    app.SaveMenu.Enable = 'on';
-                    app.SavenamecopyButton.Enable = 'on';
-                    app.ScrubthroughunitMenu.Enable = 'on';
-                    app.ShowallButton.Enable = 'on';
-                    app.ShowloadedtemplatesButton.Enable = 'on';
-                    app.SplitMenu.Enable = 'on';
-                    app.SplitplottedButton.Enable = 'on';
-                    app.SplitunitButton.Enable = 'on';
-                    app.UndoredoMenu.Enable = 'on';
-                    app.UnitfreqButton.Enable = 'on';
-                    app.UnitfrequencyMenu.Enable = 'on';
-                    app.UnitscrubButton.Enable = 'on';
-                    app.AutosortButton.Enable = 'on';
-            end
-        end
-        
-        
         function [] = updateVars(app, newM, newT, newS)
             %    user input data
             app.StatusLabel.Value = "Loading...";
@@ -427,7 +329,7 @@
             app.readFilter(0, 0)
             app.redrawTracePlot();
             app.redrawUnitPlots();
-            app.switchButtons(3)
+            switchButtons(app,3)
         end
         
         
@@ -1105,7 +1007,7 @@
 
         % Code that executes after component creation
         function startupFcn(app)
-            app.switchButtons(2);
+            switchButtons(app,2);
             
             % generate colormap for nice colours and make coloure buttons
             % for left unit navigation - to do: make right click change
@@ -1219,7 +1121,7 @@
             % load dataset and initialise sorting session. See
             % initialisePopup for more info
             
-            app.switchButtons(0);
+            switchButtons(app,0);
             app.initialisePop = initialisePopup(app);
             
         end
@@ -1704,8 +1606,8 @@
             % them. See refineGUI for more information
             
             % stop user from interacting with main GUI while refining
-            app.switchButtons(0);
-            app.switchButtons(2);
+            switchButtons(app,0);
+            switchButtons(app,2);
             
             bl = app.t.batchLengths;
             c = app.currentBatch;
@@ -1908,7 +1810,7 @@
             
             app.StatusLabel.Value = "Loading...";
             drawnow
-            app.switchButtons(1)
+            switchButtons(app,1)
             
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load');
             figure(app.UIBase);
@@ -1959,7 +1861,7 @@
             drawnow
             
             app.saveLast();
-            app.switchButtons(1)
+            switchButtons(app,1)
             
             % load .mat file of a previous sorting
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as templates');
@@ -2314,7 +2216,7 @@
 
         % Menu selected function: HelpMenu
         function HelpMenuSelected(app, event)
-            web()
+            open('Dragonsort Documentation.docx');
             
         end
 
@@ -2585,8 +2487,8 @@
             
         end
 
-        % Button pushed function: AutocreatejunkunitsBETAButton
-        function AutocreatejunkunitsBETAButtonPushed(app, event)
+        % Button pushed function: AutocreatejunkunitsButton
+        function AutocreatejunkunitsButtonPushed(app, event)
             % auto-generates junk units using PCA then deviation index thresholding
             
             bl = app.t.batchLengths;
@@ -2636,8 +2538,8 @@
             
         end
 
-        % Button pushed function: CreateunitsBETAButton_2
-        function CreateunitsBETAButton_2Pushed(app, event)
+        % Button pushed function: AutocreateunitsButton
+        function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
             
             bl = app.t.batchLengths;
@@ -3270,13 +3172,13 @@
             app.AutosplitField.Layout.Column = 2;
             app.AutosplitField.Value = 3;
 
-            % Create AutocreatejunkunitsBETAButton
-            app.AutocreatejunkunitsBETAButton = uibutton(app.AutoGrid, 'push');
-            app.AutocreatejunkunitsBETAButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreatejunkunitsBETAButtonPushed, true);
-            app.AutocreatejunkunitsBETAButton.BackgroundColor = [1 0.0745 0.651];
-            app.AutocreatejunkunitsBETAButton.Layout.Row = 4;
-            app.AutocreatejunkunitsBETAButton.Layout.Column = [3 4];
-            app.AutocreatejunkunitsBETAButton.Text = 'Autocreate junk units (BETA)';
+            % Create AutocreatejunkunitsButton
+            app.AutocreatejunkunitsButton = uibutton(app.AutoGrid, 'push');
+            app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreatejunkunitsButtonPushed, true);
+            app.AutocreatejunkunitsButton.BackgroundColor = [1 0.0745 0.651];
+            app.AutocreatejunkunitsButton.Layout.Row = 4;
+            app.AutocreatejunkunitsButton.Layout.Column = [3 4];
+            app.AutocreatejunkunitsButton.Text = 'Autocreate junk units (BETA)';
 
             % Create MarkasjunkButton
             app.MarkasjunkButton = uibutton(app.AutoGrid, 'push');
@@ -3286,13 +3188,13 @@
             app.MarkasjunkButton.Layout.Column = [3 4];
             app.MarkasjunkButton.Text = 'Toggle left unit as junk';
 
-            % Create CreateunitsBETAButton_2
-            app.CreateunitsBETAButton_2 = uibutton(app.AutoGrid, 'push');
-            app.CreateunitsBETAButton_2.ButtonPushedFcn = createCallbackFcn(app, @CreateunitsBETAButton_2Pushed, true);
-            app.CreateunitsBETAButton_2.BackgroundColor = [1 0.0745 0.651];
-            app.CreateunitsBETAButton_2.Layout.Row = 3;
-            app.CreateunitsBETAButton_2.Layout.Column = [3 4];
-            app.CreateunitsBETAButton_2.Text = 'Autocreate units (BETA)';
+            % Create AutocreateunitsButton
+            app.AutocreateunitsButton = uibutton(app.AutoGrid, 'push');
+            app.AutocreateunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
+            app.AutocreateunitsButton.BackgroundColor = [1 0.0745 0.651];
+            app.AutocreateunitsButton.Layout.Row = 3;
+            app.AutocreateunitsButton.Layout.Column = [3 4];
+            app.AutocreateunitsButton.Text = 'Autocreate units (BETA)';
 
             % Create ParametersDataTab
             app.ParametersDataTab = uitab(app.ControlTabs);
