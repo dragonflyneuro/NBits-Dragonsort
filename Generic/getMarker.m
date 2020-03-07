@@ -3,7 +3,7 @@ function out = getMarker(maxN, n)
 % Picks out a marker style based on the maximum number of potential plots
 % 
 % INPUT
-% maxN = max number of potential plots
+% maxN = max number of plots for one marker type
 % n = the index of current plot
 % 
 % OUTPUT
@@ -17,7 +17,7 @@ switch rem(floor(n/(maxN+1)),5)
 	case 2
 		out = "square";
 	case 3
-		out = "o";
+		out = "p";
 	case 4
 		out = "diamond";
 end
