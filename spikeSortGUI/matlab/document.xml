@@ -551,11 +551,11 @@
                         if q % if there are spikes in the unit
                             set(app.pL, 'ButtonDownFcn', {@lineSelected1,app, app.wavesInBatches}) % click on spikes callback
                             app.pTL = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
-                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(str2double(u(ii)),:));
+                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
                             if size(app.xi,1) > 0 && app.PlotallchButton.Value
                                 for jj = 1:size(app.xi,1)
                                     line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
-                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(str2double(u(ii)),:));
+                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
                                 end
                             end
                         end
@@ -568,11 +568,11 @@
                         end
                         if ~strcmp(u(1), u(2)) && q % if left and right units are different
                             app.pTR = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
-                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(str2double(u(ii)),:));
+                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
                             if size(app.xi,1) > 0 && app.PlotallchButton.Value
                                 for jj = 1:size(app.xi,1)
                                     line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
-                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(str2double(u(ii)),:));
+                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
                                 end
                             end
                         end
@@ -589,8 +589,8 @@
                 
             end
             
-            app.LeftUnitDropDown.FontColor = app.cmap(str2double(u(1)),:);
-            app.RightUnitDropDown.FontColor = app.cmap(str2double(u(2)),:);
+            app.LeftUnitDropDown.FontColor = app.cmap(rem(str2double(u(1))-1,25)+1,:);
+            app.RightUnitDropDown.FontColor = app.cmap(rem(str2double(u(2))-1,25)+1,:);
             app.StatusLabel.Value = "Ready";
             drawnow
             if isempty(app.lastStep)
@@ -732,10 +732,12 @@
                 if ~isempty(tempUnit)
                     nii = str2double(ii);
                     ms = getMarker(size(app.cmap,1), nii);
-                    app.pAssigned(d) = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), 'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(nii,:));
+                    app.pAssigned(d) = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), ...
+                        'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(nii-1,25)+1,:));
                     if size(app.xi,1) > 0 && app.PlotallchButton.Value
                         for jj = 1:size(app.xi,1)
-                            line(app.spT(jj), tempUnit*app.msConvert, app.xi(jj,tempUnit), 'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(nii,:));
+                            line(app.spT(jj), tempUnit*app.msConvert, app.xi(jj,tempUnit), ...
+                                'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(nii-1,25)+1,:));
                         end
                     end
                     d = d+1;
@@ -846,7 +848,8 @@
             
             c = ismember(app.t.refineSettings{1},n);
             app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
-            app.t.refineSettings{2}([c end+1]) = 1;
+            app.t.refineSettings{2}(c) = 1;
+            app.t.refineSettings{2}(end+1) = 1;
             
             if ismember(n, app.s.junkNames)
                 app.s.junkNames(ismember(app.s.junkNames, n)) = [];
@@ -981,17 +984,17 @@
             yTemp = zeros(numClust,2);
             
             for ii = 1:numClust
-                ax(ii) = subplot(1,numClust,ii,'Parent',f);
+                ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
                 axis square;
                 line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w', 'Color', [0.8, 0.8, 0.8]);
                 line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w(clust==ii,:,app.m.mainCh)');
-                xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
+%                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
                 yTemp(ii,:) = ylim(ax(ii));
                 
                 if ii == 1
-                    title(ax(ii),"Unit "+n, 'Color', app.cmap(str2double(n),:));
+                    title(ax(ii),"Unit "+n, 'Color', app.cmap(rem(str2double(n)-1,25)+1,:));
                 else
-                    title(ax(ii),"Unit "+str2double(app.getMaxUnit(ii-1)), 'Color', app.cmap(str2double(app.getMaxUnit(ii-1)),:))
+                    title(ax(ii),"Unit "+str2double(app.getMaxUnit(ii-1)), 'Color', app.cmap(rem(str2double(app.getMaxUnit(ii-1))-1,25)+1,:))
                 end
             end
             
@@ -1021,7 +1024,7 @@
             % for left unit navigation - to do: make right click change
             % right unit
             app.cmap = distinguishable_colors(28);
-            app.cmap = app.cmap([2:3, 5:18, 20:end],:);
+            app.cmap = app.cmap([2:3, 5:18, 20:end],:); %remove colours that are too similar
             temp = cell(1,25);
             temp(:) = {'1x'};
             ColourGrid = uigridlayout(app.GridMain);
@@ -1141,14 +1144,16 @@
             app.StatusLabel.Value = "Adding unit...";
             drawnow
             
-            app.saveLast();
             app.incDropDown();
             app.LeftUnitDropDown.Value = app.getMaxUnit(0);
             title(app.LeftUnit, "");
             app.redrawUnitPlots();
+            
             app.s.clusters(end+1) = app.getMaxUnit(0);
             app.s.("unit_"+app.getMaxUnit(0)) = [];
             app.s.("waves_"+app.getMaxUnit(0)) = [];
+            app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
+            app.t.refineSettings{2}(end+1) = 1;
             
         end
 
@@ -1204,7 +1209,8 @@
                 tempUnit = app.s.("unit_"+ii)(unitSpikesInBatchBool) - offset;
                 if ~isempty(tempUnit)
                     nii = str2double(ii);
-                    line(ax, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), 'LineStyle', 'none', 'Marker', 'x', 'Color', app.cmap(nii,:));
+                    line(ax, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), ...
+                        'LineStyle', 'none', 'Marker', 'x', 'Color', app.cmap(rem(nii-1,25)+1,:));
                 end
             end
             
@@ -1245,16 +1251,8 @@
                 end
                 [matches,~] = newTemplateMatch(orphanWaves, templateWaves, app.m.sRateHz, app.t.add2UnitThr(2), app.FuzzyButton.Value);
                 if ~isempty(matches)
-                    if isfield(app.s,"unit_"+value)
-                        app.s.("unit_"+value)= [app.s.("unit_"+value) orphanSpikes(matches) + offset];
-                        app.s.("waves_"+value)= [app.s.("waves_"+value); orphanWaves(matches,:,:)];
-                    else
-                        app.s.clusters(end+1)=value;
-                        app.t.refineSettings{1}(end+1) = value;
-                        app.t.refineSettings{2}(end+1) = 1;
-                        app.s.("unit_"+value)=orphanSpikes(matches) + offset;
-                        app.s.("waves_"+value)=orphanWaves(matches,:,:);
-                    end
+                    app.s.("unit_"+value)= [app.s.("unit_"+value) orphanSpikes(matches) + offset];
+                    app.s.("waves_"+value)= [app.s.("waves_"+value); orphanWaves(matches,:,:)];
                     [app.s.("unit_"+value), I, ~] = unique(app.s.("unit_"+value));
                     app.s.("waves_"+value) = app.s.("waves_"+value)(I,:,:);
                 end
@@ -1359,7 +1357,7 @@
             % assignment of spikes or not
             
             value = app.LeftUnitDropDown.Value;
-            if ~any(strcmp(value,app.s.clusters))
+            if isempty(app.s.("unit_"+value))
                 app.StatusLabel.Value = "Left unit is empty!";
                 return;
             end
@@ -1396,7 +1394,7 @@
             % batch - out-of-batch spikes will remain in left unit
             
             value = app.LeftUnitDropDown.Value;
-            if ~any(strcmp(value,app.s.clusters))
+            if isempty(app.s.("unit_"+value))
                 app.StatusLabel.Value = "Left unit is empty!";
                 return;
             end
@@ -1464,9 +1462,7 @@
             if ~ismember(valueR, app.s.junkNames)
                 app.s.junkNames(end+1) = valueR;
             end
-            c = ismember(app.t.refineSettings{1},valueR);
-            app.t.refineSettings{1}(c) = 1;
-            app.t.refineSettings{2}(c) = 1;
+            app.t.refineSettings{2}(ismember(app.t.refineSettings{1},valueR)) = 1;
             
             % if there were imported templates, remove template for
             % right unit and assign template for the left unit to
@@ -1808,7 +1804,7 @@
             f2 = figure; set(gcf, 'Position',  [1100, 200, 700, 600]);
             
             for ii=1:length(unitsToPlot)
-                iiCmap=app.cmap(ii,:);
+                iiCmap=app.cmap(rem(ii-1,25)+1,:);
                 ms = getMarker(size(app.cmap,1), ii);
                 title(ax(ii), 'Unit '+unitsToPlot(ii)+" "+ ms +" ("+length(app.s.("unit_"+unitsToPlot(ii)))+")",'Color',iiCmap);
                 clusPC = app.s.("waves_"+unitsToPlot(ii))(:,:,app.m.mainCh)*PC(:,1:3);
@@ -1976,7 +1972,7 @@
             if any(strcmp(value,app.s.clusters))
                 app.redrawUnitPlots();
             else % if unit has not been fully initialised
-                app.LeftUnitDropDown.FontColor = app.cmap(str2double(value),:);
+                app.LeftUnitDropDown.FontColor = app.cmap(rem(str2double(value)-1,25)+1,:);
             end
             
         end
@@ -1988,7 +1984,7 @@
             if any(strcmp(value,app.s.clusters))
                 app.redrawUnitPlots();
             else % if unit has not been fully initialised
-                app.LeftUnitDropDown.FontColor = app.cmap(str2double(value),:);
+                app.LeftUnitDropDown.FontColor = app.cmap(rem(str2double(value)-1,25)+1,:);
             end
             
         end
@@ -2264,7 +2260,7 @@
             f = figure; ax = axes; set(f, 'Position',  [200, 200, 900, 700]);
             
             for ii=1:length(app.s.clusters)
-                iiCmap = app.cmap(ii,:);
+                iiCmap = app.cmap(rem(ii-1,25)+1,:);
                 ms = getMarker(size(app.cmap,1), ii);
                 numInBatch = zeros(1,length(bl)); % number of spikes in each unit in each batch
                 for jj = 1:length(bl)
@@ -2419,7 +2415,7 @@
                 ax(2*ii-1) = subplott(sp,4,2*ii-1);
                 ax(2*ii) = subplott(sp,4,2*ii);
                 ms = getMarker(size(app.cmap,1), ii);
-                iiCmap=app.cmap(ii,:);
+                iiCmap=app.cmap(rem(ii-1,25)+1,:);
                 
                 % plot random selection of up to 600 waveforms in unit
                 waves = app.s.("waves_"+iiUnit)(:,:,app.m.mainCh);
