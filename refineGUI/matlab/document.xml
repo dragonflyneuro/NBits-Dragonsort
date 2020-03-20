@@ -113,7 +113,7 @@
                 app.d.spikeAssignmentUnit(noStealIdx) = noStealVal;
             end
             
-            app.f = refinePlot(app.p.xi, app.p.m, app.p.s.clusters, app.p.spikesInBatch, w, app.p.spikeClustInBatch, app.f, app.d);
+            app.f = refinePlot(app.p.xi, app.p.m, app.p.s.clusters, app.p.spikesInBatch, w, app.p.spikeClustInBatch, app.f, app.d, app.p.yL);
             
             app.iterations = app.iterations + 1;
             

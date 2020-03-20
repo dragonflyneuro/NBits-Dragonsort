@@ -1635,6 +1635,7 @@
             in.t = app.t;
             in.rawSpikeWaves = app.rawSpikeWaves;
             in.currentBatch = c;
+            in.yL = [app.yLimLowField, app.yLimHighField];
             
             in.spikesInBatch = app.t.rawSpikeSample(spikesInBatch) - offset;
             in.orphansInBatchBool = app.t.orphanBool(spikesInBatch);
@@ -1787,6 +1788,13 @@
             
             % edit xlim and ylim of figures to match
             yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
+            if ~isinf(app.yLimLowField)
+                yTemp(1) = app.yLimLowField;
+            end
+            if ~isinf(app.yLimHighField)
+                yTemp(2) = app.yLimHighField;
+            end
+            
             for ii = 1:length(unitsToPlot)
                 ylim(ax(ii), yTemp);
                 ylim(yTemp);
@@ -1794,6 +1802,7 @@
                 xlim(ax(ii), [-app.m.spikeWidth app.m.spikeWidth]);
                 set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
             end
+            
             sgtitle('Units found - max 600 random spikes plotted');
             
             % plot PCA of spikes, colour and marker coded by units
@@ -2444,6 +2453,13 @@
             
             % edit xlim and ylim of figures to match
             yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
+            if ~isinf(app.yLimLowField)
+                yTemp(1) = app.yLimLowField;
+            end
+            if ~isinf(app.yLimHighField)
+                yTemp(2) = app.yLimHighField;
+            end
+            
             for ii = 1:length(ax)
                 ylim(ax(ii), yTemp);
                 ylim(yTemp); %axis square;
