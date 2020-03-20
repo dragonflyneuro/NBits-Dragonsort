@@ -1,4 +1,4 @@
-function f = refinePlot(X, m, unitNames, rawSpikeIdx, orphanWaves, preAssignment, f,  d)
+function f = refinePlot(X, m, unitNames, rawSpikeIdx, orphanWaves, preAssignment, f,  d, yL)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Plots the results of each round of spike sorting refine process with
 % Dragonsort
@@ -59,6 +59,12 @@ for ii=1:length(unitNames)
 end
 
 yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
+if ~isinf(yL(1))
+    yTemp(1) = yL(1);
+end
+if ~isinf(yL(2))
+    yTemp(2) = yL(2);
+end
 for ii = 1:length(unitNames)
 	subplott(sp,7,ii)
 	ylim(gca, yTemp);
