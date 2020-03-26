@@ -1788,13 +1788,14 @@
             
             % edit xlim and ylim of figures to match
             yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-            if ~isinf(app.yLimLowField)
-                yTemp(1) = app.yLimLowField;
-            end
-            if ~isinf(app.yLimHighField)
-                yTemp(2) = app.yLimHighField;
-            end
             
+            if ~isinf(app.yLimLowField.Value)
+                yTemp(1) = app.yLimLowField.Value;
+            end
+            if ~isinf(app.yLimHighField.Value)
+                yTemp(2) = app.yLimHighField.Value;
+            end
+                
             for ii = 1:length(unitsToPlot)
                 ylim(ax(ii), yTemp);
                 ylim(yTemp);
