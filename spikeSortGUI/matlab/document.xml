@@ -1245,7 +1245,7 @@
             x(1,:) = orphanSpikes*app.msConvert;
             y(1,:) = app.xi(app.m.mainCh,orphanSpikes);
             %    x(2,:) = nan;  y(2,:) = nan;
-            h = line(ax, x, y,'Color', 'k', 'Marker', 'x', 'LineStyle', 'none');
+            h = line(ax, x, y,'Color', 'k', 'Marker', '.', 'LineStyle', 'none');
             %    set(h, 'ButtonDownFcn', @pointSelected1)
             
             yl = ylim(app.Trace);
@@ -1268,7 +1268,7 @@
             app.saveLast();
             
             templateWaves = orphanWaves(I,:,:);
-            
+            assignedSpikes = spikesInBatch(orphansInBatchBool);
             if event.Source.UserData == 1 % go through deviation matching to add new spikes to unit
                 % add loaded template waves if they exist for this unit
                 if isfield(app.t,"template"+value)
@@ -1276,20 +1276,21 @@
                 end
                 [matches,~] = newTemplateMatch(orphanWaves, templateWaves, app.m.sRateHz, app.t.add2UnitThr(2), app.FuzzyButton.Value);
                 if ~isempty(matches)
-                    app.s.("unit_"+value)= [app.s.("unit_"+value) orphanSpikes(matches) + offset];
+                    app.s.("unit_"+value)= [app.s.("unit_"+value), orphanSpikes(matches) + offset];
                     app.s.("waves_"+value)= [app.s.("waves_"+value); orphanWaves(matches,:,:)];
-                    [app.s.("unit_"+value), I, ~] = unique(app.s.("unit_"+value));
-                    app.s.("waves_"+value) = app.s.("waves_"+value)(I,:,:);
                 end
-                assignedSpikes = spikesInBatch(matches);
+                assignedSpikes = assignedSpikes(matches);
                 
             elseif event.Source.UserData == 2 % force add spikes to unit - no deviation matching
-                app.s = forceAdd(app.s, I + offset, orphanWaves(I,:,:), str2double(value));
-                assignedSpikes = spikesInBatch(I);
+                app.s = forceAdd(app.s, orphanSpikes(I) + offset, orphanWaves(I,:,:), str2double(value));
+                assignedSpikes = assignedSpikes(I);
             end
             
+            [app.s.("unit_"+value), idx, ~] = unique(app.s.("unit_"+value));
+            app.s.("waves_"+value) = app.s.("waves_"+value)(idx,:,:);
             app.t.orphanBool(assignedSpikes) = 0;
             app.t.spikeClust(assignedSpikes) = str2double(value);
+            
             app.redrawTracePlot();
             app.redrawUnitPlots();
             

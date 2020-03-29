@@ -15,7 +15,7 @@ function [matchesIdx,deviationIdx] = newTemplateMatch(orphanWaves, templateWaves
 % 		FORMAT {1, 0}
 % 
 % OUTPUT
-% matchesIdx = index within elements of orphanSpikes that match templateWaves
+% matchesIdx = index within elements of orphanWaves that match templateWaves
 % deviationIdx = deviation metric of each row of orphanWaves used in matching
 
 % call template matcher
