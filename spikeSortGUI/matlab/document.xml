@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef spikeSortGUI < matlab.apps.AppBase
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef spikesortGUI < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -114,8 +114,9 @@
         NewField                      matlab.ui.control.NumericEditField
         NewunitLabel                  matlab.ui.control.Label
         SpikedetectionEditFieldLabel  matlab.ui.control.Label
-        DetectThrEditField            matlab.ui.control.NumericEditField
+        DetectThr1EditField           matlab.ui.control.NumericEditField
         FuzzyButton                   matlab.ui.control.StateButton
+        DetectThr2EditField           matlab.ui.control.NumericEditField
         InfoGrid                      matlab.ui.container.GridLayout
         BinaryEditField               matlab.ui.control.EditField
         BinaryEditFieldLabel          matlab.ui.control.Label
@@ -243,7 +244,7 @@
                     if contains(tNames{ii}, ["spikeBatchNum","spikeIdxInBatch"])
                         batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
                         app.t.batchLengths = [app.t.batchSize*ones(1, batchNum),  app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum]; %in samples
-                        bL = [0 app.t.batchLengths];
+                        bL = [0 cumsum(app.t.batchLengths)];
                         app.t.numSpikesInBatch = [];
                         if isfield(newT,"rawSpikeIdx")
                             for jj = 1:length(newT.spikeClust)
@@ -260,9 +261,13 @@
                     end
                 end
                 
-                %%%LEGACY CHECKS%%%
+                
             end
             
+            if length(app.t.detectThr) == 1
+                app.t.detectThr(2) = -inf;
+            end
+            %%%LEGACY CHECKS%%%
             %   import raw data
             app.fid = fopen([app.m.fP app.m.fN],'r');
             fileNotFound = 1;
@@ -301,6 +306,7 @@
             
             
             %    derived data
+            app.t.detectThr = sort(app.t.detectThr);
             app.currentBatch = 1;
             batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
             app.t.batchLengths = [app.t.batchSize*ones(1, batchNum), app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum];
@@ -318,7 +324,8 @@
             app.BatchsizeEditField.Value = app.t.batchSize;
             app.OldField.Value = app.t.add2UnitThr(1);
             app.NewField.Value = app.t.add2UnitThr(2);
-            app.DetectThrEditField.Value = app.t.detectThr;
+            app.DetectThr1EditField.Value = app.t.detectThr(1);
+            app.DetectThr2EditField.Value = app.t.detectThr(2);
             app.BinaryEditField.Value = app.m.fN;
             app.SavenameEditField.Value ="sorting_" + erase(app.m.fN,'.bin') + suffix;
             app.LeftUnitDropDown.Items = "1";
@@ -391,30 +398,27 @@
             filtRMS=rms(app.xi,2);
             fprintf('Filtered Data [%i/%i]: \t STD: %.4f, \t RMS: %.4f \n', c, length(bl), filtSTD,filtRMS);
             
-            [~, detectedSpikes] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr, -1); % aligned to negative peak
+            [~, detectedSpikes] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
             detectedSpikes = detectedSpikes(detectedSpikes > app.m.spikeWidth+1);
+            detectedSpikes(app.xi(app.m.mainCh,detectedSpikes) < app.t.detectThr(1)) = [];
             offsetSpikes = detectedSpikes + sum(bl(1:c-1));
             
             oldSpikeRange = [sum(app.t.numSpikesInBatch(1:c-1))+1, sum(app.t.numSpikesInBatch(1:c))];
             if length(offsetSpikes) ~= diff(oldSpikeRange)+1
                 app.t.numSpikesInBatch(c) = length(offsetSpikes);
                 newSpikeClust = zeros(size(offsetSpikes));
-                for ii = app.s.clusters
-                    newSpikeClust = newSpikeClust + str2double(ii)*ismember(offsetSpikes, app.s.("unit_"+ii));
-                    unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+ii) & app.s.("unit_"+ii) <= sum(bl(1:c));
-                    deletedSpikes = unitSpikesInBatchBool & ~ismember(app.s.("unit_"+ii), offsetSpikes);
-                    app.s.("unit_"+ii)(deletedSpikes) = [];
-                    app.s.("waves_"+ii)(deletedSpikes,:) = [];
+                if diff(oldSpikeRange)+1 ~= 0
+                    for ii = app.s.clusters
+                        newSpikeClust = newSpikeClust + str2double(ii)*ismember(offsetSpikes, app.s.("unit_"+ii));
+                        unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+ii) & app.s.("unit_"+ii) <= sum(bl(1:c));
+                        deletedSpikes = unitSpikesInBatchBool & ~ismember(app.s.("unit_"+ii), offsetSpikes);
+                        app.s.("unit_"+ii)(deletedSpikes) = [];
+                        app.s.("waves_"+ii)(deletedSpikes,:) = [];
+                    end
                 end
                 app.t.spikeClust = insertLongArrays(app.t.spikeClust, newSpikeClust, oldSpikeRange);
                 app.t.orphanBool = insertLongArrays(app.t.orphanBool, ~logical(newSpikeClust), oldSpikeRange);
                 app.t.rawSpikeSample = insertLongArrays(app.t.rawSpikeSample, offsetSpikes, oldSpikeRange);
-            else
-                app.t.numSpikesInBatch(c) = length(offsetSpikes);
-                app.t.rawSpikeSample = [app.t.rawSpikeSample, offsetSpikes];
-                app.rawSpikeWaves = double.empty(0,2*app.m.spikeWidth+1,size(app.xi,1));
-                app.t.orphanBool = [app.t.orphanBool, true(size(offsetSpikes))];
-                app.t.spikeClust = [app.t.spikeClust, zeros(size(offsetSpikes))];
             end
             
             app.rawSpikeWaves = [];
@@ -578,8 +582,18 @@
                         end
                     end
                     
-                    %      prettify axes
-                    yl(1) = min(min(tempWaves(:,:,app.m.mainCh)))-50; yl(2) = max(max(tempWaves(:,:,app.m.mainCh)))+50;
+                    %      prettify axes          
+                    if ~isinf(app.yLimLowField.Value)
+                        yl(1) = app.yLimLowField.Value;
+                    else
+                        yl(1) = min(min(tempWaves(:,:,app.m.mainCh)))-50;
+                    end
+                    if ~isinf(app.yLimHighField.Value)
+                        yl(2) = app.yLimHighField.Value;
+                    else
+                        yl(2) = max(max(tempWaves(:,:,app.m.mainCh)))+50;
+                    end
+            
                     step = 50*ceil((yl(2) - yl(1))/500);
                     ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
                     ylim(h(ii),yl);
@@ -1000,6 +1014,14 @@
             
             % match ylim of each subplot
             yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
+            
+            if ~isinf(app.yLimLowField.Value)
+                yTemp(1) = app.yLimLowField.Value;
+            end
+            if ~isinf(app.yLimHighField.Value)
+                yTemp(2) = app.yLimHighField.Value;
+            end
+            
             for ii = 1:numClust
                 ylim(ax(ii), yTemp);
                 axis(ax,'square');
@@ -1226,6 +1248,9 @@
             h = line(ax, x, y,'Color', 'k', 'Marker', 'x', 'LineStyle', 'none');
             %    set(h, 'ButtonDownFcn', @pointSelected1)
             
+            yl = ylim(app.Trace);
+            ylim(ax, yl);
+                
             app.StatusLabel.Value = "Click on black spikes to add to unit, *HOTKEYS* 1: Zoom, 2: Zoom out, 3: Pan, 4: Pointer";
             drawnow
             
@@ -1635,7 +1660,7 @@
             in.t = app.t;
             in.rawSpikeWaves = app.rawSpikeWaves;
             in.currentBatch = c;
-            in.yL = [app.yLimLowField, app.yLimHighField];
+            in.yL = [app.yLimLowField.Value, app.yLimHighField.Value];
             
             in.spikesInBatch = app.t.rawSpikeSample(spikesInBatch) - offset;
             in.orphansInBatchBool = app.t.orphanBool(spikesInBatch);
@@ -2118,7 +2143,8 @@
             app.m = app.lastStep.m;
             app.t = app.lastStep.t;
             app.currentBatch = app.lastStep.currentBatch;
-            app.DetectThrEditField.Value = app.t.detectThr;
+            app.DetectThr1EditField.Value = app.t.detectThr(1);
+            app.DetectThr2EditField.Value = app.t.detectThr(2);
             app.BatchsizeEditField.Value = app.t.batchSize;
             app.LeftUnitDropDown.Items = app.lastStep.LI;
             app.RightUnitDropDown.Items = app.lastStep.RI;
@@ -2311,13 +2337,14 @@
             
         end
 
-        % Value changed function: DetectThrEditField
-        function DetectThrEditFieldValueChanged(app, event)
+        % Value changed function: DetectThr1EditField, 
+        % DetectThr2EditField
+        function DetectThr1EditFieldValueChanged(app, event)
             % re-detect spikes that are below the new amplitude threshold
-            value = app.DetectThrEditField.Value;
-            if value < app.t.detectThr % remove prior detected spikes that are now below the threshold
+            value = sort([app.DetectThr1EditField.Value, app.DetectThr2EditField.Value]);
+            if value(2) < app.t.detectThr(2) || value(1) > app.t.detectThr(1) % remove prior detected spikes that are now below the threshold
                 % warn user that spikes are about to be deleted
-                msg = 'You are about to decrease spike detection threshold, resulting in potential deletion of assigned spikes. Continue?';
+                msg = 'You are about to change spike detection threshold in a way that can result in deletion of assigned spikes. Continue?';
                 title = 'Warning - spikes in danger';
                 selection = uiconfirm(app.UIBase,msg,title,"Icon","warning");
                 
@@ -2328,21 +2355,24 @@
                     app.saveLast();
                     app.t.detectThr = value;
                     for ii = app.s.clusters
-                        outBool = app.s.("waves_"+ii)(:,ceil(size(app.s.("waves_"+ii),2)/2),app.m.mainCh) > app.t.detectThr;
-                        locInSpikeClust = find(app.t.spikeClust == str2double(ii));
-                        app.t.spikeClust(locInSpikeClust(outBool)) = 0;
-                        app.t.orphanBool(locInSpikeClust(outBool)) = true;
-                        app.s.("unit_"+ii)(outBool) = [];
-                        app.s.("waves_"+ii)(outBool,:,:) = [];
+                        if ~isempty(app.s.("waves_"+ii))
+                            outBool = app.s.("waves_"+ii)(:,ceil(size(app.s.("waves_"+ii),2)/2),app.m.mainCh) > app.t.detectThr(2);
+                            outBool = outBool | app.s.("waves_"+ii)(:,ceil(size(app.s.("waves_"+ii),2)/2),app.m.mainCh) < app.t.detectThr(1);
+                            locInSpikeClust = find(app.t.spikeClust == str2double(ii));
+                            app.t.spikeClust(locInSpikeClust(outBool)) = 0;
+                            app.t.orphanBool(locInSpikeClust(outBool)) = true;
+                            app.s.("unit_"+ii)(outBool) = [];
+                            app.s.("waves_"+ii)(outBool,:,:) = [];
+                        end
                     end
                     app.readFilter(-app.m.nChans*app.m.dbytes*size(app.xi,2),0);
                     app.unitRefactorer();
                     app.redrawTracePlot();
                     app.redrawUnitPlots();
                 else
-                    app.DetectThrEditField.Value = app.t.detectThr;
+                    app.DetectThr1EditField.Value = app.t.detectThr(1);
+                    app.DetectThr2EditField.Value = app.t.detectThr(2);
                 end
-                app.StatusLabel.Value = "NOT SUPPORTED YET";
             else
                 app.StatusLabel.Value = "Spike detection amplitude changing...";
                 drawnow
@@ -2454,11 +2484,12 @@
             
             % edit xlim and ylim of figures to match
             yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-            if ~isinf(app.yLimLowField)
-                yTemp(1) = app.yLimLowField;
+            
+            if ~isinf(app.yLimLowField.Value)
+                yTemp(1) = app.yLimLowField.Value;
             end
-            if ~isinf(app.yLimHighField)
-                yTemp(2) = app.yLimHighField;
+            if ~isinf(app.yLimHighField.Value)
+                yTemp(2) = app.yLimHighField.Value;
             end
             
             for ii = 1:length(ax)
@@ -2529,7 +2560,7 @@
             end
             
             % ask user for amplitude cutoff point for spikes used in unit generation
-            prompt = 'Create junk units from spikes with peak amplitude above (uV):';
+            prompt = 'Create junk units from spikes with peak amplitude MORE +VE than (uV):';
             dlgtitle = 'Create junk units';
             dims = [1 35];
             answer = inputdlg(prompt,dlgtitle,dims);
@@ -2578,7 +2609,7 @@
             end
             
             % ask user for amplitude cutoff point for spikes used in unit generation
-            prompt = 'Create k units from spikes with peak amplitude below (uV):';
+            prompt = 'Create k units from spikes with peak amplitude MORE -VE than (uV):';
             dlgtitle = 'Create units';
             dims = [1 35];
             answer = inputdlg(prompt,dlgtitle,dims);
@@ -2622,7 +2653,12 @@
 
         % Value changed function: yLimHighField, yLimLowField
         function yLimLowFieldValueChanged(app, event)
-            ylim(app.Trace, [app.yLimLowField.Value, app.yLimHighField.Value]);
+            newYL = sort([app.yLimLowField.Value, app.yLimHighField.Value]);
+            ylim(app.Trace, newYL);
+            ylim(app.LeftUnit, newYL);
+            ylim(app.RightUnit, newYL);
+            app.yLimLowField.Value = newYL(1);
+            app.yLimHighField.Value = newYL(2);
             
         end
     end
@@ -3226,7 +3262,7 @@
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.ParametersDataTab);
-            app.GridLayout.RowHeight = {45, '1x', '1x', '0.7x'};
+            app.GridLayout.RowHeight = {45, '1x', '0.8x', '0.7x'};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [3 3 3 3];
@@ -3341,7 +3377,7 @@
 
             % Create ThresholdsGrid
             app.ThresholdsGrid = uigridlayout(app.GridLayout);
-            app.ThresholdsGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
+            app.ThresholdsGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x'};
             app.ThresholdsGrid.ColumnSpacing = 2;
             app.ThresholdsGrid.RowSpacing = 2;
             app.ThresholdsGrid.Padding = [0 0 0 0];
@@ -3388,16 +3424,16 @@
 
             % Create SpikedetectionEditFieldLabel
             app.SpikedetectionEditFieldLabel = uilabel(app.ThresholdsGrid);
-            app.SpikedetectionEditFieldLabel.HorizontalAlignment = 'right';
+            app.SpikedetectionEditFieldLabel.HorizontalAlignment = 'center';
             app.SpikedetectionEditFieldLabel.Layout.Row = 5;
-            app.SpikedetectionEditFieldLabel.Layout.Column = 1;
+            app.SpikedetectionEditFieldLabel.Layout.Column = [1 2];
             app.SpikedetectionEditFieldLabel.Text = 'Spike detection';
 
-            % Create DetectThrEditField
-            app.DetectThrEditField = uieditfield(app.ThresholdsGrid, 'numeric');
-            app.DetectThrEditField.ValueChangedFcn = createCallbackFcn(app, @DetectThrEditFieldValueChanged, true);
-            app.DetectThrEditField.Layout.Row = 5;
-            app.DetectThrEditField.Layout.Column = 2;
+            % Create DetectThr1EditField
+            app.DetectThr1EditField = uieditfield(app.ThresholdsGrid, 'numeric');
+            app.DetectThr1EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
+            app.DetectThr1EditField.Layout.Row = 6;
+            app.DetectThr1EditField.Layout.Column = 1;
 
             % Create FuzzyButton
             app.FuzzyButton = uibutton(app.ThresholdsGrid, 'state');
@@ -3406,6 +3442,12 @@
             app.FuzzyButton.Layout.Row = 4;
             app.FuzzyButton.Layout.Column = [1 2];
             app.FuzzyButton.Value = true;
+
+            % Create DetectThr2EditField
+            app.DetectThr2EditField = uieditfield(app.ThresholdsGrid, 'numeric');
+            app.DetectThr2EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
+            app.DetectThr2EditField.Layout.Row = 6;
+            app.DetectThr2EditField.Layout.Column = 2;
 
             % Create InfoGrid
             app.InfoGrid = uigridlayout(app.GridLayout);
@@ -3567,7 +3609,7 @@
     methods (Access = public)
 
         % Construct app
-        function app = spikeSortGUI
+        function app = spikesortGUI
 
             % Create UIFigure and components
             createComponents(app)

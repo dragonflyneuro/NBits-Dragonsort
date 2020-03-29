@@ -21,8 +21,8 @@
         FileLabel                     matlab.ui.control.Label
         LengthofloadeddatablocksamplesEditFieldLabel  matlab.ui.control.Label
         SplitlengthEditField          matlab.ui.control.NumericEditField
-        SimpleamplitudeThresholduVEditFieldLabel  matlab.ui.control.Label
-        AmpthresholdEditField         matlab.ui.control.NumericEditField
+        SpikeamplituderangeuVLabel    matlab.ui.control.Label
+        Ampthreshold1EditField        matlab.ui.control.NumericEditField
         NewtemplatethresholdhigherlenientEditFieldLabel  matlab.ui.control.Label
         NewtemplateEditField          matlab.ui.control.NumericEditField
         AddtotemplatethresholdhigherlenientEditFieldLabel  matlab.ui.control.Label
@@ -33,6 +33,7 @@
         echEditField                  matlab.ui.control.EditField
         MultiplieronyscaleyaxisisinuVLabel  matlab.ui.control.Label
         ScaleEditField                matlab.ui.control.NumericEditField
+        Ampthreshold2EditField        matlab.ui.control.NumericEditField
         FilteringoptionsTab           matlab.ui.container.Tab
         GridLayout                    matlab.ui.container.GridLayout
         FilterlengthinsamplesEditFieldLabel  matlab.ui.control.Label
@@ -127,7 +128,7 @@
             app.initt.saveNameSuffix = app.SuffixEditField.Value;
             app.initt.yscale = app.ScaleEditField.Value;
             app.initt.batchSize = app.SplitlengthEditField.Value;
-            app.initt.detectThr = app.AmpthresholdEditField.Value;
+            app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
             
             app.InitialiseButton.Enable = "off";
             updateVars(app.CallingApp, app.initm, app.initt, []);
@@ -269,18 +270,18 @@
             app.SplitlengthEditField.Layout.Column = 4;
             app.SplitlengthEditField.Value = 6000000;
 
-            % Create SimpleamplitudeThresholduVEditFieldLabel
-            app.SimpleamplitudeThresholduVEditFieldLabel = uilabel(app.GridLayout2);
-            app.SimpleamplitudeThresholduVEditFieldLabel.HorizontalAlignment = 'right';
-            app.SimpleamplitudeThresholduVEditFieldLabel.Layout.Row = 11;
-            app.SimpleamplitudeThresholduVEditFieldLabel.Layout.Column = [2 3];
-            app.SimpleamplitudeThresholduVEditFieldLabel.Text = 'Simple amplitude Threshold (uV)';
+            % Create SpikeamplituderangeuVLabel
+            app.SpikeamplituderangeuVLabel = uilabel(app.GridLayout2);
+            app.SpikeamplituderangeuVLabel.HorizontalAlignment = 'right';
+            app.SpikeamplituderangeuVLabel.Layout.Row = 11;
+            app.SpikeamplituderangeuVLabel.Layout.Column = [2 3];
+            app.SpikeamplituderangeuVLabel.Text = 'Spike amplitude range (uV)';
 
-            % Create AmpthresholdEditField
-            app.AmpthresholdEditField = uieditfield(app.GridLayout2, 'numeric');
-            app.AmpthresholdEditField.Layout.Row = 11;
-            app.AmpthresholdEditField.Layout.Column = 4;
-            app.AmpthresholdEditField.Value = -80;
+            % Create Ampthreshold1EditField
+            app.Ampthreshold1EditField = uieditfield(app.GridLayout2, 'numeric');
+            app.Ampthreshold1EditField.Layout.Row = 11;
+            app.Ampthreshold1EditField.Layout.Column = 4;
+            app.Ampthreshold1EditField.Value = -Inf;
 
             % Create NewtemplatethresholdhigherlenientEditFieldLabel
             app.NewtemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2);
@@ -345,6 +346,12 @@
             app.ScaleEditField.Layout.Row = 15;
             app.ScaleEditField.Layout.Column = 4;
             app.ScaleEditField.Value = 1;
+
+            % Create Ampthreshold2EditField
+            app.Ampthreshold2EditField = uieditfield(app.GridLayout2, 'numeric');
+            app.Ampthreshold2EditField.Layout.Row = 11;
+            app.Ampthreshold2EditField.Layout.Column = 5;
+            app.Ampthreshold2EditField.Value = -80;
 
             % Create FilteringoptionsTab
             app.FilteringoptionsTab = uitab(app.TabGroup);
