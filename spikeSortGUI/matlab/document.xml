@@ -700,7 +700,7 @@
                 %    x(2,:) = nan;
                 %    y(2,:) = nan;
                 
-                app.pUnassigned = line(app.Trace, x, y,'Color', 'k', 'Marker', 'x', 'LineStyle', 'none');
+                app.pUnassigned = line(app.Trace, x, y,'Color', 'k', 'Marker', '.', 'LineStyle', 'none');
                 xlim(app.Trace, [0 app.msConvert*size(app.xi,2)]);
                 
                 yl = ylim(app.Trace);
@@ -1284,7 +1284,7 @@
                 assignedSpikes = spikesInBatch(matches);
                 
             elseif event.Source.UserData == 2 % force add spikes to unit - no deviation matching
-                app.s = forceAdd(app.s, I + offset, str2double(value));
+                app.s = forceAdd(app.s, I + offset, orphanWaves(I,:,:), str2double(value));
                 assignedSpikes = spikesInBatch(I);
             end
             
