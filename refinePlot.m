@@ -75,6 +75,7 @@ for ii = 1:length(unitNames)
 		ylabel("Amplitude (uV)");
 	end
 end
+subplott(sp,7,sp*7+(-6:0)); ylim(gca, yTemp);
 sgtitle({"Spikes assigned: "+tally+";  Spikes leftover: "+(length(rawSpikeIdx) + preAssignedNum - tally)});
 
 end

@@ -2,37 +2,39 @@
 
     % Properties that correspond to app components
     properties (Access = public)
-        SortingrefinerUIFigure      matlab.ui.Figure
-        GridLayout                  matlab.ui.container.GridLayout
-        GridLayout2                 matlab.ui.container.GridLayout
-        LockoriginalButton          matlab.ui.control.StateButton
-        ScalingdirectionLabel       matlab.ui.control.Label
-        DownButton                  matlab.ui.control.Button
-        UpButton                    matlab.ui.control.Button
+        SortingrefinerUIFigure          matlab.ui.Figure
+        GridLayout                      matlab.ui.container.GridLayout
+        GridLayout2                     matlab.ui.container.GridLayout
+        LockoriginalButton              matlab.ui.control.StateButton
+        ScalingdirectionLabel           matlab.ui.control.Label
+        DownButton                      matlab.ui.control.Button
+        UpButton                        matlab.ui.control.Button
         ScalingmultiplierEditFieldLabel  matlab.ui.control.Label
-        ScalingmultiplierEditField  matlab.ui.control.NumericEditField
-        DoneButton                  matlab.ui.control.Button
-        devHist1DropDownLabel       matlab.ui.control.Label
-        devHist1DropDown            matlab.ui.control.DropDown
-        devHist2DropDownLabel       matlab.ui.control.Label
-        devHist2DropDown            matlab.ui.control.DropDown
+        ScalingmultiplierEditField      matlab.ui.control.NumericEditField
+        DoneButton                      matlab.ui.control.Button
+        devHist1DropDownLabel           matlab.ui.control.Label
+        devHist1DropDown                matlab.ui.control.DropDown
+        devHist2DropDownLabel           matlab.ui.control.Label
+        devHist2DropDown                matlab.ui.control.DropDown
         ScalinglowerlimitEditFieldLabel  matlab.ui.control.Label
-        ScalinglowerlimitEditField  matlab.ui.control.NumericEditField
-        AutorefineBETAButton        matlab.ui.control.Button
-        TabGroup                    matlab.ui.container.TabGroup
-        ScalingsTab                 matlab.ui.container.Tab
-        GridLayout3                 matlab.ui.container.GridLayout
-        ScalingTable                matlab.ui.control.Table
-        TagsTab                     matlab.ui.container.Tab
-        GridLayout6                 matlab.ui.container.GridLayout
-        TagTable                    matlab.ui.control.Table
-        devMatrixTab                matlab.ui.container.Tab
-        GridLayout4                 matlab.ui.container.GridLayout
-        devmatrixAx                 matlab.ui.control.UIAxes
-        devHistogramTab             matlab.ui.container.Tab
-        GridLayout5                 matlab.ui.container.GridLayout
-        devhistAx1                  matlab.ui.control.UIAxes
-        devhistAx2                  matlab.ui.control.UIAxes
+        ScalinglowerlimitEditField      matlab.ui.control.NumericEditField
+        AutorefineBETAButton            matlab.ui.control.Button
+        MaxdeviationthresholdEditFieldLabel  matlab.ui.control.Label
+        MaxdeviationthresholdEditField  matlab.ui.control.NumericEditField
+        TabGroup                        matlab.ui.container.TabGroup
+        ScalingsTab                     matlab.ui.container.Tab
+        GridLayout3                     matlab.ui.container.GridLayout
+        ScalingTable                    matlab.ui.control.Table
+        TagsTab                         matlab.ui.container.Tab
+        GridLayout6                     matlab.ui.container.GridLayout
+        TagTable                        matlab.ui.control.Table
+        devMatrixTab                    matlab.ui.container.Tab
+        GridLayout4                     matlab.ui.container.GridLayout
+        devmatrixAx                     matlab.ui.control.UIAxes
+        devHistogramTab                 matlab.ui.container.Tab
+        GridLayout5                     matlab.ui.container.GridLayout
+        devhistAx1                      matlab.ui.control.UIAxes
+        devhistAx2                      matlab.ui.control.UIAxes
     end
 
     
@@ -132,6 +134,7 @@
             
             app.devHist1DropDown.Items = app.p.s.clusters;
             app.devHist2DropDown.Items = app.p.s.clusters;
+            app.MaxdeviationthresholdEditField.Value = app.p.t.add2UnitThr(1);
             
         end
 
@@ -188,6 +191,7 @@
                     tempClust(app.p.orphansInBatchBool) = app.d.spikeAssignmentUnit;
                     app.d.spikeAssignmentUnit = tempClust;
                 end
+                app.d.add2UnitThr(1) = app.p.t.add2UnitThr(1);
                 updateUnits(app.CallingApp, app.d);
             end
             switchButtons(app.CallingApp,1);
@@ -268,6 +272,12 @@
             app.plotResults();
             
             app.DoneButton.Enable = 'on';
+        end
+
+        % Value changed function: MaxdeviationthresholdEditField
+        function MaxdeviationthresholdEditFieldValueChanged(app, event)
+            value = app.MaxdeviationthresholdEditField.Value;
+            app.p.t.add2UnitThr(1) = value;
         end
     end
 
@@ -412,9 +422,26 @@
             app.AutorefineBETAButton = uibutton(app.GridLayout2, 'push');
             app.AutorefineBETAButton.ButtonPushedFcn = createCallbackFcn(app, @AutorefineBETAButtonPushed, true);
             app.AutorefineBETAButton.BackgroundColor = [1 0 0];
-            app.AutorefineBETAButton.Layout.Row = 8;
+            app.AutorefineBETAButton.Layout.Row = 16;
             app.AutorefineBETAButton.Layout.Column = [2 3];
             app.AutorefineBETAButton.Text = 'Autorefine (BETA)';
+
+            % Create MaxdeviationthresholdEditFieldLabel
+            app.MaxdeviationthresholdEditFieldLabel = uilabel(app.GridLayout2);
+            app.MaxdeviationthresholdEditFieldLabel.HorizontalAlignment = 'center';
+            app.MaxdeviationthresholdEditFieldLabel.FontWeight = 'bold';
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 7;
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Column = [2 3];
+            app.MaxdeviationthresholdEditFieldLabel.Text = 'Max deviation threshold';
+
+            % Create MaxdeviationthresholdEditField
+            app.MaxdeviationthresholdEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.MaxdeviationthresholdEditField.Limits = [0 Inf];
+            app.MaxdeviationthresholdEditField.ValueChangedFcn = createCallbackFcn(app, @MaxdeviationthresholdEditFieldValueChanged, true);
+            app.MaxdeviationthresholdEditField.HorizontalAlignment = 'center';
+            app.MaxdeviationthresholdEditField.Layout.Row = 8;
+            app.MaxdeviationthresholdEditField.Layout.Column = [2 3];
+            app.MaxdeviationthresholdEditField.Value = 0.0001;
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);

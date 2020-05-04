@@ -381,6 +381,8 @@
             app.saveLast();
             
             app.t.refineSettings{2} = d.scaleArray;
+            app.t.add2UnitThr(1) = d.add2UnitThr(1);
+            
             c = app.currentBatch;
             bl = app.t.batchLengths;
             spikeRange = sum(app.t.numSpikesInBatch(1:c-1))+1:sum(app.t.numSpikesInBatch(1:c));
