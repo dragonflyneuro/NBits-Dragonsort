@@ -27,7 +27,7 @@ subplott(sp,7,sp*7+(-6:0)); line(msConvert*(1:size(X,2)),X(m.mainCh,:),'Color','
 line(rawSpikeIdx(d.spikeAssignmentUnit == 0)*msConvert, X(1,rawSpikeIdx(d.spikeAssignmentUnit == 0)),'LineStyle','none', 'Color','k', 'Marker','x');
 xlim([1, size(X,2)*msConvert]); xlabel("Sample number"); ylabel("Amplitude (uV)");
 tally = 0;
-preAssignedNum = 0;
+% preAssignedNum = 0;
 
 for ii=1:length(unitNames)
 	subplott(sp,7,ii);
@@ -52,7 +52,7 @@ for ii=1:length(unitNames)
 	if size(orphanWaves,1) ~= length(rawSpikeIdx)
 		currentUnit = rawSpikeIdx(preAssignment == unitVal);
 		line(currentUnit*msConvert, X(m.mainCh,currentUnit), 'LineStyle', 'none', 'Marker', ms, 'Color', iiCmap);
-		preAssignedNum = preAssignedNum + length(currentUnit);
+% 		preAssignedNum = preAssignedNum + length(currentUnit);
 		tally = tally + length(currentUnit);
 	end
 	tally = tally + length(spikesInUnitIdx);
@@ -76,6 +76,6 @@ for ii = 1:length(unitNames)
 	end
 end
 subplott(sp,7,sp*7+(-6:0)); ylim(gca, yTemp);
-sgtitle({"Spikes assigned: "+tally+";  Spikes leftover: "+(length(rawSpikeIdx) + preAssignedNum - tally)});
+sgtitle({"Spikes assigned: "+tally+";  Spikes leftover: "+(length(rawSpikeIdx) - tally)});
 
 end

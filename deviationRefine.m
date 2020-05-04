@@ -1,4 +1,4 @@
-function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates, sRate, scaling, scalingException, growthException, limit, d)
+function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates, sRate, scaleArray, d)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calculates the deviation indices of unassigned waves to the currently
 % present units in Dragonsort. Then scales the deviation indices up/down
@@ -12,10 +12,7 @@ function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates,
 % templateBatches = the range of batches to take unit templates from
 % numTemplates = number of waves to form a template with from each unit
 % sRate = sampling rate
-% scaling = deviation index scaling multiplier
-% scalingException = bool of units that should not be scaled
-% growthException = bool of units that should remain the same
-% limit = lower limit of scaling multiplier for deviation indices
+% scalingArray = scaling factors for each unit
 % d = Dragonsort refine structure
 %
 % OUTPUT
@@ -23,28 +20,16 @@ function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates,
 
 thr = t.add2UnitThr(1);
 
-if ~isempty(d)
-    if isfield(d, 'devMatrix')
-        devMatrix = d.devMatrix;
-        scaleArray = d.scaleArray;
-        prevAssignment = d.spikeAssignmentUnit; %keep the very last spike assignment for reference
-    elseif isfield(d, 'scaleArray')
-        scaleArray = d.scaleArray;
-        [devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
-        prevAssignment = zeros(size(rawSpikeWaves,1),1);
-    end
+if isfield(d, 'devMatrix')
+    devMatrix = d.devMatrix;
+    prevAssignment = d.spikeAssignmentUnit; %keep the very last spike assignment for reference
 else
     [devMatrix, d.tempWavesSet] = getDevMatrix(c, t, c.clusters, templateBatches, rawSpikeWaves, sRate, numTemplates, 0);
-    scaleArray = ones(1,length(c.clusters));
     prevAssignment = zeros(size(rawSpikeWaves,1),1);
 end
 
 spikeAssignmentUnit=zeros(size(rawSpikeWaves,1),1); %reinitialize the spike_clusters
 %% determine the template deviation cutoff
-scaleArray(~scalingException)=scaleArray(~scalingException)+scaling;
-scaleArray(growthException)=inf;
-hitLimit = scaleArray < limit;
-scaleArray(hitLimit) = limit; %make sure no scaling factor goes to zero
 
 for ii=1:length(c.clusters)
     devScaled(:,ii)=devMatrix(:,ii)*scaleArray(ii); %scale the deviation matrix
@@ -63,6 +48,5 @@ end
 d.prevAssignment = prevAssignment;
 d.spikeAssignmentUnit = spikeAssignmentUnit;
 d.devMatrix = devMatrix;
-d.scaleArray = scaleArray;
 
 end

@@ -45,12 +45,14 @@
         p
         iterations = 0
         lastHist = [1 1];
+        scaleBuffer
     end
     
     methods (Access = private)
         function [] = updateHist(app, ax, unit)
+            scaleArray = app.ScalingTable.Data.Scaling';
             unit = ismember(app.p.s.clusters,unit);
-            devScaled = app.d.devMatrix(:,unit)*app.d.scaleArray(unit); %scale the deviation matrix
+            devScaled = app.d.devMatrix(:,unit)*scaleArray(unit); %scale the deviation matrix
             h = histogram(ax, devScaled, 'Linestyle','none');
             hold(ax,'on');
             plot(ax, [app.p.t.add2UnitThr(1)^2 app.p.t.add2UnitThr(1)^2], [0 max(h.Values)], 'r', 'LineWidth', 2);
@@ -59,6 +61,8 @@
         
         function [] = plotResults(app, w)
             % refine results plot
+            scaleArray = app.ScalingTable.Data.Scaling';
+            
             if isempty(app.f) || ~ishandle(app.f)
                 app.f = figure; set(app.f, 'Position',  [300, 100, 1350, 850]);
             end
@@ -66,7 +70,7 @@
             
             % devMatrix plot
             for ii=1:size(app.d.devMatrix,2)
-                devScaled(:,ii)=app.d.devMatrix(:,ii)*app.d.scaleArray(ii); %scale the deviation matrix
+                devScaled(:,ii)=app.d.devMatrix(:,ii)*scaleArray(ii); %scale the deviation matrix
             end
             devScaled(devScaled < app.p.t.add2UnitThr(1)) = 0;
             imagesc(app.devmatrixAx, log10(devScaled));
@@ -89,7 +93,7 @@
             growthLock = growthLock(2:end);
     
             noStealBool = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(stealLock)));
-            noStealBool = noStealBool & ismember(app.d.prevAssignment, str2double(app.p.s.clusters(growthLock)));
+            noStealBool = noStealBool | ismember(app.d.prevAssignment, str2double(app.p.s.clusters(growthLock)));
             noStealVal = app.d.prevAssignment(noStealBool);
             app.d.spikeAssignmentUnit(noStealBool) = noStealVal;
         end
@@ -110,6 +114,7 @@
             app.TabGroup.Layout.Column = 2;
             
             app.d.scaleArray = app.p.refineSettings;
+            app.scaleBuffer = app.d.scaleArray;
             unitNames = app.p.s.tags.Properties.VariableNames;
             
             Scaling = app.d.scaleArray';
@@ -156,14 +161,20 @@
                 w = app.p.rawSpikeWaves(app.p.orphansInBatchBool,:,:);
             end
             
+            scaleArray = app.ScalingTable.Data.Scaling';
+            scaleArray(isinf(scaleArray)) = app.scaleBuffer(isinf(scaleArray));
+            app.scaleBuffer = scaleArray;
+            scaleArray(~scalingLock)=scaleArray(~scalingLock)+scaleDirection*scaling;
+            scaleArray(growthLock)=inf;
+            scaleArray(scaleArray < app.ScalinglowerlimitEditField.Value) = app.ScalinglowerlimitEditField.Value;
+
             app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
-                app.p.numTemplates, app.p.m.sRateHz, scaleDirection*scaling, scalingLock, growthLock, ...
-                app.ScalinglowerlimitEditField.Value, app.d);
+                app.p.numTemplates, app.p.m.sRateHz, scaleArray, app.d);
             
             app.iterations = app.iterations + 1;
             
             % update table
-            app.ScalingTable.Data.Scaling = app.d.scaleArray';
+            app.ScalingTable.Data.Scaling = scaleArray';
             
             % return spikes stolen from no-steal units and no-scale
             % units, return spikes added to no-scale units
@@ -191,6 +202,7 @@
                     tempClust(app.p.orphansInBatchBool) = app.d.spikeAssignmentUnit;
                     app.d.spikeAssignmentUnit = tempClust;
                 end
+                app.d.scaleArray = app.ScalingTable.Data.Scaling';
                 app.d.add2UnitThr(1) = app.p.t.add2UnitThr(1);
                 updateUnits(app.CallingApp, app.d);
             end
@@ -204,6 +216,7 @@
         % Value changed function: LockoriginalButton
         function LockoriginalButtonValueChanged(app, event)
             app.d = [];
+            app.ScalingTable.Data.Scaling = app.p.refineSettings';
             delete(app.f);
             
         end
@@ -234,14 +247,20 @@
             end
             
             reachedEnd = 0;
+            scaleArray = app.ScalingTable.Data.Scaling';
             while any(~scalingLock) && ~reachedEnd
                 % assign spikes to units using deviation metric
+                scaleArray(~scalingLock)=scaleArray(~scalingLock)+scaleDirection*scaling;
+                scaleArray(growthLock)=inf;
+                scaleArray(scaleArray < app.ScalinglowerlimitEditField.Value) = app.ScalinglowerlimitEditField.Value;
+    
                 app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
-                    app.p.numTemplates, app.p.m.sRateHz, scaleDirection*scaling, scalingLock, ...
-                    app.ScalinglowerlimitEditField.Value, app.d);
+                    app.p.numTemplates, app.p.m.sRateHz, scaleArray, app.d);
                 
-                % update scalings table
-                app.ScalingTable.Data.Scaling = app.d.scaleArray';
+                app.iterations = app.iterations + 1;
+                
+                % update table
+                app.ScalingTable.Data.Scaling = scaleArray';
                 
                 % return spikes stolen from no-steal units and no-scale
                 % units, return spikes added to no-scale units
@@ -257,7 +276,6 @@
                     percentageDevIncPerSpike = percentageDevInc/(length(newDev)-length(oldDev));
                     if percentageDevIncPerSpike > 0.1
                         scalingLock(c) = 1;
-                        app.d.scaleArray(c) = app.d.scaleArray(c) - scaleDirection*scaling;
                     end
                     c = c + 1;
                 end
@@ -464,7 +482,7 @@
             app.ScalingTable = uitable(app.GridLayout3);
             app.ScalingTable.ColumnName = {'Scaling'; 'ScalingLock'; 'StealingLock'};
             app.ScalingTable.RowName = {'Unit'};
-            app.ScalingTable.ColumnEditable = [false true true];
+            app.ScalingTable.ColumnEditable = [true true true];
             app.ScalingTable.Layout.Row = 1;
             app.ScalingTable.Layout.Column = 1;
 
