@@ -49,7 +49,8 @@ switch opt
         app.UnitfrequencyMenu.Enable = 'off';
         app.UnitscrubButton.Enable = 'off';
         app.AutosortButton.Enable = 'off';
-        app.MarkasjunkButton.Enable = 'off';
+        app.ToggletagButton.Enable = 'off';
+        app.TagmanagementButton.Enable = 'off';
         app.AutocreatejunkunitsButton.Enable = 'off';
         app.AutocreateunitsButton.Enable = 'off';
     case 3
@@ -94,7 +95,8 @@ switch opt
         app.UnitfrequencyMenu.Enable = 'on';
         app.UnitscrubButton.Enable = 'on';
         app.AutosortButton.Enable = 'on';
-        app.MarkasjunkButton.Enable = 'on';
+        app.ToggletagButton.Enable = 'on';
+        app.TagmanagementButton.Enable = 'on';
         app.AutocreatejunkunitsButton.Enable = 'on';
         app.AutocreateunitsButton.Enable = 'on';
 end

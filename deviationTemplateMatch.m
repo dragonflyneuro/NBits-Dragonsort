@@ -56,11 +56,11 @@ templateLength=size(templateMean,2);
 %% generate weighing function
 chWeight = templateP2p./sum(templateP2p); % weigh each channel by the P2P value (higher P2P - weighted more)
 sampleWeight = SlopedBoxCar(templateLength, floor(bias*sRate/1000), 2, 0.6, floor(uniformLength*sRate/1000)); % weigh each sample by a modified boxcar function
-weightedSTD = sampleWeight(1:templateLength).*templateSTD; % apply weighting to the STD at each sample
+sampleWeight = sampleWeight(1:templateLength);
 
 %% match parameters
 signalDiff = abs(rawWaves-templateMean);
-deviation = sum(signalDiff./weightedSTD,2)/size(templateMean,2); % find summed deviation of rawWaves from templateMean, then average
+deviation = sum(signalDiff.*sampleWeight./templateSTD,2)/size(templateMean,2); % find summed deviation of rawWaves from templateMean, then average
 deviationIdx = squeeze(sum(deviation.*chWeight,1)); % sum deviation through the channels
 if fuzzyBool
 	threshold = autoThreshold(threshold^2,deviationIdx);

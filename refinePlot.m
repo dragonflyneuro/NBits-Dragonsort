@@ -31,7 +31,7 @@ preAssignedNum = 0;
 
 for ii=1:length(unitNames)
 	subplott(sp,7,ii);
-	unitVal=str2double(unitNames(ii)); iiCmap=cmap(ii,:);
+	unitVal=str2double(unitNames(ii)); iiCmap=cmap(rem(ii-1,25)+1,:);
 	spikesInUnitIdx = find(d.spikeAssignmentUnit==unitVal);
 	spikesInUnitTime = rawSpikeIdx(spikesInUnitIdx); %the actual time index
 	templateWaves = d.tempWavesSet{ii}(:,:,m.mainCh);

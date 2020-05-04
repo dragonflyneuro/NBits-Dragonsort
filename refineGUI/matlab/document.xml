@@ -18,10 +18,14 @@
         devHist2DropDown            matlab.ui.control.DropDown
         ScalinglowerlimitEditFieldLabel  matlab.ui.control.Label
         ScalinglowerlimitEditField  matlab.ui.control.NumericEditField
+        AutorefineBETAButton        matlab.ui.control.Button
         TabGroup                    matlab.ui.container.TabGroup
         ScalingsTab                 matlab.ui.container.Tab
         GridLayout3                 matlab.ui.container.GridLayout
-        scalingTable                matlab.ui.control.Table
+        ScalingTable                matlab.ui.control.Table
+        TagsTab                     matlab.ui.container.Tab
+        GridLayout6                 matlab.ui.container.GridLayout
+        TagTable                    matlab.ui.control.Table
         devMatrixTab                matlab.ui.container.Tab
         GridLayout4                 matlab.ui.container.GridLayout
         devmatrixAx                 matlab.ui.control.UIAxes
@@ -43,12 +47,49 @@
     
     methods (Access = private)
         function [] = updateHist(app, ax, unit)
-            unit = str2double(unit);
-            devScaled=app.d.devMatrix(:,unit)*app.d.scaleArray(unit); %scale the deviation matrix
+            unit = ismember(app.p.s.clusters,unit);
+            devScaled = app.d.devMatrix(:,unit)*app.d.scaleArray(unit); %scale the deviation matrix
             h = histogram(ax, devScaled, 'Linestyle','none');
             hold(ax,'on');
             plot(ax, [app.p.t.add2UnitThr(1)^2 app.p.t.add2UnitThr(1)^2], [0 max(h.Values)], 'r', 'LineWidth', 2);
             hold(ax,'off');
+        end
+        
+        function [] = plotResults(app, w)
+            % refine results plot
+            if isempty(app.f) || ~ishandle(app.f)
+                app.f = figure; set(app.f, 'Position',  [300, 100, 1350, 850]);
+            end
+            app.f = refinePlot(app.p.xi, app.p.m, app.p.s.clusters, app.p.spikesInBatch, w, app.p.spikeClustInBatch, app.f, app.d, app.p.yL);
+            
+            % devMatrix plot
+            for ii=1:size(app.d.devMatrix,2)
+                devScaled(:,ii)=app.d.devMatrix(:,ii)*app.d.scaleArray(ii); %scale the deviation matrix
+            end
+            devScaled(devScaled < app.p.t.add2UnitThr(1)) = 0;
+            imagesc(app.devmatrixAx, log10(devScaled));
+            colorbar(app.devmatrixAx);
+            
+            % devHist plots
+            app.devHist1DropDown.Enable = 'on';
+            app.devHist2DropDown.Enable = 'on';
+            app.updateHist(app.devhistAx1, app.devHist1DropDown.Value);
+            app.updateHist(app.devhistAx2, app.devHist2DropDown.Value);
+        end
+        
+        function [] = returnSpikes(app)
+            if isempty(app.d)
+                return;
+            end
+            stealLock = app.ScalingTable.Data.StealingLock;
+            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GrowthLock,:));
+            growthLock = any(lockedTags,1)';
+            growthLock = growthLock(2:end);
+    
+            noStealBool = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(stealLock)));
+            noStealBool = noStealBool & ismember(app.d.prevAssignment, str2double(app.p.s.clusters(growthLock)));
+            noStealVal = app.d.prevAssignment(noStealBool);
+            app.d.spikeAssignmentUnit(noStealBool) = noStealVal;
         end
     end
     
@@ -67,13 +108,23 @@
             app.TabGroup.Layout.Column = 2;
             
             app.d.scaleArray = app.p.refineSettings;
+            unitNames = app.p.s.tags.Properties.VariableNames;
+            
             Scaling = app.d.scaleArray';
             app.UpButton.UserData = 1;
             app.DownButton.UserData = -1;
-            Unit = app.p.s.clusters';
             ScalingLock = false(size(app.p.s.clusters))';
             StealingLock = false(size(app.p.s.clusters))';
-            app.scalingTable.Data = table(Unit,Scaling,ScalingLock,StealingLock);
+            app.ScalingTable.Data = table(Scaling,ScalingLock,StealingLock);
+            app.ScalingTable.RowName = unitNames;
+            app.ScalingTable.ColumnEditable = true;
+            
+            GrowthLock = false(size(app.p.s.tags,1),1);
+            app.TagTable.Data = [table(GrowthLock), app.p.s.tags];
+            app.TagTable.ColumnName = [{"GrowthLock"}, unitNames];
+            app.TagTable.RowName = app.p.s.tags.Row;
+            
+            app.TagTable.ColumnEditable = [true, false(1,size(app.TagTable.Data,2)-1)];
             
             ylabel(app.devmatrixAx, 'Spike number');
             xlabel(app.devmatrixAx, 'Unit number');
@@ -88,8 +139,10 @@
         function DownButtonPushed(app, event)
             scaleDirection = event.Source.UserData;
             scaling = app.ScalingmultiplierEditField.Value;
-            exception = app.scalingTable.Data.ScalingLock;
-            stealLock = app.scalingTable.Data.StealingLock;
+            scalingLock = app.ScalingTable.Data.ScalingLock;
+            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GrowthLock,:));
+            growthLock = any(lockedTags,1)';
+            growthLock = growthLock(2:end);
             
             if isempty(app.f) || ~ishandle(app.f)
                 app.f = figure; set(app.f, 'Position',  [300, 100, 1350, 850]);
@@ -101,35 +154,18 @@
             end
             
             app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
-                app.p.numTemplates, app.p.m.sRateHz, scaleDirection, scaling, exception, ...
+                app.p.numTemplates, app.p.m.sRateHz, scaleDirection*scaling, scalingLock, growthLock, ...
                 app.ScalinglowerlimitEditField.Value, app.d);
-            
-            % update table
-            app.scalingTable.Data.Scaling = app.d.scaleArray';
-            
-            if ~isempty(app.d)
-                noStealIdx = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(stealLock)));
-                noStealVal = app.d.prevAssignment(noStealIdx);
-                app.d.spikeAssignmentUnit(noStealIdx) = noStealVal;
-            end
-            
-            app.f = refinePlot(app.p.xi, app.p.m, app.p.s.clusters, app.p.spikesInBatch, w, app.p.spikeClustInBatch, app.f, app.d, app.p.yL);
             
             app.iterations = app.iterations + 1;
             
-            % devMatrix plot
-            for ii=1:size(app.d.devMatrix,2)
-               	devScaled(:,ii)=app.d.devMatrix(:,ii)*app.d.scaleArray(ii); %scale the deviation matrix
-            end
-            devScaled(devScaled < app.p.t.add2UnitThr(1)) = 0;
-            imagesc(app.devmatrixAx, log10(devScaled));
-            colorbar(app.devmatrixAx);
+            % update table
+            app.ScalingTable.Data.Scaling = app.d.scaleArray';
             
-            % devHist plots
-            app.devHist1DropDown.Enable = 'on';
-            app.devHist2DropDown.Enable = 'on';
-            app.updateHist(app.devhistAx1, app.devHist1DropDown.Value);
-            app.updateHist(app.devhistAx2, app.devHist2DropDown.Value);
+            % return spikes stolen from no-steal units and no-scale
+            % units, return spikes added to no-scale units
+            app.returnSpikes();
+            app.plotResults(w);
             
             app.DoneButton.Enable = 'on';
             
@@ -170,8 +206,8 @@
 
         % Value changed function: devHist1DropDown, devHist2DropDown
         function devHist1DropDownValueChanged(app, event)
-            value(1) = app.devHist1DropDown.Value;
-            value(2) = app.devHist2DropDown.Value;
+            value(1) = string(app.devHist1DropDown.Value);
+            value(2) = string(app.devHist2DropDown.Value);
             if app.lastHist(1) == value(1)
                 app.updateHist(app.devhistAx2, value(2))
             else
@@ -179,6 +215,59 @@
             end
             app.lastHist = value;
             
+        end
+
+        % Button pushed function: AutorefineBETAButton
+        function AutorefineBETAButtonPushed(app, event)
+            scaleDirection = -1;
+            scaling = app.ScalingmultiplierEditField.Value;
+            scalingLock = app.ScalingTable.Data.ScalingLock;
+            
+            if app.LockoriginalButton.Value == 0
+                w = app.p.rawSpikeWaves;
+            else
+                w = app.p.rawSpikeWaves(app.p.orphansInBatchBool,:,:);
+            end
+            
+            reachedEnd = 0;
+            while any(~scalingLock) && ~reachedEnd
+                % assign spikes to units using deviation metric
+                app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
+                    app.p.numTemplates, app.p.m.sRateHz, scaleDirection*scaling, scalingLock, ...
+                    app.ScalinglowerlimitEditField.Value, app.d);
+                
+                % update scalings table
+                app.ScalingTable.Data.Scaling = app.d.scaleArray';
+                
+                % return spikes stolen from no-steal units and no-scale
+                % units, return spikes added to no-scale units
+                app.returnSpikes();
+                
+                % check if the deviation added per spike on a unit has
+                % increased too much, if so, apply scaling lock on unit
+                c = 1;
+                for ii = app.p.s.clusters
+                    newDev = app.d.devMatrix(app.d.spikeAssignmentUnit==ii,ii);
+                    oldDev = app.d.devMatrix(app.d.prevAssignment==ii,ii);
+                    percentageDevInc = (mean(newDev)-mean(oldDev))/mean(oldDev);
+                    percentageDevIncPerSpike = percentageDevInc/(length(newDev)-length(oldDev));
+                    if percentageDevIncPerSpike > 0.1
+                        scalingLock(c) = 1;
+                        app.d.scaleArray(c) = app.d.scaleArray(c) - scaleDirection*scaling;
+                    end
+                    c = c + 1;
+                end
+                
+                % if X% of all spikes have been assigned, finish autorefine
+                if nnz(app.d.spikeAssignmentUnit) > 0.9*length(app.d.spikeAssignmentUnit)
+                    reachedEnd = 1;
+                end
+                app.iterations = app.iterations + 1;
+            end
+            
+            app.plotResults();
+            
+            app.DoneButton.Enable = 'on';
         end
     end
 
@@ -307,7 +396,7 @@
             app.ScalinglowerlimitEditFieldLabel = uilabel(app.GridLayout2);
             app.ScalinglowerlimitEditFieldLabel.HorizontalAlignment = 'center';
             app.ScalinglowerlimitEditFieldLabel.FontWeight = 'bold';
-            app.ScalinglowerlimitEditFieldLabel.Layout.Row = 8;
+            app.ScalinglowerlimitEditFieldLabel.Layout.Row = 9;
             app.ScalinglowerlimitEditFieldLabel.Layout.Column = [2 3];
             app.ScalinglowerlimitEditFieldLabel.Text = 'Scaling lower limit';
 
@@ -315,9 +404,17 @@
             app.ScalinglowerlimitEditField = uieditfield(app.GridLayout2, 'numeric');
             app.ScalinglowerlimitEditField.Limits = [0 Inf];
             app.ScalinglowerlimitEditField.HorizontalAlignment = 'center';
-            app.ScalinglowerlimitEditField.Layout.Row = 9;
+            app.ScalinglowerlimitEditField.Layout.Row = 10;
             app.ScalinglowerlimitEditField.Layout.Column = [2 3];
             app.ScalinglowerlimitEditField.Value = 0.0001;
+
+            % Create AutorefineBETAButton
+            app.AutorefineBETAButton = uibutton(app.GridLayout2, 'push');
+            app.AutorefineBETAButton.ButtonPushedFcn = createCallbackFcn(app, @AutorefineBETAButtonPushed, true);
+            app.AutorefineBETAButton.BackgroundColor = [1 0 0];
+            app.AutorefineBETAButton.Layout.Row = 8;
+            app.AutorefineBETAButton.Layout.Column = [2 3];
+            app.AutorefineBETAButton.Text = 'Autorefine (BETA)';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);
@@ -336,14 +433,33 @@
             app.GridLayout3.RowSpacing = 0;
             app.GridLayout3.Padding = [0 0 0 0];
 
-            % Create scalingTable
-            app.scalingTable = uitable(app.GridLayout3);
-            app.scalingTable.ColumnName = {'Unit'; 'Scaling'; 'ScalingLock'; 'StealingLock'};
-            app.scalingTable.RowName = {};
-            app.scalingTable.ColumnSortable = false;
-            app.scalingTable.ColumnEditable = [false false true];
-            app.scalingTable.Layout.Row = 1;
-            app.scalingTable.Layout.Column = 1;
+            % Create ScalingTable
+            app.ScalingTable = uitable(app.GridLayout3);
+            app.ScalingTable.ColumnName = {'Scaling'; 'ScalingLock'; 'StealingLock'};
+            app.ScalingTable.RowName = {'Unit'};
+            app.ScalingTable.ColumnEditable = [false true true];
+            app.ScalingTable.Layout.Row = 1;
+            app.ScalingTable.Layout.Column = 1;
+
+            % Create TagsTab
+            app.TagsTab = uitab(app.TabGroup);
+            app.TagsTab.Title = 'Tags';
+
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.TagsTab);
+            app.GridLayout6.ColumnWidth = {'1x'};
+            app.GridLayout6.RowHeight = {'1x'};
+            app.GridLayout6.ColumnSpacing = 0;
+            app.GridLayout6.RowSpacing = 0;
+            app.GridLayout6.Padding = [0 0 0 0];
+
+            % Create TagTable
+            app.TagTable = uitable(app.GridLayout6);
+            app.TagTable.ColumnName = {'GrowthLock'};
+            app.TagTable.RowName = {};
+            app.TagTable.ColumnEditable = true;
+            app.TagTable.Layout.Row = 1;
+            app.TagTable.Layout.Column = 1;
 
             % Create devMatrixTab
             app.devMatrixTab = uitab(app.TabGroup);

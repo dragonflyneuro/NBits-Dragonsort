@@ -1,4 +1,4 @@
-function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates, sRate, scaleDir, scaling, exception, limit, d)
+function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates, sRate, scaling, scalingException, growthException, limit, d)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calculates the deviation indices of unassigned waves to the currently
 % present units in Dragonsort. Then scales the deviation indices up/down
@@ -12,9 +12,9 @@ function d = deviationRefine(c, t, rawSpikeWaves, templateBatches, numTemplates,
 % templateBatches = the range of batches to take unit templates from
 % numTemplates = number of waves to form a template with from each unit
 % sRate = sampling rate
-% scaleDir = direction of deviation index scaling
 % scaling = deviation index scaling multiplier
-% exception = bool of units that should not be scaled
+% scalingException = bool of units that should not be scaled
+% growthException = bool of units that should remain the same
 % limit = lower limit of scaling multiplier for deviation indices
 % d = Dragonsort refine structure
 %
@@ -41,7 +41,8 @@ end
 
 spikeAssignmentUnit=zeros(size(rawSpikeWaves,1),1); %reinitialize the spike_clusters
 %% determine the template deviation cutoff
-scaleArray(~exception)=scaleArray(~exception)+scaleDir*scaling;
+scaleArray(~scalingException)=scaleArray(~scalingException)+scaling;
+scaleArray(growthException)=inf;
 hitLimit = scaleArray < limit;
 scaleArray(hitLimit) = limit; %make sure no scaling factor goes to zero
 
