@@ -53,6 +53,7 @@ switch opt
         app.TagmanagementButton.Enable = 'off';
         app.AutocreatejunkunitsButton.Enable = 'off';
         app.AutocreateunitsButton.Enable = 'off';
+        app.ImportstimulusdataButton.Enable = 'off';
     case 3
         app.AddspikeButton.Enable = 'on';
         app.AddspikeMenu.Enable = 'on';
@@ -99,5 +100,6 @@ switch opt
         app.TagmanagementButton.Enable = 'on';
         app.AutocreatejunkunitsButton.Enable = 'on';
         app.AutocreateunitsButton.Enable = 'on';
+        app.ImportstimulusdataButton.Enable = 'on';
 end
 end

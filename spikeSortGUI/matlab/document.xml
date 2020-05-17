@@ -146,6 +146,8 @@
         GridLayout4                   matlab.ui.container.GridLayout
         GridLayout5                   matlab.ui.container.GridLayout
         ManualartifactremoverButton   matlab.ui.control.StateButton
+        ImportstimulusdataButton      matlab.ui.control.Button
+        ViewstimulusregionsButton     matlab.ui.control.StateButton
     end
 
     
@@ -180,6 +182,8 @@
         pNospike = [];
         pSelected = [];
         pSelection = [];
+        pStim = [];
+        pRaw = [];
         
         %   keeping track
         lastStep = [];
@@ -593,7 +597,6 @@
                             app.plottedWavesIdx = app.plottedWavesIdx(end-round(app.SpikeshownField.Value)+1:end);
                         end
                     end
-                    
                     %      Draw units
                     if ii == 1 % Left unit
                         app.lUnitInBatchIdx = find(unitSpikesInBatchBool);
@@ -602,7 +605,7 @@
                             set(app.pL, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx}) % click on spikes callback
                             app.pTL = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                                 'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                            app.Trace.Children= app.Trace.Children([2:end 1]);
+                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
                             if size(app.xi,1) > 0 && app.PlotallchButton.Value
                                 for jj = 1:size(app.xi,1)
                                     line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
@@ -615,7 +618,7 @@
                         if ~strcmp(u(1), u(2)) && q % if left and right units are different
                             app.pTR = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                                 'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                            app.Trace.Children= app.Trace.Children([2:end 1]);
+                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
                             if size(app.xi,1) > 0 && app.PlotallchButton.Value
                                 for jj = 1:size(app.xi,1)
                                     line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
@@ -685,8 +688,10 @@
             %   spikes
             app.StatusLabel.Value = "Redrawing data trace...";
             cla(app.Trace);
-            app.pSelected = gobjects(1);
+            app.pSelected = gobjects(0);
             app.pSelection = gobjects(1);
+            app.pStim = [];
+            
             
             for ii = 1:4
                 cla(app.spT(ii));
@@ -699,8 +704,53 @@
                 nnz(~orphansInBatchBool) + "/" + app.t.numSpikesInBatch(c));
             
             % main data line
-            line(app.Trace, app.msConvert*(1:size(app.xi,2)), app.xi(app.m.mainCh,:),'Color','b');
+            app.pRaw = line(app.Trace, app.msConvert*(1:size(app.xi,2)), app.xi(app.m.mainCh,:),'Color','b');
+            set(app.pRaw, 'ButtonDownFcn',{@clickedTrace,app});
             
+            xlim(app.Trace, [0 app.msConvert*size(app.xi,2)]);
+            ylim(app.Trace, 'auto');
+            yl = ylim(app.Trace);
+            if ~isinf(app.yLimLowField.Value)
+                yl(1) = app.yLimLowField.Value;
+            end
+            if ~isinf(app.yLimHighField.Value)
+                yl(2) = app.yLimHighField.Value;
+            end
+            ylim(app.Trace, yl);
+
+            if app.ViewstimulusregionsButton.Value == 1
+                offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+                yl = ylim(app.Trace);
+                
+                if min(size(app.t.importedStimulusBounds)) == 1
+                    regionInBatch = offset < app.t.importedStimulusBounds & app.t.importedStimulusBounds <= sum(bl(1:c));
+                    regionInBatch = find(regionInBatch);
+                    
+                    for jj = 1:length(regionInBatch)
+                        regionCoord = (app.t.importedStimulusBounds(regionInBatch(jj))-offset)*app.msConvert;
+                        xR = [regionCoord, regionCoord];
+                        yR = [yl(1), yl(2)];
+                        app.pStim(jj) = plot(app.Trace, xR, yR, 'Color', [0.5,0.5,0.5], 'LineStyle',':','LineWidth',1.5);
+                        set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
+                    end
+                else
+                    regionInBatch = offset < app.t.importedStimulusBounds(1,:) & app.t.importedStimulusBounds(1,:) <= sum(bl(1:c));
+                    regionInBatch = regionInBatch | (offset < app.t.importedStimulusBounds(2,:) & app.t.importedStimulusBounds(2,:) <= sum(bl(1:c)));
+                    regionInBatch = find(regionInBatch);
+                    
+                    for jj = 1:length(regionInBatch)
+                        regionCoord = (app.t.importedStimulusBounds(:,regionInBatch(jj))-offset)*app.msConvert;
+                        xR = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
+                        yR = [yl(1), yl(2), yl(2), yl(1)];
+                        pgon = polyshape(xR,yR);
+                        app.pStim(jj) = plot(app.Trace, pgon, 'FaceColor','k', 'FaceAlpha',0.3,'LineStyle','none');
+                        set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
+                    end
+                end
+            end
+            
+            app.Trace.Children = flipud(app.Trace.Children);
+
             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)) - sum(bl(1:c-1));
             % draw markers on data line for orphans
             if ~isempty(orphanSpikes)
@@ -709,16 +759,6 @@
                 
                 app.pUnassigned = line(app.Trace, x, y,'Color', 'k', 'Marker', '.', 'LineStyle', 'none');
                 set(app.pUnassigned, 'ButtonDownFcn',{@clickedUnassigned,app});
-                xlim(app.Trace, [0 app.msConvert*size(app.xi,2)]);
-                
-                yl = ylim(app.Trace);
-                if ~isinf(app.yLimLowField.Value)
-                    yl(1) = app.yLimLowField.Value;
-                end
-                if ~isinf(app.yLimHighField.Value)
-                    yl(2) = app.yLimHighField.Value;
-                end
-                ylim(app.Trace, yl);
                 
                 % markers on if multiple channels enabled
                 if size(app.xi,1) > 0 && app.PlotallchButton.Value
@@ -745,7 +785,7 @@
                     % waveforms in left unit figure from trace
                     app.pAssigned(d) = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), ...
                         'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(nii-1,25)+1,:));
-                    set(app.pAssigned(d), 'UserData', d, 'ButtonDownFcn',{@clickedAssigned,app});
+                    set(app.pAssigned(d), 'UserData', ii, 'ButtonDownFcn',{@clickedAssigned,app});
                     
                     % markers on if multiple channels enabled
                     if size(app.xi,1) > 0 && app.PlotallchButton.Value
@@ -769,22 +809,22 @@
             set(app.Trace,'ButtonDownFcn',{@clickedTrace,app})
             
             % allow box selection of orphans
-            function clickedTrace(src,~,app)
+            function clickedTrace(~,evt,app)
                 if isempty(app.pUnassigned)
                     return;
                 end
                 % get clicked coordinates
-                u = get(src,'CurrentPoint');
+                u = evt.IntersectionPoint;
                 % if box corner not defined yet
                 if ~ishandle(app.pSelection)
                     % get first box corner and draw crosshair
-                    app.pSelection = plot(app.Trace, u(1,1), u(1,2), 'b+', 'MarkerSize', 20);
+                    app.pSelection = plot(app.Trace, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
                 else
                     % get second box corner and draw box
                     xBox = [app.pSelection.XData, u(1,1), u(1,1), app.pSelection.XData, app.pSelection.XData];
                     yBox = [app.pSelection.YData, app.pSelection.YData, u(1,2), u(1,2), app.pSelection.YData];
                     delete(app.pSelection);
-                    app.pSelection = plot(app.Trace, xBox, yBox, 'b');
+                    app.pSelection = plot(app.Trace, xBox, yBox, 'r');
                     
                     X = get(app.pUnassigned,'XData');
                     Y = get(app.pUnassigned,'YData');
@@ -800,7 +840,7 @@
                         if ~any(alreadySelectedBool)
                             app.Trace.UserData = [app.Trace.UserData, selectedPoint(qq)];
                             app.pSelected(end+1) = plot(app.Trace, X(selectedPoint(qq)),Y(selectedPoint(qq)),'ro');
-                            app.Trace.Children= app.Trace.Children([2:end 1]);
+                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
                         else
                             delete(app.pSelected(alreadySelectedBool))
                             app.pSelected(alreadySelectedBool) = [];
@@ -824,7 +864,7 @@
                 if ~any(alreadySelectedBool)
                     app.Trace.UserData = [app.Trace.UserData, selectedPoint];
                     app.pSelected(end+1) = plot(app.Trace, X(selectedPoint),Y(selectedPoint),'ro');
-                    app.Trace.Children= app.Trace.Children([2:end 1]);
+                    app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
                 else
                     delete(app.pSelected(alreadySelectedBool))
                     app.pSelected(alreadySelectedBool) = [];
@@ -836,12 +876,12 @@
             % allow selection of assigned spikes to select waveforms
             function clickedAssigned(src,evt,app)
                 % continue only if selected spike is of the left unit
-                if ~strcmp(app.LeftUnitDropDown.Value, app.s.clusters(src.UserData))
+                if ~strcmp(app.LeftUnitDropDown.Value, src.UserData)
                     return;
                 end
                 u = evt.IntersectionPoint;
-                X = get(app.pAssigned(src.UserData),'XData');
-                Y = get(app.pAssigned(src.UserData),'YData');
+                X = get(src,'XData');
+                Y = get(src,'YData');
                 r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
                 [~ ,selectedPoint]=min(r);
                 
@@ -1910,9 +1950,9 @@
                 app.StatusLabel.Value = "The structures 'm', 's' or 't' do not exist!";
                 return;
             end
-            load([fP fN],'m','s','t');
+            tData = load([fP fN],'m','s','t');
             
-            if app.updateVars(m, t, s)
+            if app.updateVars(tData.m, tData.t, tData.s)
                 app.StatusLabel.Value = "Load cancelled";
                 return;
             end
@@ -1933,9 +1973,15 @@
             % load templates from a previous sorting from this/another
             % dataset and use them to initialise new units in this sorting
             
-            if isfield(app.t,"importedTemplateOriginFileName")
-                app.StatusLabel.Value = "Templates have already been loaded in once!";
-                return;
+            if isfield(app.t,"importedTemplateOriginFileName") && ~isempty(app.t,"importedTemplateOriginFileName")
+                answer = uiconfirm(fig,"Templates have already been loaded in once! Overwrite?","Warning",...
+                    'Icon','warning','DefaultOption',2);
+                if strcmpi(answer, "CANCEL")
+                    return;
+                else
+                    app.t = rmfield(app.t, "importedTemplateOriginFileName");
+                    app.t = rmfield(app.t, "importedTemplateMapping");
+                end
             end
             
             app.StatusLabel.Value = "Loading...";
@@ -1957,8 +2003,8 @@
                 app.StatusLabel.Value = "The structure 's' does not exist!";
                 return;
             end
-            load([fP fN], 's');
-            if ~isfield(s,'clusters')
+            tData = load([fP fN], 's');
+            if ~isfield(tData.s,'clusters')
                 app.StatusLabel.Value = "The structure 's.clusters' does not exist!";
                 return;
             end
@@ -1977,11 +2023,12 @@
             % app.t.importedTemplateMapping{2}: col 1 - corresponding unit to template in this sorting
             % col 2 - template number
             app.t.importedTemplateOriginFileName = [fP, fN];
-            app.t.importedTemplateMapping{2} = cat(2, string((1:length(s.clusters)) + str2double(app.getMaxUnit(0)))', string(1:length(s.clusters))');
-            for ii = 1:length(s.clusters)
-                app.t.importedTemplateMapping{1}(ii,:) = ["Template" string(ii) "Initalised from" "Unit" s.clusters(ii)];
+            app.t.importedTemplateMapping{2} = cat(2, string((1:length(tData.s.clusters)) + ...
+                str2double(app.getMaxUnit(0)))', string(1:length(tData.s.clusters))');
+            for ii = 1:length(tData.s.clusters)
+                app.t.importedTemplateMapping{1}(ii,:) = ["Template" string(ii) "Initalised from" "Unit" tData.s.clusters(ii)];
                 
-                app.t.("template_"+ii) = s.("waves_"+s.clusters(ii));
+                app.t.("template_"+ii) = s.("waves_"+tData.s.clusters(ii));
                 app.s.("unit_"+app.getMaxUnit(ii)) = [];
                 app.s.("waves_"+app.getMaxUnit(ii)) = [];
                 
@@ -2003,7 +2050,7 @@
             end
             
             % update variables in this sorting
-            app.s.clusters = [app.s.clusters, string((1:length(s.clusters)) + str2double(app.getMaxUnit(0)))];
+            app.s.clusters = [app.s.clusters, string((1:length(tData.s.clusters)) + str2double(app.getMaxUnit(0)))];
             app.LeftUnitDropDown.Items = app.s.clusters;
             app.RightUnitDropDown.Items = app.s.clusters;
             app.LeftUnitDropDown.Value = app.s.clusters(1);
@@ -2742,7 +2789,7 @@
                 switchButtons(app,0);
                 switchButtons(app,2);
                 drawnow
-                
+
                 if ~isempty(app.pAssigned)
                     for ii = 1:length(app.pAssigned)
                         if ishandle(app.pAssigned(ii))
@@ -2750,10 +2797,16 @@
                         end
                     end
                 end
+                for ii = 1:length(app.pStim)
+                    delete(app.pStim(ii));
+                end
+                
                 set(app.Trace,'ButtonDownFcn',{@selectTimeblock,app});
+                set(app.pRaw, 'ButtonDownFcn',{@selectTimeblock,app});
                 if ~isempty(app.pUnassigned)
                     set(app.pUnassigned, 'ButtonDownFcn',[]);
                 end
+                
                 
                 if ~isempty(app.t.noSpikeRange)
                     bl = app.t.batchLengths;
@@ -2766,9 +2819,11 @@
                     yl = ylim(app.Trace);
                     for ii = 1:length(regionInBatch)
                         regionCoord = (app.t.noSpikeRange(:,regionInBatch(ii))-offset)*app.msConvert;
-                        x = [regionCoord(1), regionCoord(1), nan, regionCoord(2), regionCoord(2), nan, regionCoord(1), regionCoord(2)];
-                        y = [yl(1), yl(2), nan, yl(1), yl(2), nan, 0, 0];
-                        app.pNospike(ii) = plot(app.Trace, x, y, 'r','LineWidth',1.5);
+                        x = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
+                        y = [yl(1), yl(2), yl(2), yl(1)];
+                        pgon = polyshape(x,y);
+                        app.pNospike(ii) = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
+                        set(app.pNospike(ii),'ButtonDownFcn',{@selectTimeblock,app});
                     end
                 end
             else
@@ -2781,10 +2836,14 @@
                 app.redrawUnitPlots();
             end
             
-            function selectTimeblock(src,~,app)
+            function selectTimeblock(~,evt,app)
                 % get clicked coordinates
-                u = get(src,'CurrentPoint');
+                u = evt.IntersectionPoint;
                 
+                bl = app.t.batchLengths;
+                c = app.currentBatch;
+                offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+                        
                 % if time range not defined yet
                 if ~ishandle(app.pSelection)
                     q = 0;
@@ -2792,9 +2851,7 @@
                     % delete said region
                     if ~isempty(app.t.noSpikeRange)
                         v = u/app.msConvert;
-                        bl = app.t.batchLengths;
-                        c = app.currentBatch;
-                        offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+                        
                         regionInBatch = offset < app.t.noSpikeRange(1,:) & app.t.noSpikeRange(1,:) <= sum(bl(1:c));
                         regionInBatch = regionInBatch | (offset < app.t.noSpikeRange(2,:) & app.t.noSpikeRange(2,:) <= sum(bl(1:c)));
                         regionInBatch = find(regionInBatch);
@@ -2819,18 +2876,16 @@
                 else
                     % get second line and draw
                     yl = ylim(app.Trace);
-                    x = [app.pSelection.XData(1), app.pSelection.XData(1), nan, u(1,1), u(1,1), nan, app.pSelection.XData(1), u(1,1)];
-                    y = [yl(1), yl(2), nan, yl(1), yl(2), nan, 0, 0];
-                    delete(app.pSelection);
-                    app.pSelection = plot(app.Trace, x, y, 'r','LineWidth',1.5);
-                    
-                    bl = app.t.batchLengths;
-                    c = app.currentBatch;
-                    offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+                    x = [app.pSelection.XData(1), app.pSelection.XData(1), u(1,1), u(1,1)];
+                    y = [yl(1), yl(2), yl(2), yl(1)];
+                    pgon = polyshape(x,y);
                     
                     app.t.noSpikeRange(:,end+1) = sort([app.pSelection.XData(1); u(1,1)])/app.msConvert + offset;
+                    delete(app.pSelection);
                     
+                    app.pSelection = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
                     app.pNospike(end+1) = app.pSelection;
+                    set(app.pNospike(end),'ButtonDownFcn',{@selectTimeblock,app});
                     app.pSelection = gobjects(1);
                 end
             end
@@ -2856,6 +2911,48 @@
                 end
             end
             app.pSelected = [];
+        end
+
+        % Button pushed function: ImportstimulusdataButton
+        function ImportstimulusdataButtonPushed(app, event)
+            if isfield(app.t,"importedStimulusFileName") && ~isempty(app.t.importedStimulusFileName)
+                answer = uiconfirm(app.UIBase,"Stimuli have already been loaded in once! Overwrite?","Warning",...
+                    'Icon','warning','DefaultOption',2);
+                if strcmpi(answer, "CANCEL")
+                    return;
+                else
+                    app.t = rmfield(app.t, "importedStimulusFileName");
+                    app.t = rmfield(app.t, "importedStimulusBounds");
+                end
+            end
+            
+            app.StatusLabel.Value = "Loading...";
+            drawnow
+            
+            app.saveLast();
+            switchButtons(app,1)
+            
+            % load .mat file of a previous sorting
+            [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as stimuli');
+            if fN < 1
+                app.StatusLabel.Value = "Could not load file!";
+                return;
+            end
+            app.t.importedStimulusFileName = [fP, fN];
+            
+            % check if the loaded file has s.clusters
+            [app.t.importedStimulusBounds, app.StatusLabel.Value] = importStimulusData([fP, fN]);
+            app.ViewstimulusregionsButton.Enable = 1;
+            app.ViewstimulusregionsButton.Value = 0;
+            for ii = 1:length(app.pStim)
+                delete(app.pStim(ii));
+            end
+        end
+
+        % Value changed function: ViewstimulusregionsButton
+        function ViewstimulusregionsButtonValueChanged(app, event)
+            app.redrawTracePlot();
+            app.redrawUnitPlots();
         end
     end
 
@@ -3855,6 +3952,21 @@
             app.ManualartifactremoverButton.Text = 'Manual artifact remover';
             app.ManualartifactremoverButton.Layout.Row = 1;
             app.ManualartifactremoverButton.Layout.Column = [1 2];
+
+            % Create ImportstimulusdataButton
+            app.ImportstimulusdataButton = uibutton(app.GridLayout5, 'push');
+            app.ImportstimulusdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportstimulusdataButtonPushed, true);
+            app.ImportstimulusdataButton.Layout.Row = 2;
+            app.ImportstimulusdataButton.Layout.Column = [1 2];
+            app.ImportstimulusdataButton.Text = 'Import stimulus data';
+
+            % Create ViewstimulusregionsButton
+            app.ViewstimulusregionsButton = uibutton(app.GridLayout5, 'state');
+            app.ViewstimulusregionsButton.ValueChangedFcn = createCallbackFcn(app, @ViewstimulusregionsButtonValueChanged, true);
+            app.ViewstimulusregionsButton.Enable = 'off';
+            app.ViewstimulusregionsButton.Text = 'View stimulus regions';
+            app.ViewstimulusregionsButton.Layout.Row = 3;
+            app.ViewstimulusregionsButton.Layout.Column = [1 2];
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';
