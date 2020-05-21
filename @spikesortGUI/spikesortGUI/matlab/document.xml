@@ -148,272 +148,73 @@
         ManualartifactremoverButton   matlab.ui.control.StateButton
         ImportstimulusdataButton      matlab.ui.control.Button
         ViewstimulusregionsButton     matlab.ui.control.StateButton
+        ImportspikeshapeweightingdataButton  matlab.ui.control.Button
     end
 
     
     properties (Access = private)
         %   outputs
-        m % contains metadata
-        fid
+        m % contains general metadata
+        fid % fid of raw data
         s % contains unit_, waves_, clusters, junkNames
-        t % contains rawSpikeSample{}, spikeClust{}, orphanBool{}
+        t % contains sorting helper data
         
-        %   plotting
-        xi
-        msConvert
-        cmap
-        plottedWavesIdx = [];
         
-        pL = [];
-        pR = [];
-        pTL = [];
-        pTR = [];
-        spT
-        spL
-        spR
-        tgT
-        tgL
-        tgR
-        Trace
-        lUnitInBatchIdx
+        %   general plotting
+        xi % data trace
+        msConvert % sample space to time conversion
+        cmap % colourmap for use in all plots
         
-        pAssigned = [];
-        pUnassigned = [];
-        pNospike = [];
-        pSelected = [];
-        pSelection = [];
-        pStim = [];
-        pRaw = [];
+        
+        %   left unit interaction
+        plottedWavesIdx = []; % indices along left unit for waves plotted in left unit
+        lUnitInBatchIdx % indices along left unit for spikes in current batch
+        
+        
+        %   plot object handles
+        pL = []; % left unit waves
+        pR = []; % right unit waves
+        pTL = []; % left unit trace markers
+        pTR = []; % right unit trace markers
+        
+        pAssigned = []; % markers on trace for assigned spikes
+        pUnassigned = []; % markers on trace for unassigned spikes
+        pNospike = []; % shaded areas on trace for manual no-spike regions
+        pSelected = []; % markers on trace for selected unassigned spikes
+        pSelection = []; % temporary objects to show user selection regions
+        pStim = []; % shaded areas on trace for stimulus event regions
+        pRaw = []; % raw data trace
+        
+        
+        %   axes handles
+        spT % trace subplots
+        spL % left unit subplots
+        spR % right unit subplots
+        Trace % trace plot
+        
         
         %   keeping track
-        lastStep = [];
-        currentBatch = 1;
-        rawSpikeWaves
-        savePath = [];
+        lastStep = []; % last state of program for undoing
+        currentBatch = 1; % current batch number
+        rawSpikeWaves % the waveforms of spikes in current batch
+        savePath = []; % path used when saving sorting
         
         %   popups
-        initialisePop
-        refinePop
-        tagPop
+        initialisePop % initialising sorting
+        refinePop % refining sorting
+        tagPop % tag manager for units
         
     end
     
     methods (Access = public)
-        function e = updateVars(app, newM, newT, newS)
-            e = 0;
-            %    user input data
-            app.StatusLabel.Value = "Loading...";
-            drawnow
-            
-            app.m = newM;
-            % find dataset
-            fileNotFound = 1;
-            while fileNotFound ~= 0
-                app.fid = fopen([app.m.fP app.m.fN],'r');
-                if app.fid < 1 || fileNotFound == -1
-                    [app.m.fN, app.m.fP] = uigetfile('*.bin',"Could not find/open binary file! Please reselect");
-                    figure(app.UIBase);
-                    if app.m.fN < 1
-                        app.m = [];
-                        e = 1;
-                        if app.fid > 0
-                            fclose(app.fid);
-                        end
-                        return;
-                    end
-                else
-                    fseek(app.fid,0,'eof');
-                    nFileSizeBytes = ftell(app.fid);
-                    if nFileSizeBytes == app.m.fileSizeBytes
-                        fileNotFound = 0;
-                    else
-                        fileNotFound = -1;
-                    end
-                end
-            end
-            fseek(app.fid,0,'bof');
-            
-            app.s = [];
-            app.s.clusters = "1";
-            app.s.unit_1 = [];
-            app.s.waves_1 = [];
-            
-            app.t = [];
-            
-            if isfield(newT,'rawSpikeSample')
-                app.t = newT;
-            elseif isfield(newT,'batchSize')
-                app.t = newT;
-                app.t.rawSpikeSample = [];
-                app.t.spikeClust = [];
-                app.t.orphanBool = logical.empty();
-            else
-                app.t.rawSpikeSample = [];
-                app.t.spikeClust = [];
-                app.t.orphanBool = logical.empty();
-                %%%LEGACY CHECKS%%%
-                
-                if ~isfield(app.m, 'el_cutL')
-                    app.m.el_cutL = 7000;
-                    app.m.el_cutH = app.m.el_cut;
-                    app.m = rmfield(app.m, "el_cut");
-                end
-                
-                if ~isfield(newT,'yscale')
-                    if isfield(app.m,'yscale')
-                        app.t.yscale = app.m.yscale;
-                        app.m = rmfield(app.m, "yscale");
-                    else
-                        app.t.yscale = 1;
-                    end
-                else
-                    app.t.yscale = newT.yscale;
-                end
-                
-                if isfield(app.m, 'splitSize')
-                    app.t.batchSize = app.m.splitSize;
-                    app.t.saveNameSuffix = app.m.postName;
-                    app.t.detectThr = app.m.ampThreshold;
-                    if isfield(app.m, 'oldTempSTDThreshold')
-                        app.t.add2UnitThr(1) = app.m.oldTempSTDThreshold;
-                        app.t.add2UnitThr(2) = app.m.newTempSTDThreshold;
-                        app.m = rmfield(app.m, ["oldTempSTDThreshold", "newTempSTDThreshold"]);
-                    else
-                        app.t.add2UnitThr(1) = app.m.oldTempSTDTh;
-                        app.t.add2UnitThr(2) = app.m.newTempSTDTh;
-                        app.m = rmfield(app.m, ["oldTempSTDTh", "newTempSTDTh"]);
-                    end
-                    
-                    app.m = rmfield(app.m, ["splitSize", "postName", "ampThreshold"]);
-                end
-                
-                tNames = fieldnames(newT);
-                for ii = 1:length(tNames)
-                    if contains(tNames{ii}, ["spikeBatchNum","spikeIdxInBatch"])
-                        batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
-                        app.t.batchLengths = [app.t.batchSize*ones(1, batchNum),  app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum]; %in samples
-                        bL = [0 cumsum(app.t.batchLengths)];
-                        app.t.numSpikesInBatch = [];
-                        if isfield(newT,"rawSpikeIdx")
-                            for jj = 1:length(newT.spikeClust)
-                                app.t.rawSpikeSample = [app.t.rawSpikeSample, newT.rawSpikeIdx{jj} + bL(jj)];
-                                app.t.numSpikesInBatch(jj) = length(newT.spikeClust{jj});
-                                app.t.spikeClust = [app.t.spikeClust, newT.spikeClust{jj}];
-                                app.t.orphanBool = [app.t.orphanBool, newT.orphanBool{jj}];
-                            end
-                            app.t.numSpikesInBatch(length(newT.spikeClust)+1:length(app.t.batchLengths)) = 0;
-                        else
-                            app.t.numSpikesInBatch(1:length(app.t.batchLengths)) = 0;
-                        end
-                        break;
-                    end
-                end
-            end
-            
-            if length(app.t.detectThr) == 1
-                app.t.detectThr(2) = -inf;
-            end
-            
-            if isfield(app.s, 'junkNames')
-                app.s.tags = table('RowNames', "Junk");
-                for ii = app.s.clusters
-                    app.s.tags.("unit_"+ii) = ismember(ii, app.s.junkNames);
-                end
-                app.s = rmfield(app.s, 'junkNames');
-            end
-            
-            if ~isfield(app.t, 'noSpikeRange')
-                app.t.noSpikeRange = [];
-            end
-            
-            %%%LEGACY CHECKS%%%
-
-            if ~isempty(newS)
-                app.s = newS;
-                if ~isfield(app.t, 'refineSettings')
-                    app.t.refineSettings = {app.s.clusters, ones(size(app.s.clusters))};
-                end
-            end
-            if ~isfield(app.t, 'refineSettings')
-                app.t.refineSettings = {"1", 1};
-            end
-            
-            if ~isfield(app.s, 'tags')
-                app.s.tags = table('RowNames', "Junk");
-                for ii = app.s.clusters
-                    app.s.tags.("unit_"+ii) = false;
-                end
-            end
-            
-            %    derived data
-            app.t.detectThr = sort(app.t.detectThr);
-            app.currentBatch = 1;
-            batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
-            app.t.batchLengths = [app.t.batchSize*ones(1, batchNum), app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum];
-            if ~isfield(app.t,'numSpikesInBatch')
-                app.t.numSpikesInBatch = zeros(size(app.t.batchLengths));
-            end
-            app.msConvert = 1000/app.m.sRateHz;
-            if ~isempty(app.t.saveNameSuffix)
-                suffix = "_"+app.t.saveNameSuffix;
-            else
-                suffix = "";
-            end
-            
-            %    update gui fields
-            app.BatchsizeEditField.Value = app.t.batchSize;
-            app.OldField.Value = app.t.add2UnitThr(1);
-            app.NewField.Value = app.t.add2UnitThr(2);
-            app.DetectThr1EditField.Value = app.t.detectThr(1);
-            app.DetectThr2EditField.Value = app.t.detectThr(2);
-            app.BinaryEditField.Value = app.m.fN;
-            app.SavenameEditField.Value ="sorting_" + erase(app.m.fN,'.bin') + suffix;
-            app.LeftUnitDropDown.Items = "1";
-            app.RightUnitDropDown.Items = "1";
-            app.LeftUnitDropDown.Value = "1";
-            app.RightUnitDropDown.Value = "1";
-            
-            %    read and plot data
-            app.readFilter(0, 0)
-            app.redrawTracePlot();
-            app.redrawUnitPlots();
-            switchButtons(app,3)
-        end
         
+        % initialise new sorting
+        e = updateVars(app, newM, newT, newS)
         
-        function [] = updateUnits(app, d)
-            app.saveLast();
-            
-            app.t.refineSettings{2} = d.scaleArray;
-            app.t.add2UnitThr(1) = d.add2UnitThr(1);
-            
-            c = app.currentBatch;
-            bl = app.t.batchLengths;
-            spikeRange = sum(app.t.numSpikesInBatch(1:c-1))+1:sum(app.t.numSpikesInBatch(1:c));
-            spikesInBatch = app.t.rawSpikeSample(spikeRange);
-            if ~isrow(d.spikeAssignmentUnit)
-                newAssignments = d.spikeAssignmentUnit';
-            else
-                newAssignments = d.spikeAssignmentUnit;
-            end
-            app.t.orphanBool(spikeRange) = ~logical(newAssignments);
-            app.t.spikeClust(spikeRange) = newAssignments;
-            for ii = app.s.clusters
-                unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+ii) & app.s.("unit_"+ii) <= sum(bl(1:c));
-                reassginedSpikesBool = newAssignments == str2double(ii);
-                app.s.("unit_"+ii)(unitSpikesInBatchBool) = [];
-                app.s.("waves_"+ii)(unitSpikesInBatchBool,:,:) = [];
-                
-                app.s.("unit_"+ii) = [app.s.("unit_"+ii) spikesInBatch(reassginedSpikesBool)];
-                app.s.("waves_"+ii) = [app.s.("waves_"+ii); app.rawSpikeWaves(reassginedSpikesBool,:,:)];
-            end
-            app.unitSorter();
-            app.redrawTracePlot();
-            app.redrawUnitPlots();
-            
-            figure(app.UIBase);
-        end
+        % update spike assignments from refine
+        updateUnits(app, d)
         
+        % update unit tags
         function [] = updateTags(app, p)
             app.s.tags = p;
             app.TagDropDown.Items = p.Row;
@@ -423,67 +224,53 @@
     
     methods (Access = private)
         
-        function [] = readFilter(app, offset, traceMove)
-            %   read a batch of data of length t.batchLengths samples and filter it.
-            %   Extract spike times also
-            app.StatusLabel.Value = "Reading data...";
-            drawnow
-            fseek(app.fid,offset,'cof');
-            app.currentBatch = app.currentBatch + traceMove;
-            c = app.currentBatch;
-            bl = app.t.batchLengths;
-            
-            x = app.t.yscale*fread(app.fid,[app.m.nChans, bl(c)], 'int16','l'); % little endian open
-            app.m.el_f = fir1(app.m.el_flen,[app.m.el_cutH app.m.el_cutL]./(app.m.sRateHz/2));
-            d = 1;
-            app.xi = [];
-            for ii=app.m.ech % filter each electrode channel in turns
-                app.xi(d,:) = splitconv(x(ii,:),app.m.el_f);
-                d = d+1;
-            end
-            yOffset = prctile(app.xi,50,2); %yoffset = mean(xi,2);
-            app.xi = app.xi - yOffset(1:size(app.xi,1),:); % remove DC offset
-            
-            filtSTD=std(app.xi,0,2); %StD of the signal in real unit (mV)
-            filtRMS=rms(app.xi,2);
-            fprintf('Filtered Data [%i/%i]: \t STD: %.4f, \t RMS: %.4f \n', c, length(bl), filtSTD,filtRMS);
-            
-            [~, detectedSpikes] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
-            detectedSpikes = detectedSpikes(detectedSpikes > app.m.spikeWidth+1);
-            detectedSpikes(app.xi(app.m.mainCh,detectedSpikes) < app.t.detectThr(1)) = [];
-            offsetSpikes = detectedSpikes + sum(bl(1:c-1));
-            if ~isempty(app.t.noSpikeRange)
-                for ii = 1:size(app.t.noSpikeRange,2)
-                    offsetSpikes(offsetSpikes >= app.t.noSpikeRange(1,ii) & offsetSpikes <= app.t.noSpikeRange(2,ii)) = [];
-                end
-            end
-            
-            oldSpikeRange = [sum(app.t.numSpikesInBatch(1:c-1))+1, sum(app.t.numSpikesInBatch(1:c))];
-            if length(offsetSpikes) ~= diff(oldSpikeRange)+1
-                app.t.numSpikesInBatch(c) = length(offsetSpikes);
-                newSpikeClust = zeros(size(offsetSpikes));
-                if diff(oldSpikeRange)+1 ~= 0
-                    for ii = app.s.clusters
-                        newSpikeClust = newSpikeClust + str2double(ii)*ismember(offsetSpikes, app.s.("unit_"+ii));
-                        unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+ii) & app.s.("unit_"+ii) <= sum(bl(1:c));
-                        deletedSpikes = unitSpikesInBatchBool & ~ismember(app.s.("unit_"+ii), offsetSpikes);
-                        app.s.("unit_"+ii)(deletedSpikes) = [];
-                        app.s.("waves_"+ii)(deletedSpikes,:) = [];
-                    end
-                end
-                app.t.spikeClust = insertLongArrays(app.t.spikeClust, newSpikeClust, oldSpikeRange);
-                app.t.orphanBool = insertLongArrays(app.t.orphanBool, ~logical(newSpikeClust), oldSpikeRange);
-                app.t.rawSpikeSample = insertLongArrays(app.t.rawSpikeSample, offsetSpikes, oldSpikeRange);
-            end
-            
-            app.rawSpikeWaves = [];
-            for ii=1:length(detectedSpikes)
-                tempWave=app.xi(1:end, detectedSpikes(ii)-app.m.spikeWidth:detectedSpikes(ii)+app.m.spikeWidth);
-                app.rawSpikeWaves=cat(1,app.rawSpikeWaves, permute(tempWave, [3 2 1])); % accumulate a wave
-            end
-            
-            app.StatusLabel.Value = "Ready";
-        end
+        %% data input
+        
+        % read in data and filter for displaying
+        readFilter(app, offset, traceMove)
+        
+        
+        %% draw on axes
+        redrawUnitPlots(app)
+        
+        redrawTracePlots(app)
+        
+        
+        %% others
+        
+        % save current state of GUI and sorting
+        saveLast(app)
+        
+        
+        %% unit manipulation
+        
+        % reassign s.unit_ and s.waves_ structures
+        unitReassigner(app, n, u, w)
+        
+        % delete a unit
+        unitRemover(app, n)
+        
+        % split selected spikes from a unit and create a new unit
+        unitSplitter(app, n, I)
+        
+        % remove selected spikes from a unit
+        spikeRemover(app, n, I)
+        
+        % remove empty units, re-number units from 1
+        unitRefactorer(app)
+        
+        % sort spikes in units in time
+        unitSorter(app)
+        
+        % use PCA to split waves into clusters - return clusters as well as
+        % user input (confirm/cancel)
+        [clust, yn] = unitAutoSplitter(app, w, n)
+        
+        
+        %% callbacks
+        
+        % callback for pressing colourful buttons bottom right
+        UnitButtonPushed(app, src, evt)
         
         
         %% unit interaction
@@ -511,650 +298,6 @@
             end
             app.LeftUnitDropDown.Items = newItems;
             app.RightUnitDropDown.Items = newItems;
-        end
-        
-        
-        function UnitButtonPushed(app, src, ~)
-            h = ancestor(src, 'figure');
-            clickType = get(h, 'SelectionType');
-            if strcmp(clickType, 'alt')
-                if any(strcmp(app.RightUnitDropDown.Items, src.UserData))
-                    app.RightUnitDropDown.Value = src.UserData;
-                    app.RightUnitDropDownValueChanged();
-                end
-            else
-                if any(strcmp(app.LeftUnitDropDown.Items, src.UserData))
-                    app.LeftUnitDropDown.Value = src.UserData;
-                    app.LeftUnitDropDownValueChanged();
-                end
-            end
-        end
-        
-        
-        %% draw on axes
-        function [] = redrawUnitPlots(app)
-            c = app.currentBatch;
-            bl = app.t.batchLengths;
-            %%   redraw spikes for each unit
-            app.StatusLabel.Value = "Redrawing units...";
-            drawnow
-            
-            %    setup
-            delete(app.pL); delete(app.pR); delete(app.pTL); delete(app.pTR);
-            for ii = 1:4
-                cla(app.spL(ii)); cla(app.spR(ii));
-            end
-            app.plottedWavesIdx = [];
-            h = [app.LeftUnit app.RightUnit];
-            d = ["<", ">"];
-            u = [string(app.LeftUnitDropDown.Value), string(app.RightUnitDropDown.Value)];
-            set(h(1),'UserData', []); % reset selected spikes in left unit
-            
-            %    ii == 1 is left unit, ii == 2 is right unit
-            for ii = 1:2
-                tempWaves = [];
-                if isfield(app.s, "unit_"+u(ii)) && ~isempty(app.s.("unit_"+u(ii))) % if there are spikes in the unit
-                    %    find spikes in selected batches
-                    plotBatch = [-round(app.PastbatchesField.Value), min([round(app.FuturebatchesField.Value), length(bl)-c])];
-                    unitSpikesInPlotIdx = find(sum(bl(1:c-1+plotBatch(1))) < app.s.("unit_"+u(ii))...
-                        & app.s.("unit_"+u(ii)) <= sum(bl(1:c+plotBatch(2))));
-                    if ii == 1
-                        app.plottedWavesIdx = unitSpikesInPlotIdx;
-                    end
-                    tempWaves = app.s.("waves_"+u(ii))(unitSpikesInPlotIdx,:,:);
-                    
-                    %    find how many spikes there were in the last 3 batches
-                    for jj = 3:-1:1
-                        last3Batches(jj) = nnz(sum(bl(1:c-jj)) < app.s.("unit_"+u(ii)) ...
-                            & app.s.("unit_"+u(ii)) <= sum(bl(1:c-jj+1)));
-                    end
-                    
-                    if app.s.tags("Junk",:).("unit_"+u(ii)) == 1
-                        junkText = "  JUNK UNIT";
-                    else
-                        junkText = "";
-                    end
-                    title(h(ii), string(length(app.s.("unit_"+u(ii)))) +" spikes total, " + last3Batches(1) + "/" + last3Batches(2)...
-                        + "/" + last3Batches(3) + " spikes -2/-1/0 batches ago" + junkText)
-                    
-                    q = 1;
-                elseif isfield(app.t,("importedTemplateMapping")) && any(strcmp(u(ii), app.t.importedTemplateMapping{2}(:,1)))
-                    tempWaves = app.t.("template_"+app.t.importedTemplateMapping{2}(strcmp(u(ii), app.t.importedTemplateMapping{2}(:,1)),2));
-                    title(h(ii), "TEMPLATE SPIKES ONLY")
-                    q = 0;
-                else
-                    title(h(ii), "No spikes!")
-                end
-                
-                %     If there are waveforms in the selected unit OR there are templates
-                if ~isempty(tempWaves)
-                    unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+u(ii)) & app.s.("unit_"+u(ii)) <= sum(bl(1:c));
-                    tempUnit = app.s.("unit_"+u(ii))(unitSpikesInBatchBool) - sum(bl(1:c-1));
-                    %      If the unit size is over the number to be plotted
-                    if size(tempWaves,1) > round(app.SpikeshownField.Value)
-                        tempWaves = tempWaves(end-round(app.SpikeshownField.Value)+1:end,:,:);
-                        if ~isempty(app.plottedWavesIdx) && ii == 1
-                            app.plottedWavesIdx = app.plottedWavesIdx(end-round(app.SpikeshownField.Value)+1:end);
-                        end
-                    end
-                    %      Draw units
-                    if ii == 1 % Left unit
-                        app.lUnitInBatchIdx = find(unitSpikesInBatchBool);
-                        app.pL = line(h(ii), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,app.m.mainCh)');
-                        if q % if there are spikes in the unit
-                            set(app.pL, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx}) % click on spikes callback
-                            app.pTL = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
-                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
-                            if size(app.xi,1) > 0 && app.PlotallchButton.Value
-                                for jj = 1:size(app.xi,1)
-                                    line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
-                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                                end
-                            end
-                        end
-                    elseif ii == 2 % Right unit
-                        app.pR = line(h(ii), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,app.m.mainCh)');
-                        if ~strcmp(u(1), u(2)) && q % if left and right units are different
-                            app.pTR = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
-                                'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
-                            if size(app.xi,1) > 0 && app.PlotallchButton.Value
-                                for jj = 1:size(app.xi,1)
-                                    line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
-                                        'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                                end
-                            end
-                        end
-                    end
-                    
-                    if size(app.xi,1) > 0 && app.PlotallchButton.Value
-                        for jj = 1:size(app.xi,1)
-                            line(app.spL(jj), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,jj)');
-                        end
-                    end
-                    
-                    %      prettify axes
-                    if ~isinf(app.yLimLowField.Value)
-                        yl(1) = app.yLimLowField.Value;
-                    else
-                        yl(1) = min(min(tempWaves(:,:,app.m.mainCh)))-50;
-                    end
-                    if ~isinf(app.yLimHighField.Value)
-                        yl(2) = app.yLimHighField.Value;
-                    else
-                        yl(2) = max(max(tempWaves(:,:,app.m.mainCh)))+50;
-                    end
-                    
-                    step = 50*ceil((yl(2) - yl(1))/500);
-                    ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
-                    ylim(h(ii),yl);
-                    yticks(h(ii),ticks);
-                    set(h(ii), 'YGrid', 'on', 'XGrid', 'off')
-                end
-                
-            end
-            
-            app.LeftUnitDropDown.FontColor = app.cmap(rem(str2double(u(1))-1,25)+1,:);
-            app.RightUnitDropDown.FontColor = app.cmap(rem(str2double(u(2))-1,25)+1,:);
-            app.StatusLabel.Value = "Ready";
-            drawnow
-            if isempty(app.lastStep)
-                app.UndoredoMenu.Enable = 'off';
-            else
-                app.UndoredoMenu.Enable = 'on';
-            end
-            
-            %    callback for selected spikes
-            function lineSelected(src, ~, app, w)
-                lineIdx = find(app.pL == src);
-                if strcmp(src.LineStyle, ':')
-                    src.LineStyle = '-';
-                    temp = get(app.LeftUnit, 'UserData');
-                    set(app.LeftUnit, 'UserData', temp(temp ~= w(lineIdx)));
-                else
-                    src.LineStyle = ':';
-                    temp = get(app.LeftUnit, 'UserData');
-                    set(app.LeftUnit, 'UserData', [temp w(lineIdx)]);
-                end
-            end
-            
-        end
-        
-        function [] = redrawTracePlot(app)
-            c = app.currentBatch;
-            bl = app.t.batchLengths;
-            %   redraw batch time series in blue then overlay scatter for detected
-            %   spikes
-            app.StatusLabel.Value = "Redrawing data trace...";
-            cla(app.Trace);
-            app.pSelected = gobjects(0);
-            app.pSelection = gobjects(1);
-            app.pStim = [];
-            
-            
-            for ii = 1:4
-                cla(app.spT(ii));
-            end
-            app.Trace.UserData = []; % Used for storing selected orphans
-            
-            spikesInBatch = sum(app.t.numSpikesInBatch(1:c-1))+1:sum(app.t.numSpikesInBatch(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-            orphansInBatchBool = app.t.orphanBool(spikesInBatch);
-            title(app.Trace,"Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
-                nnz(~orphansInBatchBool) + "/" + app.t.numSpikesInBatch(c));
-            
-            % main data line
-            app.pRaw = line(app.Trace, app.msConvert*(1:size(app.xi,2)), app.xi(app.m.mainCh,:),'Color','b');
-            set(app.pRaw, 'ButtonDownFcn',{@clickedTrace,app});
-            
-            xlim(app.Trace, [0 app.msConvert*size(app.xi,2)]);
-            ylim(app.Trace, 'auto');
-            yl = ylim(app.Trace);
-            if ~isinf(app.yLimLowField.Value)
-                yl(1) = app.yLimLowField.Value;
-            end
-            if ~isinf(app.yLimHighField.Value)
-                yl(2) = app.yLimHighField.Value;
-            end
-            ylim(app.Trace, yl);
-
-            if app.ViewstimulusregionsButton.Value == 1
-                offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
-                yl = ylim(app.Trace);
-                
-                if min(size(app.t.importedStimulusBounds)) == 1
-                    regionInBatch = offset < app.t.importedStimulusBounds & app.t.importedStimulusBounds <= sum(bl(1:c));
-                    regionInBatch = find(regionInBatch);
-                    
-                    for jj = 1:length(regionInBatch)
-                        regionCoord = (app.t.importedStimulusBounds(regionInBatch(jj))-offset)*app.msConvert;
-                        xR = [regionCoord, regionCoord];
-                        yR = [yl(1), yl(2)];
-                        app.pStim(jj) = plot(app.Trace, xR, yR, 'Color', [0.5,0.5,0.5], 'LineStyle',':','LineWidth',1.5);
-                        set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
-                    end
-                else
-                    regionInBatch = offset < app.t.importedStimulusBounds(1,:) & app.t.importedStimulusBounds(1,:) <= sum(bl(1:c));
-                    regionInBatch = regionInBatch | (offset < app.t.importedStimulusBounds(2,:) & app.t.importedStimulusBounds(2,:) <= sum(bl(1:c)));
-                    regionInBatch = find(regionInBatch);
-                    
-                    for jj = 1:length(regionInBatch)
-                        regionCoord = (app.t.importedStimulusBounds(:,regionInBatch(jj))-offset)*app.msConvert;
-                        xR = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
-                        yR = [yl(1), yl(2), yl(2), yl(1)];
-                        pgon = polyshape(xR,yR);
-                        app.pStim(jj) = plot(app.Trace, pgon, 'FaceColor','k', 'FaceAlpha',0.3,'LineStyle','none');
-                        set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
-                    end
-                end
-            end
-            
-            app.Trace.Children = flipud(app.Trace.Children);
-
-            orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)) - sum(bl(1:c-1));
-            % draw markers on data line for orphans
-            if ~isempty(orphanSpikes)
-                x(1,:) = orphanSpikes*app.msConvert;
-                y(1,:) = app.xi(app.m.mainCh,orphanSpikes);
-                
-                app.pUnassigned = line(app.Trace, x, y,'Color', 'k', 'Marker', '.', 'LineStyle', 'none');
-                set(app.pUnassigned, 'ButtonDownFcn',{@clickedUnassigned,app});
-                
-                % markers on if multiple channels enabled
-                if size(app.xi,1) > 0 && app.PlotallchButton.Value
-                    for ii = 1:size(app.xi,1)
-                        cla(app.spT(ii));
-                        line(app.spT(ii), app.msConvert*(1:size(app.xi,2)), app.xi(ii,:),'Color','b');
-                        line(app.spT(ii), x, app.xi(ii,orphanSpikes),'Color', 'k', 'Marker', '.', 'LineStyle', 'none');
-                        xlim(app.spT(ii), [0 app.msConvert*size(app.xi,2)])
-                        ylim(app.spT(ii), yl);
-                    end
-                end
-            end
-            
-            % draw markers on data line for unit spikes
-            d = 1;
-            for ii = app.s.clusters
-                unitSpikesInBatchBool = sum(bl(1:c-1)) < app.s.("unit_"+ii) & app.s.("unit_"+ii) <= sum(bl(1:c));
-                tempUnit = app.s.("unit_"+ii)(unitSpikesInBatchBool) - sum(bl(1:c-1));
-                if ~isempty(tempUnit)
-                    nii = str2double(ii);
-                    ms = getMarker(size(app.cmap,1), nii);
-                    
-                    % set up interactivity with assigned spikes to select
-                    % waveforms in left unit figure from trace
-                    app.pAssigned(d) = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), ...
-                        'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(nii-1,25)+1,:));
-                    set(app.pAssigned(d), 'UserData', ii, 'ButtonDownFcn',{@clickedAssigned,app});
-                    
-                    % markers on if multiple channels enabled
-                    if size(app.xi,1) > 0 && app.PlotallchButton.Value
-                        for jj = 1:size(app.xi,1)
-                            line(app.spT(jj), tempUnit*app.msConvert, app.xi(jj,tempUnit), ...
-                                'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(nii-1,25)+1,:));
-                        end
-                    end
-                    d = d+1;
-                end
-            end
-            
-            app.StatusLabel.Value = "Ready";
-            if isempty(app.lastStep)
-                app.UndoredoMenu.Enable = 'off';
-            else
-                app.UndoredoMenu.Enable = 'on';
-            end
-            
-            % set up interactivity for box selection of orphans in trace
-            set(app.Trace,'ButtonDownFcn',{@clickedTrace,app})
-            
-            % allow box selection of orphans
-            function clickedTrace(~,evt,app)
-                if isempty(app.pUnassigned)
-                    return;
-                end
-                % get clicked coordinates
-                u = evt.IntersectionPoint;
-                % if box corner not defined yet
-                if ~ishandle(app.pSelection)
-                    % get first box corner and draw crosshair
-                    app.pSelection = plot(app.Trace, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
-                else
-                    % get second box corner and draw box
-                    xBox = [app.pSelection.XData, u(1,1), u(1,1), app.pSelection.XData, app.pSelection.XData];
-                    yBox = [app.pSelection.YData, app.pSelection.YData, u(1,2), u(1,2), app.pSelection.YData];
-                    delete(app.pSelection);
-                    app.pSelection = plot(app.Trace, xBox, yBox, 'r');
-                    
-                    X = get(app.pUnassigned,'XData');
-                    Y = get(app.pUnassigned,'YData');
-                    
-                    % select orphans inside box
-                    selectedPoint = inpolygon(X,Y,xBox,yBox);
-                    selectedPoint = find(selectedPoint);
-                    drawnow
-                    
-                    % store selected orphans in UserData
-                    for qq = 1:length(selectedPoint)
-                        alreadySelectedBool = ismember(app.Trace.UserData,selectedPoint(qq));
-                        if ~any(alreadySelectedBool)
-                            app.Trace.UserData = [app.Trace.UserData, selectedPoint(qq)];
-                            app.pSelected(end+1) = plot(app.Trace, X(selectedPoint(qq)),Y(selectedPoint(qq)),'ro');
-                            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
-                        else
-                            delete(app.pSelected(alreadySelectedBool))
-                            app.pSelected(alreadySelectedBool) = [];
-                            app.Trace.UserData(alreadySelectedBool) = [];
-                        end
-                    end
-                    delete(app.pSelection);
-                end
-            end
-            
-            % allow selection of orphans in Trace
-            function clickedUnassigned(~,evt,app)
-                u = evt.IntersectionPoint;
-                
-                X = get(app.pUnassigned,'XData');
-                Y = get(app.pUnassigned,'YData');
-                r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
-                [~ ,selectedPoint]=min(r);
-                
-                alreadySelectedBool = ismember(app.Trace.UserData,selectedPoint);
-                if ~any(alreadySelectedBool)
-                    app.Trace.UserData = [app.Trace.UserData, selectedPoint];
-                    app.pSelected(end+1) = plot(app.Trace, X(selectedPoint),Y(selectedPoint),'ro');
-                    app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
-                else
-                    delete(app.pSelected(alreadySelectedBool))
-                    app.pSelected(alreadySelectedBool) = [];
-                    app.Trace.UserData(alreadySelectedBool) = [];
-                end
-                
-            end
-            
-            % allow selection of assigned spikes to select waveforms
-            function clickedAssigned(src,evt,app)
-                % continue only if selected spike is of the left unit
-                if ~strcmp(app.LeftUnitDropDown.Value, src.UserData)
-                    return;
-                end
-                u = evt.IntersectionPoint;
-                X = get(src,'XData');
-                Y = get(src,'YData');
-                r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
-                [~ ,selectedPoint]=min(r);
-                
-                % continue only if selected spike is plotted in left unit
-                [~, foundIdx] = ismember(app.lUnitInBatchIdx(selectedPoint),app.plottedWavesIdx);
-                if foundIdx < 1
-                    return;
-                end
-                
-                if strcmp(app.pL(foundIdx).LineStyle, ':')
-                    app.pL(foundIdx).LineStyle = '-';
-                    temp = get(app.LeftUnit, 'UserData');
-                    set(app.LeftUnit, 'UserData', temp(temp ~= app.plottedWavesIdx(foundIdx)));
-                else
-                    app.pL(foundIdx).LineStyle = ':';
-                    temp = get(app.LeftUnit, 'UserData');
-                    set(app.LeftUnit, 'UserData', [temp app.plottedWavesIdx(foundIdx)]);
-                end
-            end
-        end
-        
-        %% others
-        
-        % save current state of GUI and sorting
-        function [] = saveLast(app)
-            app.lastStep.s = app.s;
-            app.lastStep.m = app.m;
-            app.lastStep.t = app.t;
-            app.lastStep.currentBatch = app.currentBatch;
-            app.lastStep.rawSpikeWaves = app.rawSpikeWaves;
-            app.lastStep.LI = app.LeftUnitDropDown.Items;
-            app.lastStep.RI = app.RightUnitDropDown.Items;
-            app.lastStep.LV = app.LeftUnitDropDown.Value;
-            app.lastStep.RV = app.RightUnitDropDown.Value;
-            
-            app.lastStep.savePath = app.savePath;
-            app.lastStep.spikesshown = app.SpikeshownField.Value;
-        end
-        
-        
-        %% unit manipulation
-        
-        % reassign s.unit_ and s.waves_ structures
-        function [] = unitReassigner(app, n, u, w)
-            app.s.("unit_"+n) = u;
-            app.s.("waves_"+n) = w;
-        end
-        
-        
-        % delete a unit
-        function [] = unitRemover(app, n)
-            app.s = rmfield(app.s, "waves_"+n);
-            app.s = rmfield(app.s, "unit_"+n);
-            app.s.clusters = app.s.clusters(~strcmp(n,app.s.clusters));
-            
-            app.t.orphanBool(app.t.spikeClust == str2double(n)) = true;
-            app.t.spikeClust(app.t.spikeClust == str2double(n)) = 0;
-            
-            if isfield(app.t, 'importedTemplateMapping')
-                newMapping = strcmp(n, app.t.importedTemplateMapping{2}(:,1));
-                if any(newMapping)
-                    app.t.importedTemplateMapping{2}(newMapping,:) = [];
-                end
-            end
-            
-            c = ismember(app.t.refineSettings{1},n);
-            app.t.refineSettings{1}(c) = [];
-            app.t.refineSettings{2}(c) = [];
-            app.s.tags.("unit_"+n) = [];
-        end
-        
-        
-        % split selected spikes from a unit and create a new unit
-        function [] = unitSplitter(app, n, I)
-            tU = app.s.("unit_"+n);
-            tW = app.s.("waves_"+n);
-            
-            app.StatusLabel.Value = "Splitting unit...";
-            drawnow
-            app.incDropDown();
-            app.s.clusters(end+1) = app.getMaxUnit(0);
-            
-            %      new unit
-            moveBool = ismember(app.t.rawSpikeSample, tU(I));
-            app.t.spikeClust(moveBool) = str2double(app.getMaxUnit(0));
-            app.unitReassigner(app.getMaxUnit(0), tU(I), tW(I,:,:));
-            
-            %      old unit
-            tU(I) = [];
-            tW(I,:,:) = [];
-            app.unitReassigner(n, tU, tW);
-            
-            if isfield(app.t, 'importedTemplateMapping')
-                newMapping = strcmp(n, app.t.importedTemplateMapping{2}(:,1));
-                if any(newMapping)
-                    app.t.importedTemplateMapping{2}(end+1,:) = [app.getMaxUnit(0) app.t.importedTemplateMapping{2}(newMapping,2)];
-                end
-            end
-            
-            c = ismember(app.t.refineSettings{1},n);
-            app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
-            app.t.refineSettings{2}(c) = 1;
-            app.t.refineSettings{2}(end+1) = 1;
-            
-            app.s.tags("Junk",:).("unit_"+n) = 0;
-            app.s.tags.("unit_"+app.getMaxUnit(0)) = false(size(app.s.tags,1),1);
-        end
-        
-        
-        % remove selected spikes from a unit
-        function [] = spikeRemover(app, n, I)
-            app.saveLast();
-            app.StatusLabel.Value = "Removing spikes...";
-            drawnow
-            tW = app.s.("waves_"+n);
-            tU = app.s.("unit_"+n);
-            
-            removeBool = ismember(app.t.rawSpikeSample, tU(I));
-            app.t.orphanBool(removeBool) = 1;
-            app.t.spikeClust(removeBool) = 0;
-            
-            tU(I) = [];
-            tW(I,:,:) = [];
-            app.unitReassigner(n, tU, tW);
-        end
-        
-        
-        % remove empty units, sort units and re-number units from 1
-        function [] = unitRefactorer(app)
-            if length(app.s.clusters) <= 1
-                return;
-            end
-            
-            for ii = app.s.clusters
-                if isempty(app.s.("unit_"+ii))
-                    app.unitRemover(ii);
-                end
-            end
-            
-            tempS.clusters = string.empty();
-            tempS.tags = table('RowNames', app.s.tags.Row);
-            
-            tempT = app.t;
-            if isfield(app.t, 'importedTemplateMapping')
-                tempT.importedTemplateMapping{1} = app.t.importedTemplateMapping{1};
-                tempT.importedTemplateMapping{2} = string.empty(0,2);
-                for ii = tempT.importedTemplateMapping{1}(:,2)'
-                    tempT.("template_"+ii) = app.t.("template_"+ii);
-                end
-            end
-            
-            % find order of peak amplitude
-            c = 1;
-            minMean = zeros(1,length(app.s.clusters));
-            for ii = app.s.clusters
-                waveAmp = min(mean(app.s.("waves_"+ii)(:,:,app.m.mainCh),1));
-                if ~isempty(waveAmp)
-                    minMean(c) = waveAmp;
-                end
-                c = c+1;
-            end
-            [~, clustMaxOrder] = sort(minMean);
-            
-            c = 1;
-            for ii = app.s.clusters(clustMaxOrder)
-                if isfield(app.t, 'importedTemplateMapping')
-                    newMapping = strcmp(ii, app.t.importedTemplateMapping{2}(:,1));
-                    if any(newMapping)
-                        tempT.importedTemplateMapping{2}(end+1,:) = [string(c) app.t.importedTemplateMapping{2}(newMapping,2)];
-                    end
-                end
-                
-                if isfield(app.s, "unit_"+ii)
-                    tempS.("unit_"+c) = app.s.("unit_"+ii);
-                    tempS.("waves_"+c) = app.s.("waves_"+ii);
-                    tempS.clusters(c) = string(c);
-                    tempT.spikeClust(app.t.spikeClust == str2double(ii)) = c;
-                    
-                    tempS.tags.("unit_"+c) = app.s.tags.("unit_"+ii);
-                    
-                    tempT.refineSettings{1}(c) = string(c);
-                    tempT.refineSettings{2}(c) = app.t.refineSettings{2}(ismember(app.t.refineSettings{1}, ii));
-                    
-                    if strcmpi(ii, app.LeftUnitDropDown.Value)
-                        newL = c;
-                    end
-                    if strcmpi(ii, app.RightUnitDropDown.Value)
-                        newR = c;
-                    end
-                    c = c + 1;
-                end
-            end
-            
-            tempT.orphanBool = ~logical(tempT.spikeClust);
-            app.s = tempS;
-            app.t = tempT;
-            app.LeftUnitDropDown.Items = app.s.clusters;
-            app.RightUnitDropDown.Items = app.s.clusters;
-            
-            if ~exist('newL','var')
-                newL = 1;
-            end
-            if ~exist('newR','var')
-                newR = 1;
-            end
-            
-            app.LeftUnitDropDown.Value = string(newL);
-            app.RightUnitDropDown.Value = string(newR);
-            
-        end
-        
-        function [] = unitSorter(app)
-            for ii = app.s.clusters
-                [app.s.("unit_"+ii), IA, ~] = unique(app.s.("unit_"+ii));
-                app.s.("waves_"+ii) = app.s.("waves_"+ii)(IA,:,:);
-            end
-        end
-        
-        
-        % use PCA to split waves into clusters - return clusters as well as
-        % user input (confirm/cancel)
-        function [clust, yn] = unitAutoSplitter(app, w, n)
-            % crop waves for better PCA
-            croppedWaves = w(:,ceil(size(w,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
-            croppedWaves = reshape(croppedWaves, size(w,1), []);
-            
-            % perform PCA and cluster waves
-            PC = pca(croppedWaves);
-            PCwaves = croppedWaves*PC(:,1:3);
-            clust = kmeans_opt(PCwaves,app.AutosplitField.Value);
-            numClust = length(unique(clust));
-            
-            % plot waveforms, separated into subplots for different
-            % clusters
-            f = figure;
-            set(f, 'Position',  [300, 200, 1200, 700]);
-            ax = gobjects(numClust,1);
-            yTemp = zeros(numClust,2);
-            
-            for ii = 1:numClust
-                ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
-                axis square;
-                line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w', 'Color', [0.8, 0.8, 0.8]);
-                line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w(clust==ii,:,app.m.mainCh)');
-                %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
-                yTemp(ii,:) = ylim(ax(ii));
-                
-                if ii == 1
-                    title(ax(ii),"Unit "+n, 'Color', app.cmap(rem(str2double(n)-1,25)+1,:));
-                else
-                    title(ax(ii),"Unit "+str2double(app.getMaxUnit(ii-1)), 'Color', app.cmap(rem(str2double(app.getMaxUnit(ii-1))-1,25)+1,:))
-                end
-            end
-            
-            % match ylim of each subplot
-            yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-            
-            if ~isinf(app.yLimLowField.Value)
-                yTemp(1) = app.yLimLowField.Value;
-            end
-            if ~isinf(app.yLimHighField.Value)
-                yTemp(2) = app.yLimHighField.Value;
-            end
-            
-            for ii = 1:numClust
-                ylim(ax(ii), yTemp);
-                axis(ax,'square');
-            end
-            sgtitle("Template splitting: ENTER to accept, close to reject")
-            
-            % ask user if they want to accept the new assignments
-            % yn = 1 if enter was pressed
-            [yn, ~] = getFigData(f);
         end
         
     end
@@ -1813,10 +956,10 @@
                 return;
             end
             app.savePath = sP;
-            m = app.m;
-            s = app.s;
-            t = app.t;
-            m.msec = app.m.sRateHz/1000; % need this for further pipeline stuff - REMOVE
+            m = app.m; %#ok<ADPROPLC>
+            s = app.s; %#ok<ADPROPLC>
+            t = app.t; %#ok<ADPROPLC>
+            m.msec = app.m.sRateHz/1000; %#ok<ADPROPLC> % need this for further pipeline stuff - REMOVE
             
             if app.AddtimestampMenu.Checked
                 timeStamp = "_"+datestr(now,'yymmddHHMM');
@@ -1824,7 +967,7 @@
                 timeStamp = "";
             end
             sN = string(app.SavenameEditField.Value)+timeStamp+".mat";
-            save(app.savePath+"\"+sN,'m', 's', 't');
+            save(app.savePath+string(filesep)+sN,'m', 's', 't');
             app.StatusLabel.Value = "Saved! (" + sN + ")";
             
         end
@@ -1865,7 +1008,7 @@
             allClust = [];
             
             sp = ceil(length(unitsToPlot)/6);
-            f1 = figure; set(gcf, 'Position',  [200, 200, 900, 700]);
+            figure; set(gcf, 'Position',  [200, 200, 900, 700]);
             ax = gobjects(length(unitsToPlot),1);
             yTemp = zeros(length(unitsToPlot),2); % to match ylim later
             
@@ -1910,7 +1053,7 @@
             
             PC = pca(allClust);
             
-            f2 = figure; set(gcf, 'Position',  [1100, 200, 700, 600]);
+            figure; set(gcf, 'Position',  [1100, 200, 700, 600]);
             
             for ii=1:length(unitsToPlot)
                 iiCmap=app.cmap(rem(ii-1,25)+1,:);
@@ -2141,72 +1284,7 @@
             
             value = app.LeftUnitDropDown.Value;
             
-            if ~any(strcmp(value,app.s.clusters))
-                app.StatusLabel.Value = "Select a left unit to scrub through";
-                return;
-            end
-            
-            waves = app.s.("waves_"+value)(:,:,app.m.mainCh);
-            
-            f = uifigure;
-            set(f, 'Position',  [300, 200, 800, 700]);
-            ax = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
-            
-            p = line(ax, -app.m.spikeWidth:app.m.spikeWidth, waves');
-            set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
-            if length(p) > 1 % make future spikes invisible for now
-                set(p(2:end),'LineStyle', 'none');
-            end
-            
-            title(ax, "Unit "+value,'Color',app.cmap(rem(str2double(value)-1,25)+1,:));
-            xlabel(ax, "Samples")
-            ylabel(ax, "Amplitude (uV)")
-            
-            yl(1) = min(min(waves))-50; yl(2) = max(max(waves))+50;
-            ylim(ax, yl);
-            
-            % create sliders and buttons to allow unit scrubbing and manipulation
-            sldr = uislider(f,'Position',[50 80 700 3], 'Value',1, 'Limits',[1 size(waves,1)],...
-                'ValueChangingFcn',{@sliderMoving, p});
-            btnS = uibutton(f, 'Text', 'Split here', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@scrubSplit, app, sldr, f});
-            btnD1 = uibutton(f, 'Text', 'Remove before', 'Position',[300 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, sldr, f, 0});
-            btnD2 = uibutton(f, 'Text', 'Remove after', 'Position',[500 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, sldr, f, 1});
-            
-            app.StatusLabel.Value = "Ready";
-            
-            % reveal/hide spike lines as unit timeline is interacted with
-            function sliderMoving(~, e, p)
-                set(p(round(e.Value)+1:end), 'LineStyle', 'none');% delete(p(round(event.Value)+1:end));
-                set(p(1:round(e.Value)), 'LineStyle', '-');
-            end
-            
-            % splot spikes before/after set timepoint in unit scrubbing window
-            function scrubSplit(~, ~, app, sld, h)
-                app.saveLast();
-                n = app.LeftUnitDropDown.Value;
-                tU = app.s.("unit_"+n);
-                I = round(sld.Value)+1:length(tU);
-                app.unitSplitter(n,I);
-                app.redrawTracePlot();
-                app.redrawUnitPlots();
-                close(h)
-            end
-            
-            % remove spikes before/after set timepoint in unit scrubbing window
-            function scrubRemove(~, ~, app, sld, h, o)
-                app.saveLast();
-                n = app.LeftUnitDropDown.Value;
-                tU = app.s.("unit_"+n);
-                if o % choose before/after
-                    I = round(sld.Value)+1:length(tU);
-                else
-                    I = 1:round(sld.Value)+1;
-                end
-                app.spikeRemover(n,I);
-                app.redrawTracePlot();
-                app.redrawUnitPlots();
-                close(h)
-            end
+            unitScrubber(app,value);
             
         end
 
@@ -2549,71 +1627,7 @@
                 return;
             end
             
-            % set up subplot function
-            subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
-            app.StatusLabel.Value = "Plotting units with their templates...";
-            drawnow
-            
-            nUnitsWTemplates = size(app.t.importedTemplateMapping{2},1);
-            sp = ceil(nUnitsWTemplates/2);
-            
-            f = figure; set(f, 'Position',  [200, 200, 900, 700]);
-            ax = gobjects(nUnitsWTemplates*2,1);
-            yTemp = zeros(nUnitsWTemplates*2,2); % to align y axis limits later
-            
-            for ii=1:nUnitsWTemplates
-                iiUnit = app.t.importedTemplateMapping{2}(ii,1);
-                iiTemplate = app.t.importedTemplateMapping{2}(ii,2);
-                ax(2*ii-1) = subplott(sp,4,2*ii-1);
-                ax(2*ii) = subplott(sp,4,2*ii);
-                ms = getMarker(size(app.cmap,1), ii);
-                iiCmap=app.cmap(rem(ii-1,25)+1,:);
-                
-                % plot random selection of up to 600 waveforms in unit
-                waves = app.s.("waves_"+iiUnit)(:,:,app.m.mainCh);
-                if ~isempty(waves)
-                    rp = randperm(size(waves,1));
-                    if length(rp) > 600
-                        rp = rp(1:600);
-                    end
-                    waves = waves(sort(rp),:,:);
-                    p = line(ax(2*ii), -app.m.spikeWidth:app.m.spikeWidth, waves');
-                    set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
-                end
-                
-                % plot all initialiser template waves for the unit
-                waves = app.t.("template_"+iiTemplate)(:,:,app.m.mainCh);
-                if ~isempty(waves)
-                    p = line(ax(2*ii-1), -app.m.spikeWidth:app.m.spikeWidth, waves');
-                    set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
-                end
-                
-                yTemp(2*ii,:) = ylim(ax(2*ii));
-                yTemp(2*ii-1,:) = ylim(ax(2*ii-1));
-                title(ax(2*ii), 'Unit '+iiUnit+" "+ ms +" ("+length(app.s.("unit_"+iiUnit))+")",'Color',iiCmap);
-                title(ax(2*ii-1), 'Template '+iiTemplate);
-            end
-            
-            % edit xlim and ylim of figures to match
-            yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-            
-            if ~isinf(app.yLimLowField.Value)
-                yTemp(1) = app.yLimLowField.Value;
-            end
-            if ~isinf(app.yLimHighField.Value)
-                yTemp(2) = app.yLimHighField.Value;
-            end
-            
-            for ii = 1:length(ax)
-                ylim(ax(ii), yTemp);
-                ylim(yTemp); %axis square;
-                xlim(ax(ii), [-app.m.spikeWidth app.m.spikeWidth]);
-                yticks(ax(ii), 200*floor(yTemp(1)/200):200:200*ceil(yTemp(2)/200));
-                set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
-            end
-            sgtitle('Units with their loaded templates - max 600 random spikes plotted');
-            
-            app.StatusLabel.Value = "Ready";
+            showLoadedTemplates(app)
             
         end
 
@@ -2784,48 +1798,7 @@
             value = app.ManualartifactremoverButton.Value;
             
             if value == 1
-                app.StatusLabel.Value = "ARTIFACT REMOVER ON! TURN OFF FOR NORMAL OPERATION."+...
-                " Click on 2 points in the trace to denote region of spike elimination. Click on a region to remove it.";
-                switchButtons(app,0);
-                switchButtons(app,2);
-                drawnow
-
-                if ~isempty(app.pAssigned)
-                    for ii = 1:length(app.pAssigned)
-                        if ishandle(app.pAssigned(ii))
-                            set(app.pAssigned(ii), 'ButtonDownFcn',[]);
-                        end
-                    end
-                end
-                for ii = 1:length(app.pStim)
-                    delete(app.pStim(ii));
-                end
-                
-                set(app.Trace,'ButtonDownFcn',{@selectTimeblock,app});
-                set(app.pRaw, 'ButtonDownFcn',{@selectTimeblock,app});
-                if ~isempty(app.pUnassigned)
-                    set(app.pUnassigned, 'ButtonDownFcn',[]);
-                end
-                
-                
-                if ~isempty(app.t.noSpikeRange)
-                    bl = app.t.batchLengths;
-                    c = app.currentBatch;
-                    offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
-                    regionInBatch = offset < app.t.noSpikeRange(1,:) & app.t.noSpikeRange(1,:) <= sum(bl(1:c));
-                    regionInBatch = regionInBatch | (offset < app.t.noSpikeRange(2,:) & app.t.noSpikeRange(2,:) <= sum(bl(1:c)));
-                    regionInBatch = find(regionInBatch);
-                    
-                    yl = ylim(app.Trace);
-                    for ii = 1:length(regionInBatch)
-                        regionCoord = (app.t.noSpikeRange(:,regionInBatch(ii))-offset)*app.msConvert;
-                        x = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
-                        y = [yl(1), yl(2), yl(2), yl(1)];
-                        pgon = polyshape(x,y);
-                        app.pNospike(ii) = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
-                        set(app.pNospike(ii),'ButtonDownFcn',{@selectTimeblock,app});
-                    end
-                end
+                manualArtifactRemover(app);
             else
                 switchButtons(app,1);
                 switchButtons(app,3);
@@ -2835,60 +1808,7 @@
                 app.redrawTracePlot();
                 app.redrawUnitPlots();
             end
-            
-            function selectTimeblock(~,evt,app)
-                % get clicked coordinates
-                u = evt.IntersectionPoint;
-                
-                bl = app.t.batchLengths;
-                c = app.currentBatch;
-                offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
-                        
-                % if time range not defined yet
-                if ~ishandle(app.pSelection)
-                    q = 0;
-                    % if first click is within an already defined region,
-                    % delete said region
-                    if ~isempty(app.t.noSpikeRange)
-                        v = u/app.msConvert;
-                        
-                        regionInBatch = offset < app.t.noSpikeRange(1,:) & app.t.noSpikeRange(1,:) <= sum(bl(1:c));
-                        regionInBatch = regionInBatch | (offset < app.t.noSpikeRange(2,:) & app.t.noSpikeRange(2,:) <= sum(bl(1:c)));
-                        regionInBatch = find(regionInBatch);
-                        
-                        for jj = 1:length(regionInBatch)
-                            q = 0;
-                            inRegion = app.t.noSpikeRange(1,regionInBatch(jj))-offset <= v(1,1) & v(1,1) <= app.t.noSpikeRange(2,regionInBatch(jj))-offset;
-                            if inRegion
-                                delete(app.pNospike(jj));
-                                app.pNospike(jj) = [];
-                                app.t.noSpikeRange(:,regionInBatch(jj)) = [];
-                                q = 1;
-                                break;
-                            end
-                        end
-                    end
-                
-                    % get first line and draw
-                    if q == 0
-                        app.pSelection = plot(app.Trace, [u(1,1),u(1,1)], ylim(app.Trace), 'r');
-                    end
-                else
-                    % get second line and draw
-                    yl = ylim(app.Trace);
-                    x = [app.pSelection.XData(1), app.pSelection.XData(1), u(1,1), u(1,1)];
-                    y = [yl(1), yl(2), yl(2), yl(1)];
-                    pgon = polyshape(x,y);
-                    
-                    app.t.noSpikeRange(:,end+1) = sort([app.pSelection.XData(1); u(1,1)])/app.msConvert + offset;
-                    delete(app.pSelection);
-                    
-                    app.pSelection = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
-                    app.pNospike(end+1) = app.pSelection;
-                    set(app.pNospike(end),'ButtonDownFcn',{@selectTimeblock,app});
-                    app.pSelection = gobjects(1);
-                end
-            end
+
         end
 
         % Menu selected function: TUnselectMenu
@@ -2953,6 +1873,12 @@
         function ViewstimulusregionsButtonValueChanged(app, event)
             app.redrawTracePlot();
             app.redrawUnitPlots();
+        end
+
+        % Button pushed function: 
+        % ImportspikeshapeweightingdataButton
+        function ImportspikeshapeweightingdataButtonPushed(app, event)
+            return;
         end
     end
 
@@ -3967,6 +2893,13 @@
             app.ViewstimulusregionsButton.Text = 'View stimulus regions';
             app.ViewstimulusregionsButton.Layout.Row = 3;
             app.ViewstimulusregionsButton.Layout.Column = [1 2];
+
+            % Create ImportspikeshapeweightingdataButton
+            app.ImportspikeshapeweightingdataButton = uibutton(app.GridLayout5, 'push');
+            app.ImportspikeshapeweightingdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeweightingdataButtonPushed, true);
+            app.ImportspikeshapeweightingdataButton.Layout.Row = 4;
+            app.ImportspikeshapeweightingdataButton.Layout.Column = [1 2];
+            app.ImportspikeshapeweightingdataButton.Text = {'Import spike shape'; 'weighting data'};
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';

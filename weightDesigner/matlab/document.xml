@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef weightDesigner < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                    matlab.ui.Figure
+        GridLayout                  matlab.ui.container.GridLayout
+        SaveweightsButton           matlab.ui.control.Button
+        LoadweightsButton           matlab.ui.control.Button
+        ResetButton                 matlab.ui.control.Button
+        SampleLengthEditFieldLabel  matlab.ui.control.Label
+        SampleLengthEditField       matlab.ui.control.NumericEditField
+        LoadspikeButton             matlab.ui.control.Button
+        Panel                       matlab.ui.container.Panel
+        Panel_2                     matlab.ui.container.Panel
+        Panel_3                     matlab.ui.container.Panel
+        GridLayout2                 matlab.ui.container.GridLayout
+        FitgaussianButton           matlab.ui.control.Button
+        FitboxcarButton             matlab.ui.control.Button
+        MeanLabel                   matlab.ui.control.Label
+        MeanEditField               matlab.ui.control.NumericEditField
+        STDhalfwidthLabel           matlab.ui.control.Label
+        STDEditField                matlab.ui.control.NumericEditField
+        LayeringmodeButton          matlab.ui.control.StateButton
+        AutogenerationLabel         matlab.ui.control.Label
+        UndoredoButton              matlab.ui.control.Button
+    end
+
+    
+    properties (Access = private)
+        axW % Description
+        axS
+        p
+        last
+    end
+    
+    methods (Access = private)
+        
+        function [] = plotW(app, in)
+            app.last = get(app.p,'ydata');
+            
+            wings = ceil(app.SampleLengthEditField.Value/2) - 1;
+            if in == 0
+                app.p = plot(app.axW, -wings:wings,...
+                    ones(1,app.SampleLengthEditField.Value),'-o','MarkerSize',2,...
+                    'buttondownfcn',{@Mouse_Callback,'down',app});
+            else
+                app.p = plot(app.axW, -wings:wings,...
+                    in,'-o','MarkerSize',2,'buttondownfcn',{@Mouse_Callback,'down',app});
+            end
+            
+            xlim(app.axW, [-wings, wings]);
+            xlim(app.axS, [-wings, wings]);
+            ylim(app.axW, [0, 1]);
+            grid(app.axW,'on');
+            
+            ylabel(app.axW, "Weight (higher the more important)");
+            xlabel(app.axW, "Sample number (spike peak at 0)");
+            ylabel(app.axS, "Amplitude");
+            xlabel(app.axS, "Sample number (spike peak at 0)");
+            
+            function Mouse_Callback(hObj,~,action,app)
+                persistent curobj xdata ydata ind
+                pos = get(app.axW,'CurrentPoint');
+                switch action
+                    case 'down'
+                        curobj = hObj;
+                        xdata = get(hObj,'xdata');
+                        ydata = get(hObj,'ydata');
+                        [~,ind] = min(sum((xdata-pos(1)).^2+(ydata-pos(3)).^2,1));
+                        set(app.UIFigure,...
+                            'WindowButtonMotionFcn',  {@Mouse_Callback,'move',app},...
+                            'WindowButtonUpFcn',      {@Mouse_Callback,'up',app});
+                        app.last = get(curobj,'ydata');
+                    case 'move'
+                        % vertical move
+                        ydata(ind) = pos(3);
+                        if ydata(ind) > 1
+                            ydata(ind) = 1;
+                        elseif ydata(ind) < 0
+                            ydata(ind) = 0;
+                        end
+                        set(curobj,'ydata',ydata)
+                    case 'up'
+                        set(app.UIFigure,...
+                            'WindowButtonMotionFcn',  '',...
+                            'WindowButtonUpFcn',      '');
+                end
+            end
+        end
+        
+        function y = gauss(~,x,mu,sigma)
+            y=exp(-((x-mu)/sigma).^2);
+        end
+        
+        function y = box(~,x,mu,hw)
+            y = x >= mu-hw & x <= mu+hw;
+        end
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            app.axW = axes('Parent',app.Panel);
+            app.axS = axes('Parent',app.Panel_2);
+            app.plotW(0);
+        end
+
+        % Value changed function: SampleLengthEditField
+        function SampleLengthEditFieldValueChanged(app, event)
+            value = app.SampleLengthEditField.Value;
+            if mod(value,2) == 0
+                app.SampleLengthEditField.Value = value+1;
+            end
+            app.plotW(0);
+        end
+
+        % Button pushed function: SaveweightsButton
+        function SaveweightsButtonPushed(app, event)
+            sP = uigetdir('Select save path');
+            
+            figure(app.UIFigure);
+            if sP == 0
+                return;
+            end
+            
+            spikeWeights = get(app.p,'ydata');
+            save(sP+string(filesep)+"weights_"+datestr(now,'yymmddHHMM')+".mat", "spikeWeights");
+        end
+
+        % Button pushed function: LoadweightsButton
+        function LoadweightsButtonPushed(app, event)
+            [fN, fP] = uigetfile('*.mat','Pick *.mat file to load');
+            figure(app.UIFigure);
+            if fN < 1
+                return;
+            end
+            
+            input = load([fP fN]);
+            vars = fieldnames(input);
+            
+            if length(vars) < 0 || length(vars) > 1
+                return;
+            end
+            if min(size(input.(vars{1}))) > 1
+                return;
+            end
+            if min(input.(vars{1})) < 0 || max(input.(vars{1})) > 1
+                return;
+            end
+            
+            app.SampleLengthEditField.Value = max(size(input.(vars{1})));
+            app.plotW(input.(vars{1}));
+        end
+
+        % Button pushed function: ResetButton
+        function ResetButtonPushed(app, event)
+            app.SampleLengthEditField.Value = 31;
+            app.plotW(0);
+        end
+
+        % Button pushed function: LoadspikeButton
+        function LoadspikeButtonPushed(app, event)
+            value = app.SampleLengthEditField.Value;
+            
+            [fN, fP] = uigetfile('*.mat','Pick *.mat file to load');
+            figure(app.UIFigure);
+            if fN < 1
+                return;
+            end
+            
+            input = load([fP fN]);
+            vars = fieldnames(input);
+            
+            if length(vars) < 0 || length(vars) > 1
+                return;
+            end
+            if min(size(input.(vars{1}))) > 1
+                return;
+            end
+            
+            wings = ceil(length(input.(vars{1}))/2) - 1;
+            plot(app.axS,-wings:wings,input.(vars{1}));
+            
+            wings = floor(value/2);
+            xlim(app.axS, [-wings wings]);
+        end
+
+        % Button pushed function: FitgaussianButton
+        function FitgaussianButtonPushed(app, event)
+            wings = ceil(app.SampleLengthEditField.Value/2) - 1;
+            x = -wings:wings;
+            w = app.gauss(x,app.MeanEditField.Value,app.STDEditField.Value);
+            if app.LayeringmodeButton.Value == 1
+                w = max([w; get(app.p,'ydata')]);
+            end
+            app.plotW(w);
+        end
+
+        % Button pushed function: FitboxcarButton
+        function FitboxcarButtonPushed(app, event)
+            wings = ceil(app.SampleLengthEditField.Value/2) - 1;
+            x = -wings:wings;
+            w = app.box(x,app.MeanEditField.Value,app.STDEditField.Value);
+            if app.LayeringmodeButton.Value == 1
+                w = max([w; get(app.p,'ydata')]);
+            end
+            app.plotW(w);
+        end
+
+        % Button pushed function: UndoredoButton
+        function UndoredoButtonPushed(app, event)
+            app.plotW(app.last);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 903 606];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.UIFigure);
+            app.GridLayout.ColumnWidth = {'0.4x', '0.4x', '3x'};
+            app.GridLayout.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+
+            % Create SaveweightsButton
+            app.SaveweightsButton = uibutton(app.GridLayout, 'push');
+            app.SaveweightsButton.ButtonPushedFcn = createCallbackFcn(app, @SaveweightsButtonPushed, true);
+            app.SaveweightsButton.Layout.Row = 12;
+            app.SaveweightsButton.Layout.Column = [1 2];
+            app.SaveweightsButton.Text = 'Save weights';
+
+            % Create LoadweightsButton
+            app.LoadweightsButton = uibutton(app.GridLayout, 'push');
+            app.LoadweightsButton.ButtonPushedFcn = createCallbackFcn(app, @LoadweightsButtonPushed, true);
+            app.LoadweightsButton.Layout.Row = 1;
+            app.LoadweightsButton.Layout.Column = 1;
+            app.LoadweightsButton.Text = 'Load weights';
+
+            % Create ResetButton
+            app.ResetButton = uibutton(app.GridLayout, 'push');
+            app.ResetButton.ButtonPushedFcn = createCallbackFcn(app, @ResetButtonPushed, true);
+            app.ResetButton.Layout.Row = 11;
+            app.ResetButton.Layout.Column = [1 2];
+            app.ResetButton.Text = 'Reset';
+
+            % Create SampleLengthEditFieldLabel
+            app.SampleLengthEditFieldLabel = uilabel(app.GridLayout);
+            app.SampleLengthEditFieldLabel.HorizontalAlignment = 'center';
+            app.SampleLengthEditFieldLabel.Layout.Row = 2;
+            app.SampleLengthEditFieldLabel.Layout.Column = 1;
+            app.SampleLengthEditFieldLabel.Text = 'Sample Length';
+
+            % Create SampleLengthEditField
+            app.SampleLengthEditField = uieditfield(app.GridLayout, 'numeric');
+            app.SampleLengthEditField.Limits = [1 Inf];
+            app.SampleLengthEditField.RoundFractionalValues = 'on';
+            app.SampleLengthEditField.ValueChangedFcn = createCallbackFcn(app, @SampleLengthEditFieldValueChanged, true);
+            app.SampleLengthEditField.HorizontalAlignment = 'center';
+            app.SampleLengthEditField.Layout.Row = 2;
+            app.SampleLengthEditField.Layout.Column = 2;
+            app.SampleLengthEditField.Value = 31;
+
+            % Create LoadspikeButton
+            app.LoadspikeButton = uibutton(app.GridLayout, 'push');
+            app.LoadspikeButton.ButtonPushedFcn = createCallbackFcn(app, @LoadspikeButtonPushed, true);
+            app.LoadspikeButton.Layout.Row = 1;
+            app.LoadspikeButton.Layout.Column = 2;
+            app.LoadspikeButton.Text = 'Load spike';
+
+            % Create Panel
+            app.Panel = uipanel(app.GridLayout);
+            app.Panel.Layout.Row = [1 6];
+            app.Panel.Layout.Column = 3;
+
+            % Create Panel_2
+            app.Panel_2 = uipanel(app.GridLayout);
+            app.Panel_2.Layout.Row = [7 12];
+            app.Panel_2.Layout.Column = 3;
+
+            % Create Panel_3
+            app.Panel_3 = uipanel(app.GridLayout);
+            app.Panel_3.Layout.Row = [4 9];
+            app.Panel_3.Layout.Column = [1 2];
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.Panel_3);
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.Padding = [2 2 2 2];
+
+            % Create FitgaussianButton
+            app.FitgaussianButton = uibutton(app.GridLayout2, 'push');
+            app.FitgaussianButton.ButtonPushedFcn = createCallbackFcn(app, @FitgaussianButtonPushed, true);
+            app.FitgaussianButton.Layout.Row = 2;
+            app.FitgaussianButton.Layout.Column = [1 2];
+            app.FitgaussianButton.Text = 'Fit gaussian';
+
+            % Create FitboxcarButton
+            app.FitboxcarButton = uibutton(app.GridLayout2, 'push');
+            app.FitboxcarButton.ButtonPushedFcn = createCallbackFcn(app, @FitboxcarButtonPushed, true);
+            app.FitboxcarButton.Layout.Row = 3;
+            app.FitboxcarButton.Layout.Column = [1 2];
+            app.FitboxcarButton.Text = 'Fit boxcar';
+
+            % Create MeanLabel
+            app.MeanLabel = uilabel(app.GridLayout2);
+            app.MeanLabel.HorizontalAlignment = 'center';
+            app.MeanLabel.Layout.Row = 4;
+            app.MeanLabel.Layout.Column = 1;
+            app.MeanLabel.Text = 'Mean';
+
+            % Create MeanEditField
+            app.MeanEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.MeanEditField.RoundFractionalValues = 'on';
+            app.MeanEditField.HorizontalAlignment = 'center';
+            app.MeanEditField.Layout.Row = 4;
+            app.MeanEditField.Layout.Column = 2;
+
+            % Create STDhalfwidthLabel
+            app.STDhalfwidthLabel = uilabel(app.GridLayout2);
+            app.STDhalfwidthLabel.HorizontalAlignment = 'center';
+            app.STDhalfwidthLabel.Layout.Row = 5;
+            app.STDhalfwidthLabel.Layout.Column = 1;
+            app.STDhalfwidthLabel.Text = 'STD/halfwidth';
+
+            % Create STDEditField
+            app.STDEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.STDEditField.RoundFractionalValues = 'on';
+            app.STDEditField.HorizontalAlignment = 'center';
+            app.STDEditField.Layout.Row = 5;
+            app.STDEditField.Layout.Column = 2;
+            app.STDEditField.Value = 4;
+
+            % Create LayeringmodeButton
+            app.LayeringmodeButton = uibutton(app.GridLayout2, 'state');
+            app.LayeringmodeButton.Text = 'Layering mode';
+            app.LayeringmodeButton.BackgroundColor = [0.3922 0.8314 0.0745];
+            app.LayeringmodeButton.Layout.Row = 6;
+            app.LayeringmodeButton.Layout.Column = [1 2];
+
+            % Create AutogenerationLabel
+            app.AutogenerationLabel = uilabel(app.GridLayout2);
+            app.AutogenerationLabel.HorizontalAlignment = 'center';
+            app.AutogenerationLabel.FontWeight = 'bold';
+            app.AutogenerationLabel.Layout.Row = 1;
+            app.AutogenerationLabel.Layout.Column = [1 2];
+            app.AutogenerationLabel.Text = 'Auto generation';
+
+            % Create UndoredoButton
+            app.UndoredoButton = uibutton(app.GridLayout, 'push');
+            app.UndoredoButton.ButtonPushedFcn = createCallbackFcn(app, @UndoredoButtonPushed, true);
+            app.UndoredoButton.Layout.Row = 10;
+            app.UndoredoButton.Layout.Column = [1 2];
+            app.UndoredoButton.Text = 'Undo/redo';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = weightDesigner
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>

@@ -1,5 +1,5 @@
 p = pwd + string(filesep);
-f = ["spikesortGUI", "initialisePopup", "refineGUI", "tagManager"];
+f = ["spikesortGUI", "initialisePopup", "@spikesortGUI"+string(filesep)+"refineGUI", "tagManager", "weightDesigner"];
 for ii = 1:length(f)
     zip(f(ii), p + f(ii) + string(filesep)...
         + ["matlab","metadata","_rels","appdesigner","[Content_Types].xml"]);
