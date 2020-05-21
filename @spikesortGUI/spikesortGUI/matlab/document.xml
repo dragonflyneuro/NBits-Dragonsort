@@ -987,7 +987,9 @@
                 if strcmpi(answer, 'All')
                     unitsToPlot = app.s.clusters;
                 elseif strcmpi(answer, 'Exclude junk') % remove junk units from the plot
-                    unitsToPlot = app.s.clusters(table2array(app.s.tags("Junk",:)));
+                    tempTable = app.s.tags;
+                    tempTable("Junk",:) = [];
+                    unitsToPlot = app.s.clusters(table2array(tempTable));
                 else
                     return;
                 end

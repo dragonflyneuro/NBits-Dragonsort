@@ -30,15 +30,26 @@
             app.UITable.ColumnEditable = true;
             app.UITable.ColumnName = app.p.Properties.VariableNames;
             app.UITable.RowName = app.p.Row;
+            
+            if length(app.p.Row) == 1
+                app.RemovetagButton.Enable = 0;
+            end
         end
 
         % Button pushed function: AddtagButton
         function AddtagButtonPushed(app, event)
             newTag = inputdlg("Enter name of new tag:","New Tag");
+            if isempty(newTag)
+                return;
+            end
+            if any(strcmpi(newTag, app.p.Row))
+                return;
+            end
             app.p = [app.p; num2cell(false(1,size(app.p,2)))];
             app.p.Row(end) = newTag;
             app.UITable.Data = app.p;
             app.UITable.RowName = app.p.Row;
+            app.RemovetagButton.Enable = 1;
         end
 
         % Callback function: CancelButton, UIFigure
@@ -51,11 +62,15 @@
 
         % Button pushed function: RemovetagButton
         function RemovetagButtonPushed(app, event)
-            [idx,~] = listdlg('PromptString','Select a tag to remove','SelectionMode','single','ListString',app.p.Row);
+            [idx,~] = listdlg('PromptString','Select a tag to remove','SelectionMode','single','ListString',app.p.Row(2:end));
             if ~isempty(idx)
-                app.p(idx,:) = [];
+                app.p(idx+1,:) = [];
             end
             app.UITable.Data = app.p;
+            drawnow
+            if length(app.p.Row) == 1
+                app.RemovetagButton.Enable = 0;
+            end
         end
 
         % Cell edit callback: UITable
