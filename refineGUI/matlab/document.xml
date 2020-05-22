@@ -21,6 +21,10 @@
         AutorefineBETAButton            matlab.ui.control.Button
         MaxdeviationthresholdEditFieldLabel  matlab.ui.control.Label
         MaxdeviationthresholdEditField  matlab.ui.control.NumericEditField
+        SelectButton                    matlab.ui.control.Label
+        ScalingButton                   matlab.ui.control.Button
+        LossButton                      matlab.ui.control.Button
+        GainButton                      matlab.ui.control.Button
         TabGroup                        matlab.ui.container.TabGroup
         ScalingsTab                     matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
@@ -87,15 +91,14 @@
             if isempty(app.d)
                 return;
             end
-            stealLock = app.ScalingTable.Data.StealingLock;
-            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GrowthLock,:));
-            growthLock = any(lockedTags,1)';
-            growthLock = growthLock(2:end);
+            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GainLock,:));
+            gainLock = any(lockedTags,1)';
+            gainLock = gainLock(2:end);
     
-            noStealBool = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(stealLock)));
-            noStealBool = noStealBool | ismember(app.d.prevAssignment, str2double(app.p.s.clusters(growthLock)));
-            noStealVal = app.d.prevAssignment(noStealBool);
-            app.d.spikeAssignmentUnit(noStealBool) = noStealVal;
+            noLossBool = ismember(app.d.prevAssignment, str2double(app.p.s.clusters(app.ScalingTable.Data.LossLock)));
+            noLossBool = noLossBool | ismember(app.d.prevAssignment, str2double(app.p.s.clusters(gainLock)));
+            noStealVal = app.d.prevAssignment(noLossBool);
+            app.d.spikeAssignmentUnit(noLossBool) = noStealVal;
         end
     end
     
@@ -121,14 +124,14 @@
             app.UpButton.UserData = 1;
             app.DownButton.UserData = -1;
             ScalingLock = false(size(app.p.s.clusters))';
-            StealingLock = false(size(app.p.s.clusters))';
-            app.ScalingTable.Data = table(Scaling,ScalingLock,StealingLock);
+            LossLock = false(size(app.p.s.clusters))';
+            app.ScalingTable.Data = table(Scaling,ScalingLock,LossLock);
             app.ScalingTable.RowName = unitNames;
             app.ScalingTable.ColumnEditable = true;
             
-            GrowthLock = false(size(app.p.s.tags,1),1);
-            app.TagTable.Data = [table(GrowthLock), app.p.s.tags];
-            app.TagTable.ColumnName = [{"GrowthLock"}, unitNames];
+            GainLock = false(size(app.p.s.tags,1),1);
+            app.TagTable.Data = [table(GainLock), app.p.s.tags];
+            app.TagTable.ColumnName = [{"GainLock"}, unitNames];
             app.TagTable.RowName = app.p.s.tags.Row;
             
             app.TagTable.ColumnEditable = [true, false(1,size(app.TagTable.Data,2)-1)];
@@ -148,9 +151,9 @@
             scaleDirection = event.Source.UserData;
             scaling = app.ScalingmultiplierEditField.Value;
             scalingLock = app.ScalingTable.Data.ScalingLock;
-            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GrowthLock,:));
-            growthLock = any(lockedTags,1)';
-            growthLock = growthLock(2:end);
+            lockedTags = table2array(app.TagTable.Data(app.TagTable.Data.GainLock,:));
+            gainLock = any(lockedTags,1)';
+            gainLock = gainLock(2:end);
             
             if isempty(app.f) || ~ishandle(app.f)
                 app.f = figure; set(app.f, 'Position',  [300, 100, 1350, 850]);
@@ -165,7 +168,7 @@
             scaleArray(isinf(scaleArray)) = app.scaleBuffer(isinf(scaleArray));
             app.scaleBuffer = scaleArray;
             scaleArray(~scalingLock)=scaleArray(~scalingLock)+scaleDirection*scaling;
-            scaleArray(growthLock)=inf;
+            scaleArray(gainLock)=inf;
             scaleArray(scaleArray < app.ScalinglowerlimitEditField.Value) = app.ScalinglowerlimitEditField.Value;
 
             app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
@@ -251,7 +254,7 @@
             while any(~scalingLock) && ~reachedEnd
                 % assign spikes to units using deviation metric
                 scaleArray(~scalingLock)=scaleArray(~scalingLock)+scaleDirection*scaling;
-                scaleArray(growthLock)=inf;
+                scaleArray(gainLock)=inf;
                 scaleArray(scaleArray < app.ScalinglowerlimitEditField.Value) = app.ScalinglowerlimitEditField.Value;
     
                 app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
@@ -297,6 +300,36 @@
             value = app.MaxdeviationthresholdEditField.Value;
             app.p.t.add2UnitThr(1) = value;
         end
+
+        % Button pushed function: ScalingButton
+        function ScalingButtonPushed(app, event)
+            prop = sum(app.ScalingTable.Data.ScalingLock)/length(app.ScalingTable.Data.ScalingLock);
+            if prop > 0.5
+                app.ScalingTable.Data.ScalingLock = zeros(size(app.ScalingTable.Data.ScalingLock));
+            else
+                app.ScalingTable.Data.ScalingLock = ones(size(app.ScalingTable.Data.ScalingLock));
+            end
+        end
+
+        % Button pushed function: LossButton
+        function LossButtonPushed(app, event)
+            prop = sum(app.ScalingTable.Data.LossLock)/length(app.ScalingTable.Data.LossLock);
+            if prop > 0.5
+                app.ScalingTable.Data.LossLock = zeros(size(app.ScalingTable.Data.LossLock));
+            else
+                app.ScalingTable.Data.LossLock = ones(size(app.ScalingTable.Data.LossLock));
+            end
+        end
+
+        % Button pushed function: GainButton
+        function GainButtonPushed(app, event)
+            prop = sum(app.TagTable.Data.GainLock)/length(app.TagTable.Data.GainLock);
+            if prop > 0.5
+                app.TagTable.Data.GainLock = zeros(size(app.TagTable.Data.GainLock));
+            else
+                app.TagTable.Data.GainLock = ones(size(app.TagTable.Data.GainLock));
+            end
+        end
     end
 
     % Component initialization
@@ -307,7 +340,7 @@
 
             % Create SortingrefinerUIFigure and hide until all components are created
             app.SortingrefinerUIFigure = uifigure('Visible', 'off');
-            app.SortingrefinerUIFigure.Position = [100 100 612 489];
+            app.SortingrefinerUIFigure.Position = [100 100 612 563];
             app.SortingrefinerUIFigure.Name = 'Sorting refiner';
             app.SortingrefinerUIFigure.CloseRequestFcn = createCallbackFcn(app, @SortingrefinerUIFigureCloseRequest, true);
 
@@ -321,8 +354,8 @@
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.GridLayout);
-            app.GridLayout2.ColumnWidth = {'1x', '5x', '5x', '1x'};
-            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.ColumnWidth = {'1x', '5x', '5x', '5x', '5x', '5x', '5x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout2.ColumnSpacing = 0;
             app.GridLayout2.RowSpacing = 3;
             app.GridLayout2.Padding = [0 0 0 0];
@@ -335,14 +368,14 @@
             app.LockoriginalButton.Text = {'Reset refine & lock pre-refine'; 'spike assignments'};
             app.LockoriginalButton.BackgroundColor = [0.9412 0.9412 0.9412];
             app.LockoriginalButton.Layout.Row = [2 3];
-            app.LockoriginalButton.Layout.Column = [2 3];
+            app.LockoriginalButton.Layout.Column = [2 7];
 
             % Create ScalingdirectionLabel
             app.ScalingdirectionLabel = uilabel(app.GridLayout2);
             app.ScalingdirectionLabel.HorizontalAlignment = 'center';
             app.ScalingdirectionLabel.FontWeight = 'bold';
-            app.ScalingdirectionLabel.Layout.Row = 13;
-            app.ScalingdirectionLabel.Layout.Column = [2 3];
+            app.ScalingdirectionLabel.Layout.Row = 16;
+            app.ScalingdirectionLabel.Layout.Column = [2 7];
             app.ScalingdirectionLabel.Text = 'Scaling direction';
 
             % Create DownButton
@@ -350,8 +383,8 @@
             app.DownButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonPushed, true);
             app.DownButton.BackgroundColor = [0 1 0];
             app.DownButton.FontWeight = 'bold';
-            app.DownButton.Layout.Row = [14 15];
-            app.DownButton.Layout.Column = 3;
+            app.DownButton.Layout.Row = [17 18];
+            app.DownButton.Layout.Column = [5 7];
             app.DownButton.Text = '-1';
 
             % Create UpButton
@@ -359,31 +392,31 @@
             app.UpButton.ButtonPushedFcn = createCallbackFcn(app, @DownButtonPushed, true);
             app.UpButton.BackgroundColor = [0 1 0];
             app.UpButton.FontWeight = 'bold';
-            app.UpButton.Layout.Row = [14 15];
-            app.UpButton.Layout.Column = 2;
+            app.UpButton.Layout.Row = [17 18];
+            app.UpButton.Layout.Column = [2 4];
             app.UpButton.Text = '+1';
 
             % Create ScalingmultiplierEditFieldLabel
             app.ScalingmultiplierEditFieldLabel = uilabel(app.GridLayout2);
             app.ScalingmultiplierEditFieldLabel.HorizontalAlignment = 'center';
             app.ScalingmultiplierEditFieldLabel.FontWeight = 'bold';
-            app.ScalingmultiplierEditFieldLabel.Layout.Row = 11;
-            app.ScalingmultiplierEditFieldLabel.Layout.Column = [2 3];
+            app.ScalingmultiplierEditFieldLabel.Layout.Row = 14;
+            app.ScalingmultiplierEditFieldLabel.Layout.Column = [2 7];
             app.ScalingmultiplierEditFieldLabel.Text = 'Scaling multiplier';
 
             % Create ScalingmultiplierEditField
             app.ScalingmultiplierEditField = uieditfield(app.GridLayout2, 'numeric');
             app.ScalingmultiplierEditField.HorizontalAlignment = 'center';
-            app.ScalingmultiplierEditField.Layout.Row = 12;
-            app.ScalingmultiplierEditField.Layout.Column = [2 3];
+            app.ScalingmultiplierEditField.Layout.Row = 15;
+            app.ScalingmultiplierEditField.Layout.Column = [2 7];
             app.ScalingmultiplierEditField.Value = 0.1;
 
             % Create DoneButton
             app.DoneButton = uibutton(app.GridLayout2, 'push');
             app.DoneButton.ButtonPushedFcn = createCallbackFcn(app, @DoneButtonPushed, true);
             app.DoneButton.Enable = 'off';
-            app.DoneButton.Layout.Row = 17;
-            app.DoneButton.Layout.Column = [2 3];
+            app.DoneButton.Layout.Row = 20;
+            app.DoneButton.Layout.Column = [2 7];
             app.DoneButton.Text = 'Done';
 
             % Create devHist1DropDownLabel
@@ -391,7 +424,7 @@
             app.devHist1DropDownLabel.HorizontalAlignment = 'right';
             app.devHist1DropDownLabel.Enable = 'off';
             app.devHist1DropDownLabel.Layout.Row = 5;
-            app.devHist1DropDownLabel.Layout.Column = 2;
+            app.devHist1DropDownLabel.Layout.Column = [2 4];
             app.devHist1DropDownLabel.Text = 'devHist 1';
 
             % Create devHist1DropDown
@@ -400,7 +433,7 @@
             app.devHist1DropDown.ValueChangedFcn = createCallbackFcn(app, @devHist1DropDownValueChanged, true);
             app.devHist1DropDown.Enable = 'off';
             app.devHist1DropDown.Layout.Row = 5;
-            app.devHist1DropDown.Layout.Column = 3;
+            app.devHist1DropDown.Layout.Column = [5 7];
             app.devHist1DropDown.Value = '1';
 
             % Create devHist2DropDownLabel
@@ -408,7 +441,7 @@
             app.devHist2DropDownLabel.HorizontalAlignment = 'right';
             app.devHist2DropDownLabel.Enable = 'off';
             app.devHist2DropDownLabel.Layout.Row = 6;
-            app.devHist2DropDownLabel.Layout.Column = 2;
+            app.devHist2DropDownLabel.Layout.Column = [2 4];
             app.devHist2DropDownLabel.Text = 'devHist 2';
 
             % Create devHist2DropDown
@@ -417,39 +450,39 @@
             app.devHist2DropDown.ValueChangedFcn = createCallbackFcn(app, @devHist1DropDownValueChanged, true);
             app.devHist2DropDown.Enable = 'off';
             app.devHist2DropDown.Layout.Row = 6;
-            app.devHist2DropDown.Layout.Column = 3;
+            app.devHist2DropDown.Layout.Column = [5 7];
             app.devHist2DropDown.Value = '1';
 
             % Create ScalinglowerlimitEditFieldLabel
             app.ScalinglowerlimitEditFieldLabel = uilabel(app.GridLayout2);
             app.ScalinglowerlimitEditFieldLabel.HorizontalAlignment = 'center';
             app.ScalinglowerlimitEditFieldLabel.FontWeight = 'bold';
-            app.ScalinglowerlimitEditFieldLabel.Layout.Row = 9;
-            app.ScalinglowerlimitEditFieldLabel.Layout.Column = [2 3];
+            app.ScalinglowerlimitEditFieldLabel.Layout.Row = 12;
+            app.ScalinglowerlimitEditFieldLabel.Layout.Column = [2 7];
             app.ScalinglowerlimitEditFieldLabel.Text = 'Scaling lower limit';
 
             % Create ScalinglowerlimitEditField
             app.ScalinglowerlimitEditField = uieditfield(app.GridLayout2, 'numeric');
             app.ScalinglowerlimitEditField.Limits = [0 Inf];
             app.ScalinglowerlimitEditField.HorizontalAlignment = 'center';
-            app.ScalinglowerlimitEditField.Layout.Row = 10;
-            app.ScalinglowerlimitEditField.Layout.Column = [2 3];
+            app.ScalinglowerlimitEditField.Layout.Row = 13;
+            app.ScalinglowerlimitEditField.Layout.Column = [2 7];
             app.ScalinglowerlimitEditField.Value = 0.0001;
 
             % Create AutorefineBETAButton
             app.AutorefineBETAButton = uibutton(app.GridLayout2, 'push');
             app.AutorefineBETAButton.ButtonPushedFcn = createCallbackFcn(app, @AutorefineBETAButtonPushed, true);
             app.AutorefineBETAButton.BackgroundColor = [1 0 0];
-            app.AutorefineBETAButton.Layout.Row = 16;
-            app.AutorefineBETAButton.Layout.Column = [2 3];
+            app.AutorefineBETAButton.Layout.Row = 19;
+            app.AutorefineBETAButton.Layout.Column = [2 7];
             app.AutorefineBETAButton.Text = 'Autorefine (BETA)';
 
             % Create MaxdeviationthresholdEditFieldLabel
             app.MaxdeviationthresholdEditFieldLabel = uilabel(app.GridLayout2);
             app.MaxdeviationthresholdEditFieldLabel.HorizontalAlignment = 'center';
             app.MaxdeviationthresholdEditFieldLabel.FontWeight = 'bold';
-            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 7;
-            app.MaxdeviationthresholdEditFieldLabel.Layout.Column = [2 3];
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 10;
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Column = [2 7];
             app.MaxdeviationthresholdEditFieldLabel.Text = 'Max deviation threshold';
 
             % Create MaxdeviationthresholdEditField
@@ -457,9 +490,38 @@
             app.MaxdeviationthresholdEditField.Limits = [0 Inf];
             app.MaxdeviationthresholdEditField.ValueChangedFcn = createCallbackFcn(app, @MaxdeviationthresholdEditFieldValueChanged, true);
             app.MaxdeviationthresholdEditField.HorizontalAlignment = 'center';
-            app.MaxdeviationthresholdEditField.Layout.Row = 8;
-            app.MaxdeviationthresholdEditField.Layout.Column = [2 3];
+            app.MaxdeviationthresholdEditField.Layout.Row = 11;
+            app.MaxdeviationthresholdEditField.Layout.Column = [2 7];
             app.MaxdeviationthresholdEditField.Value = 0.0001;
+
+            % Create SelectButton
+            app.SelectButton = uilabel(app.GridLayout2);
+            app.SelectButton.HorizontalAlignment = 'center';
+            app.SelectButton.FontWeight = 'bold';
+            app.SelectButton.Layout.Row = 8;
+            app.SelectButton.Layout.Column = [2 7];
+            app.SelectButton.Text = 'Select/deselect all';
+
+            % Create ScalingButton
+            app.ScalingButton = uibutton(app.GridLayout2, 'push');
+            app.ScalingButton.ButtonPushedFcn = createCallbackFcn(app, @ScalingButtonPushed, true);
+            app.ScalingButton.Layout.Row = 9;
+            app.ScalingButton.Layout.Column = [2 3];
+            app.ScalingButton.Text = 'Scaling';
+
+            % Create LossButton
+            app.LossButton = uibutton(app.GridLayout2, 'push');
+            app.LossButton.ButtonPushedFcn = createCallbackFcn(app, @LossButtonPushed, true);
+            app.LossButton.Layout.Row = 9;
+            app.LossButton.Layout.Column = [4 5];
+            app.LossButton.Text = 'Loss';
+
+            % Create GainButton
+            app.GainButton = uibutton(app.GridLayout2, 'push');
+            app.GainButton.ButtonPushedFcn = createCallbackFcn(app, @GainButtonPushed, true);
+            app.GainButton.Layout.Row = 9;
+            app.GainButton.Layout.Column = [6 7];
+            app.GainButton.Text = 'Gain';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);
@@ -480,7 +542,7 @@
 
             % Create ScalingTable
             app.ScalingTable = uitable(app.GridLayout3);
-            app.ScalingTable.ColumnName = {'Scaling'; 'ScalingLock'; 'StealingLock'};
+            app.ScalingTable.ColumnName = {'Scaling'; 'ScalingLock'; 'LossLock'};
             app.ScalingTable.RowName = {'Unit'};
             app.ScalingTable.ColumnEditable = [true true true];
             app.ScalingTable.Layout.Row = 1;
@@ -500,7 +562,7 @@
 
             % Create TagTable
             app.TagTable = uitable(app.GridLayout6);
-            app.TagTable.ColumnName = {'GrowthLock'};
+            app.TagTable.ColumnName = {'GainLock'};
             app.TagTable.RowName = {};
             app.TagTable.ColumnEditable = true;
             app.TagTable.Layout.Row = 1;

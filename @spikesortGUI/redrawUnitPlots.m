@@ -72,7 +72,7 @@ for ii = 1:2
                 set(app.pL, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx}) % click on spikes callback
                 app.pTL = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                     'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
+                app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
                 if size(app.xi,1) > 0 && app.PlotallchButton.Value
                     for jj = 1:size(app.xi,1)
                         line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
@@ -85,7 +85,7 @@ for ii = 1:2
             if ~strcmp(u(1), u(2)) && q % if left and right units are different
                 app.pTR = line(app.Trace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                     'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(str2double(u(ii))-1,25)+1,:));
-                app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
+                app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
                 if size(app.xi,1) > 0 && app.PlotallchButton.Value
                     for jj = 1:size(app.xi,1)
                         line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...

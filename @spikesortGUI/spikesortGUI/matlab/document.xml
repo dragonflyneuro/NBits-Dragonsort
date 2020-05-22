@@ -146,8 +146,8 @@
         GridLayout4                   matlab.ui.container.GridLayout
         GridLayout5                   matlab.ui.container.GridLayout
         ManualartifactremoverButton   matlab.ui.control.StateButton
-        ImportstimulusdataButton      matlab.ui.control.Button
-        ViewstimulusregionsButton     matlab.ui.control.StateButton
+        ImporteventmarkerdataButton   matlab.ui.control.Button
+        VieweventmarkersButton        matlab.ui.control.StateButton
         ImportspikeshapeweightingdataButton  matlab.ui.control.Button
     end
 
@@ -182,7 +182,7 @@
         pNospike = []; % shaded areas on trace for manual no-spike regions
         pSelected = []; % markers on trace for selected unassigned spikes
         pSelection = []; % temporary objects to show user selection regions
-        pStim = []; % shaded areas on trace for stimulus event regions
+        pEvent = []; % shaded areas on trace for event marker regions
         pRaw = []; % raw data trace
         
         
@@ -987,9 +987,7 @@
                 if strcmpi(answer, 'All')
                     unitsToPlot = app.s.clusters;
                 elseif strcmpi(answer, 'Exclude junk') % remove junk units from the plot
-                    tempTable = app.s.tags;
-                    tempTable("Junk",:) = [];
-                    unitsToPlot = app.s.clusters(table2array(tempTable));
+                    unitsToPlot = app.s.clusters(~table2array(app.s.tags("Junk",:)));
                 else
                     return;
                 end
@@ -1835,16 +1833,16 @@
             app.pSelected = [];
         end
 
-        % Button pushed function: ImportstimulusdataButton
-        function ImportstimulusdataButtonPushed(app, event)
-            if isfield(app.t,"importedStimulusFileName") && ~isempty(app.t.importedStimulusFileName)
-                answer = uiconfirm(app.UIBase,"Stimuli have already been loaded in once! Overwrite?","Warning",...
+        % Button pushed function: ImporteventmarkerdataButton
+        function ImporteventmarkerdataButtonPushed(app, event)
+            if isfield(app.t,"importedEventFileName") && ~isempty(app.t.importedEventFileName)
+                answer = uiconfirm(app.UIBase,"Event markers have already been loaded in once! Overwrite?","Warning",...
                     'Icon','warning','DefaultOption',2);
                 if strcmpi(answer, "CANCEL")
                     return;
                 else
-                    app.t = rmfield(app.t, "importedStimulusFileName");
-                    app.t = rmfield(app.t, "importedStimulusBounds");
+                    app.t = rmfield(app.t, "importedEventFileName");
+                    app.t = rmfield(app.t, "importedEventBounds");
                 end
             end
             
@@ -1854,25 +1852,24 @@
             app.saveLast();
             switchButtons(app,1)
             
-            % load .mat file of a previous sorting
-            [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as stimuli');
+            [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as event markers');
             if fN < 1
                 app.StatusLabel.Value = "Could not load file!";
                 return;
             end
-            app.t.importedStimulusFileName = [fP, fN];
+            app.t.importedEventFileName = [fP, fN];
             
             % check if the loaded file has s.clusters
-            [app.t.importedStimulusBounds, app.StatusLabel.Value] = importStimulusData([fP, fN]);
-            app.ViewstimulusregionsButton.Enable = 1;
-            app.ViewstimulusregionsButton.Value = 0;
-            for ii = 1:length(app.pStim)
-                delete(app.pStim(ii));
+            [app.t.importedEventBounds, app.StatusLabel.Value] = importEventData([fP, fN]);
+            app.VieweventmarkersButton.Enable = 1;
+            app.VieweventmarkersButton.Value = 0;
+            for ii = 1:length(app.pEvent)
+                delete(app.pEvent(ii));
             end
         end
 
-        % Value changed function: ViewstimulusregionsButton
-        function ViewstimulusregionsButtonValueChanged(app, event)
+        % Value changed function: VieweventmarkersButton
+        function VieweventmarkersButtonValueChanged(app, event)
             app.redrawTracePlot();
             app.redrawUnitPlots();
         end
@@ -2881,20 +2878,20 @@
             app.ManualartifactremoverButton.Layout.Row = 1;
             app.ManualartifactremoverButton.Layout.Column = [1 2];
 
-            % Create ImportstimulusdataButton
-            app.ImportstimulusdataButton = uibutton(app.GridLayout5, 'push');
-            app.ImportstimulusdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportstimulusdataButtonPushed, true);
-            app.ImportstimulusdataButton.Layout.Row = 2;
-            app.ImportstimulusdataButton.Layout.Column = [1 2];
-            app.ImportstimulusdataButton.Text = 'Import stimulus data';
+            % Create ImporteventmarkerdataButton
+            app.ImporteventmarkerdataButton = uibutton(app.GridLayout5, 'push');
+            app.ImporteventmarkerdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImporteventmarkerdataButtonPushed, true);
+            app.ImporteventmarkerdataButton.Layout.Row = 2;
+            app.ImporteventmarkerdataButton.Layout.Column = [1 2];
+            app.ImporteventmarkerdataButton.Text = 'Import event marker data';
 
-            % Create ViewstimulusregionsButton
-            app.ViewstimulusregionsButton = uibutton(app.GridLayout5, 'state');
-            app.ViewstimulusregionsButton.ValueChangedFcn = createCallbackFcn(app, @ViewstimulusregionsButtonValueChanged, true);
-            app.ViewstimulusregionsButton.Enable = 'off';
-            app.ViewstimulusregionsButton.Text = 'View stimulus regions';
-            app.ViewstimulusregionsButton.Layout.Row = 3;
-            app.ViewstimulusregionsButton.Layout.Column = [1 2];
+            % Create VieweventmarkersButton
+            app.VieweventmarkersButton = uibutton(app.GridLayout5, 'state');
+            app.VieweventmarkersButton.ValueChangedFcn = createCallbackFcn(app, @VieweventmarkersButtonValueChanged, true);
+            app.VieweventmarkersButton.Enable = 'off';
+            app.VieweventmarkersButton.Text = 'View event markers';
+            app.VieweventmarkersButton.Layout.Row = 3;
+            app.VieweventmarkersButton.Layout.Column = [1 2];
 
             % Create ImportspikeshapeweightingdataButton
             app.ImportspikeshapeweightingdataButton = uibutton(app.GridLayout5, 'push');

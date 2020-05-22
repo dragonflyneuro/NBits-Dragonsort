@@ -7,7 +7,7 @@ app.StatusLabel.Value = "Redrawing data trace...";
 cla(app.Trace);
 app.pSelected = gobjects(0);
 app.pSelection = gobjects(1);
-app.pStim = [];
+app.pEvent = [];
 
 
 for ii = 1:4
@@ -35,33 +35,33 @@ if ~isinf(app.yLimHighField.Value)
 end
 ylim(app.Trace, yl);
 
-if app.ViewstimulusregionsButton.Value == 1
+if app.VieweventmarkersButton.Value == 1
     offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
     yl = ylim(app.Trace);
     
-    if min(size(app.t.importedStimulusBounds)) == 1
-        regionInBatch = offset < app.t.importedStimulusBounds & app.t.importedStimulusBounds <= sum(bl(1:c));
+    if min(size(app.t.importedEventBounds)) == 1
+        regionInBatch = offset < app.t.importedEventBounds & app.t.importedEventBounds <= sum(bl(1:c));
         regionInBatch = find(regionInBatch);
         
         for jj = 1:length(regionInBatch)
-            regionCoord = (app.t.importedStimulusBounds(regionInBatch(jj))-offset)*app.msConvert;
+            regionCoord = (app.t.importedEventBounds(regionInBatch(jj))-offset)*app.msConvert;
             xR = [regionCoord, regionCoord];
             yR = [yl(1), yl(2)];
-            app.pStim(jj) = plot(app.Trace, xR, yR, 'Color', [0.5,0.5,0.5], 'LineStyle',':','LineWidth',1.5);
-            set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
+            app.pEvent(jj) = plot(app.Trace, xR, yR, 'Color', [0.5,0.5,0.5], 'LineStyle',':','LineWidth',1.5);
+            set(app.pEvent(jj),'ButtonDownFcn',{@clickedTrace,app});
         end
     else
-        regionInBatch = offset < app.t.importedStimulusBounds(1,:) & app.t.importedStimulusBounds(1,:) <= sum(bl(1:c));
-        regionInBatch = regionInBatch | (offset < app.t.importedStimulusBounds(2,:) & app.t.importedStimulusBounds(2,:) <= sum(bl(1:c)));
+        regionInBatch = offset < app.t.importedEventBounds(1,:) & app.t.importedEventBounds(1,:) <= sum(bl(1:c));
+        regionInBatch = regionInBatch | (offset < app.t.importedEventBounds(2,:) & app.t.importedEventBounds(2,:) <= sum(bl(1:c)));
         regionInBatch = find(regionInBatch);
         
         for jj = 1:length(regionInBatch)
-            regionCoord = (app.t.importedStimulusBounds(:,regionInBatch(jj))-offset)*app.msConvert;
+            regionCoord = (app.t.importedEventBounds(:,regionInBatch(jj))-offset)*app.msConvert;
             xR = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
             yR = [yl(1), yl(2), yl(2), yl(1)];
             pgon = polyshape(xR,yR);
-            app.pStim(jj) = plot(app.Trace, pgon, 'FaceColor','k', 'FaceAlpha',0.3,'LineStyle','none');
-            set(app.pStim(jj),'ButtonDownFcn',{@clickedTrace,app});
+            app.pEvent(jj) = plot(app.Trace, pgon, 'FaceColor','k', 'FaceAlpha',0.3,'LineStyle','none');
+            set(app.pEvent(jj),'ButtonDownFcn',{@clickedTrace,app});
         end
     end
 end
@@ -161,7 +161,7 @@ else
         if ~any(alreadySelectedBool)
             app.Trace.UserData = [app.Trace.UserData, selectedPoint(qq)];
             app.pSelected(end+1) = plot(app.Trace, X(selectedPoint(qq)),Y(selectedPoint(qq)),'ro');
-            app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
+            app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
         else
             delete(app.pSelected(alreadySelectedBool))
             app.pSelected(alreadySelectedBool) = [];
@@ -186,7 +186,7 @@ alreadySelectedBool = ismember(app.Trace.UserData,selectedPoint);
 if ~any(alreadySelectedBool)
     app.Trace.UserData = [app.Trace.UserData, selectedPoint];
     app.pSelected(end+1) = plot(app.Trace, X(selectedPoint),Y(selectedPoint),'ro');
-    app.Trace.Children = app.Trace.Children([2:end-(length(app.pStim)+1), 1, end-(length(app.pStim)):end]);
+    app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
 else
     delete(app.pSelected(alreadySelectedBool))
     app.pSelected(alreadySelectedBool) = [];

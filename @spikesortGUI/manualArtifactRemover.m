@@ -12,8 +12,8 @@ if ~isempty(app.pAssigned)
         end
     end
 end
-for ii = 1:length(app.pStim)
-    delete(app.pStim(ii));
+for ii = 1:length(app.pEvent)
+    delete(app.pEvent(ii));
 end
 
 set(app.Trace,'ButtonDownFcn',{@selectTimeblock,app});
