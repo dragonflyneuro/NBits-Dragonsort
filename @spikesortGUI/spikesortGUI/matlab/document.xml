@@ -233,7 +233,7 @@
         %% draw on axes
         redrawUnitPlots(app)
         
-        redrawTracePlots(app)
+        redrawTracePlot(app)
         
         
         %% others
@@ -1116,8 +1116,8 @@
             % load templates from a previous sorting from this/another
             % dataset and use them to initialise new units in this sorting
             
-            if isfield(app.t,"importedTemplateOriginFileName") && ~isempty(app.t,"importedTemplateOriginFileName")
-                answer = uiconfirm(fig,"Templates have already been loaded in once! Overwrite?","Warning",...
+            if isfield(app.t,"importedTemplateOriginFileName") && ~isempty(app.t.importedTemplateOriginFileName)
+                answer = uiconfirm(app.UIBase,"Templates have already been loaded in once! Overwrite?","Warning",...
                     'Icon','warning','DefaultOption',2);
                 if strcmpi(answer, "CANCEL")
                     return;
@@ -1171,7 +1171,7 @@
             for ii = 1:length(tData.s.clusters)
                 app.t.importedTemplateMapping{1}(ii,:) = ["Template" string(ii) "Initalised from" "Unit" tData.s.clusters(ii)];
                 
-                app.t.("template_"+ii) = s.("waves_"+tData.s.clusters(ii));
+                app.t.("template_"+ii) = tData.s.("waves_"+tData.s.clusters(ii));
                 app.s.("unit_"+app.getMaxUnit(ii)) = [];
                 app.s.("waves_"+app.getMaxUnit(ii)) = [];
                 
@@ -1183,6 +1183,7 @@
                         app.t.("template_"+ii) = app.t.("template_"+ii)(1:app.SpikesusedEditField.Value,:,:);
                     end
                 end
+                app.s.tags.("unit_"+app.getMaxUnit(ii)) = false(size(app.s.tags,1),1);
             end
             
             % add info about harvesting location in meta var
@@ -1859,7 +1860,6 @@
             end
             app.t.importedEventFileName = [fP, fN];
             
-            % check if the loaded file has s.clusters
             [app.t.importedEventBounds, app.StatusLabel.Value] = importEventData([fP, fN]);
             app.VieweventmarkersButton.Enable = 1;
             app.VieweventmarkersButton.Value = 0;
