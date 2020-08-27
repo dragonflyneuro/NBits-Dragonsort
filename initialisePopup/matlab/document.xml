@@ -204,7 +204,7 @@
             app.nchEditField.ValueChangedFcn = createCallbackFcn(app, @nchEditFieldValueChanged, true);
             app.nchEditField.Layout.Row = 5;
             app.nchEditField.Layout.Column = 4;
-            app.nchEditField.Value = 1;
+            app.nchEditField.Value = 4;
 
             % Create MainchanelnumberSpinnerLabel
             app.MainchanelnumberSpinnerLabel = uilabel(app.GridLayout2);
@@ -251,7 +251,6 @@
             app.DuplexdataCheckBox.Text = 'Duplex data?';
             app.DuplexdataCheckBox.Layout.Row = 8;
             app.DuplexdataCheckBox.Layout.Column = 5;
-            app.DuplexdataCheckBox.Value = true;
 
             % Create ChoosebinButton
             app.ChoosebinButton = uibutton(app.GridLayout2, 'push');
@@ -277,7 +276,7 @@
             app.SplitlengthEditField = uieditfield(app.GridLayout2, 'numeric');
             app.SplitlengthEditField.Layout.Row = 10;
             app.SplitlengthEditField.Layout.Column = 4;
-            app.SplitlengthEditField.Value = 12000000;
+            app.SplitlengthEditField.Value = 6000000;
 
             % Create SpikeamplituderangeuVLabel
             app.SpikeamplituderangeuVLabel = uilabel(app.GridLayout2);
@@ -303,7 +302,7 @@
             app.NewtemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.NewtemplateEditField.Layout.Row = 12;
             app.NewtemplateEditField.Layout.Column = 4;
-            app.NewtemplateEditField.Value = 1;
+            app.NewtemplateEditField.Value = 6;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2);
@@ -316,7 +315,7 @@
             app.AddtotemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.AddtotemplateEditField.Layout.Row = 13;
             app.AddtotemplateEditField.Layout.Column = 4;
-            app.AddtotemplateEditField.Value = 1;
+            app.AddtotemplateEditField.Value = 6;
 
             % Create SuffixtoputonsaveddataEditFieldLabel
             app.SuffixtoputonsaveddataEditFieldLabel = uilabel(app.GridLayout2);

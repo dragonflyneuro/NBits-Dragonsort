@@ -171,7 +171,6 @@ app.LeftUnitDropDown.Items = "1";
 app.RightUnitDropDown.Items = "1";
 app.LeftUnitDropDown.Value = "1";
 app.RightUnitDropDown.Value = "1";
-app.VieweventmarkersButton.Value = 0;
 
 %    read and plot data
 readFilter(app, 0, 0)
