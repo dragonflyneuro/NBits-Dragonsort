@@ -1,4 +1,4 @@
-function [output, statusStr] = importStimulusData(fN)
+function [output, statusStr] = importEventData(fN)
 
 output = [];
 input = load(fN);
