@@ -34,7 +34,7 @@ for ii = 1:length(c.clusters)
 
 		% add waveforms to template from loaded templates if needed
 		if isfield(t,("importedTemplateMapping")) && any(strcmp(n, t.importedTemplateMapping{2}(:,1)))...
-				&& size(c.("waves_"+n),1) < numTemplates
+				&& size(c.("waves_"+n),1) == 0% < numTemplates
 			templateWaves = [t.("template_"+t.importedTemplateMapping{2}(strcmp(n, t.importedTemplateMapping{2}(:,1)),2)); templateWaves];
 		end
 

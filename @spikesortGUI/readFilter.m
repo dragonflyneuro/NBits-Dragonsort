@@ -9,7 +9,7 @@ app.currentBatch = app.currentBatch + traceMove;
 c = app.currentBatch;
 bl = app.t.batchLengths;
 
-x = app.t.yscale*fread(app.fid,[app.m.nChans, bl(c)], 'int16','l'); % little endian open
+x = app.t.yscale*app.fid.Data([app.m.nChans, bl(c)], 'int16','l'); % little endian open
 app.m.el_f = fir1(app.m.el_flen,[app.m.el_cutH app.m.el_cutL]./(app.m.sRateHz/2));
 d = 1;
 app.xi = [];

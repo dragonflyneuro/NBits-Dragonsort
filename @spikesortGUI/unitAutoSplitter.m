@@ -1,7 +1,12 @@
-function [clust, yn] = unitAutoSplitter(app, w, n)
+function [clust, yn] = unitAutoSplitter(app, n, idx)
 % crop waves for better PCA
-croppedWaves = w(:,ceil(size(w,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
-croppedWaves = reshape(croppedWaves, size(w,1), []);
+u = app.unitArray(n);
+
+if isempty(idx)
+    idx = 1:size(u.waves,1);
+end
+croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
+croppedWaves = reshape(croppedWaves, size(u.waves,1), []);
 
 % perform PCA and cluster waves
 PC = pca(croppedWaves);
@@ -19,15 +24,15 @@ yTemp = zeros(numClust,2);
 for ii = 1:numClust
     ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
     axis square;
-    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w', 'Color', [0.8, 0.8, 0.8]);
-    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, w(clust==ii,:,app.m.mainCh)');
+    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
+    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(clust==ii,:,app.m.mainCh)');
     %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
     yTemp(ii,:) = ylim(ax(ii));
     
     if ii == 1
-        title(ax(ii),"Unit "+n, 'Color', app.cmap(rem(str2double(n)-1,25)+1,:));
+        title(ax(ii),"Unit " + string(n), 'Color', app.cmap(rem(n-1,25)+1,:));
     else
-        title(ax(ii),"Unit "+str2double(app.getMaxUnit(ii-1)), 'Color', app.cmap(rem(str2double(app.getMaxUnit(ii-1))-1,25)+1,:))
+        title(ax(ii),"New unit " + string(ii));
     end
 end
 
@@ -45,7 +50,7 @@ for ii = 1:numClust
     ylim(ax(ii), yTemp);
     axis(ax,'square');
 end
-sgtitle("Template splitting: ENTER to accept, close to reject")
+sgtitle("Template splitting: ENTER to accept, close/ESC to reject")
 
 % ask user if they want to accept the new assignments
 % yn = 1 if enter was pressed

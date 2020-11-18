@@ -1,22 +1,17 @@
-function [] = unitScrubber(app, value)
-if ~any(strcmp(value,app.s.clusters))
-    app.StatusLabel.Value = "Select a left unit to scrub through";
-    return;
-end
-
-waves = app.s.("waves_"+value)(:,:,app.m.mainCh);
+function [] = unitScrubber(app, n)
+waves = app.unitArray(n).waves(:,:,app.unitArray(n).mainCh);
 
 f = uifigure;
 set(f, 'Position',  [300, 200, 800, 700]);
 ax = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
 
-p = line(ax, -app.m.spikeWidth:app.m.spikeWidth, waves');
+p = line(ax, -floor(size(waves,2)/2):floor(size(waves,2)/2), waves');
 set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
 if length(p) > 1 % make future spikes invisible for now
     set(p(2:end),'LineStyle', 'none');
 end
 
-title(ax, "Unit "+value,'Color',app.cmap(rem(str2double(value)-1,25)+1,:));
+title(ax, "Unit "+n,'Color',app.cmap(rem(n-1,25)+1,:));
 xlabel(ax, "Samples")
 ylabel(ax, "Amplitude (uV)")
 
@@ -26,9 +21,9 @@ ylim(ax, yl);
 % create sliders and buttons to allow unit scrubbing and manipulation
 sldr = uislider(f,'Position',[50 80 700 3], 'Value',1, 'Limits',[1 size(waves,1)],...
     'ValueChangingFcn',{@sliderMoving, p});
-uibutton(f, 'Text', 'Split here', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@scrubSplit, app, sldr, value, f});
-uibutton(f, 'Text', 'Remove before', 'Position',[300 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, sldr, value, f, 0});
-uibutton(f, 'Text', 'Remove after', 'Position',[500 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, sldr, value, f, 1});
+uibutton(f, 'Text', 'Split here', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@scrubSplit, app, n, sldr, f});
+uibutton(f, 'Text', 'Remove before', 'Position',[300 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 0});
+uibutton(f, 'Text', 'Remove after', 'Position',[500 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 1});
 
 app.StatusLabel.Value = "Ready";
 end
@@ -42,28 +37,28 @@ end
 
 
 % split spikes before/after set timepoint in unit scrubbing window
-function scrubSplit(~, ~, app, sld, n, h)
+function scrubSplit(~, ~, app, n, sld, h)
 app.saveLast();
-tU = app.s.("unit_"+n);
+tU = app.unitArray(n).spikeTimes;
 I = round(sld.Value)+1:length(tU);
-app.unitSplitter(n,I);
-app.redrawTracePlot();
-app.redrawUnitPlots();
+app.unitArray = app.unitArray.unitSplitter(n,I);
+app.redrawTracePlot(app.figureHandles(1));
+app.redrawUnitPlots(app.figureHandles(2), app.figureHandles(3));
 close(h)
 end
 
 
 % remove spikes before/after set timepoint in unit scrubbing window
-function scrubRemove(~, ~, app, sld, n, h, o)
+function scrubRemove(~, ~, app, n, sld, h, o)
 app.saveLast();
-tU = app.s.("unit_"+n);
+tU = app.unitArray(n).spikeTimes;
 if o % choose before/after
     I = round(sld.Value)+1:length(tU);
 else
     I = 1:round(sld.Value)+1;
 end
-app.spikeRemover(n,I);
-app.redrawTracePlot();
-app.redrawUnitPlots();
+app.unitArray = app.unitArray.spikeRemover(n,I);
+app.redrawTracePlot(app.figureHandles(1));
+app.redrawUnitPlots(app.figureHandles(2), app.figureHandles(3));
 close(h)
 end

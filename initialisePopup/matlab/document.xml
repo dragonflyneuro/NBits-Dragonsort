@@ -139,7 +139,7 @@
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
             
             app.InitialiseButton.Enable = "off";
-            updateVars(app.CallingApp, app.initm, app.initt, []);
+            updateVars2(app.CallingApp, app.initm, app.initt, []);
             switchButtons(app.CallingApp,1);
             
             delete(app)
@@ -149,6 +149,20 @@
         function nchEditFieldValueChanged(app, event)
             value = app.nchEditField.Value;
             app.MainchannelnumberSpinner.Limits = [1 value+0.1];
+        end
+
+        % Value changed function: echEditField
+        function echEditFieldValueChanged(app, event)
+            v = app.echEditField.Value;
+            
+            N = regexp(v,'\d*','Match');
+            v = '';
+            for ii = 1:length(N)
+                v = [v num2str(N{ii}) ','];
+            end
+            v = ['[' v(1:end-1) ']'];
+        
+            app.echEditField.Value = v;
         end
     end
 
@@ -339,6 +353,7 @@
 
             % Create echEditField
             app.echEditField = uieditfield(app.GridLayout2, 'text');
+            app.echEditField.ValueChangedFcn = createCallbackFcn(app, @echEditFieldValueChanged, true);
             app.echEditField.Layout.Row = 6;
             app.echEditField.Layout.Column = 4;
             app.echEditField.Value = '[1]';

@@ -16,6 +16,7 @@
     properties (Access = private)
         CallingApp
         p
+        uA
     end
     
 
@@ -25,13 +26,24 @@
         % Code that executes after component creation
         function startupFcn(app, mainapp, input)
             app.CallingApp = mainapp;
-            app.p = input;
+            app.uA = input;
+            
+            col = app.CallingApp.TagDropDown.Items;
+            allBool = [];
+            for ii = 1:length(col)
+                bool = app.uA.tagcmpi(col{ii});
+                allBool = cat(1,allBool,bool);
+            end
+            app.p = array2table(logical(allBool'));
+            app.p.Properties.VariableNames = col;
+            app.p.Properties.RowNames = "u"+string(1:length(input));
+            
             app.UITable.Data = app.p;
             app.UITable.ColumnEditable = true;
             app.UITable.ColumnName = app.p.Properties.VariableNames;
             app.UITable.RowName = app.p.Row;
             
-            if length(app.p.Row) == 1
+            if length(app.p.Properties.VariableNames) == 1
                 app.RemovetagButton.Enable = 0;
             end
         end
@@ -42,13 +54,14 @@
             if isempty(newTag)
                 return;
             end
-            if any(strcmpi(newTag, app.p.Row))
+            if any(strcmpi(newTag, app.p.Properties.VariableNames))
                 return;
             end
-            app.p = [app.p; num2cell(false(1,size(app.p,2)))];
-            app.p.Row(end) = newTag;
+            app.p = [app.p, num2cell(false(size(app.p,1),1))];
+            app.p.Properties.VariableNames(end) = newTag;
+            app.UITable.ColumnName = app.p.Properties.VariableNames;
+            app.CallingApp.TagDropDown.Items = app.p.Properties.VariableNames;
             app.UITable.Data = app.p;
-            app.UITable.RowName = app.p.Row;
             app.RemovetagButton.Enable = 1;
         end
 
@@ -62,13 +75,14 @@
 
         % Button pushed function: RemovetagButton
         function RemovetagButtonPushed(app, event)
-            [idx,~] = listdlg('PromptString','Select a tag to remove','SelectionMode','single','ListString',app.p.Row(2:end));
+            [idx,~] = listdlg('PromptString','Select a tag to remove','SelectionMode','single','ListString',app.p.Properties.VariableNames(2:end));
             if ~isempty(idx)
-                app.p(idx+1,:) = [];
+                app.p(:,idx+1) = [];
             end
             app.UITable.Data = app.p;
+            app.CallingApp.TagDropDown.Items = app.p.Properties.VariableNames;
             drawnow
-            if length(app.p.Row) == 1
+            if length(app.p.Properties.VariableNames) == 1
                 app.RemovetagButton.Enable = 0;
             end
         end
@@ -80,7 +94,10 @@
 
         % Button pushed function: ConfirmButton
         function ConfirmButtonPushed(app, event)
-            updateTags(app.CallingApp, app.p);
+%             updateTags(app.CallingApp, app.p);
+            for ii = 1:length(app.uA)
+                app.uA(ii).tags = string(app.p.Properties.VariableNames(table2array(app.p(ii,:))));
+            end
             switchButtons(app.CallingApp,1);
             switchButtons(app.CallingApp,3);
             delete(app)

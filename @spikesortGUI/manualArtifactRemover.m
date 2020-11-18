@@ -1,4 +1,4 @@
-function [] = manualArtifactRemover(app)
+function [] = manualArtifactRemover(app, h)
 app.StatusLabel.Value = "ARTIFACT REMOVER ON! TURN OFF FOR NORMAL OPERATION."+...
     " Click on 2 points in the trace to denote region of spike elimination. Click on a region to remove it.";
 switchButtons(app,0);
@@ -16,8 +16,8 @@ for ii = 1:length(app.pEvent)
     delete(app.pEvent(ii));
 end
 
-set(app.Trace,'ButtonDownFcn',{@selectTimeblock,app});
-set(app.pRaw, 'ButtonDownFcn',{@selectTimeblock,app});
+set(h,'ButtonDownFcn',{@selectTimeblock,app,h});
+set(app.pRaw, 'ButtonDownFcn',{@selectTimeblock,app,h});
 if ~isempty(app.pUnassigned)
     set(app.pUnassigned, 'ButtonDownFcn',[]);
 end
@@ -31,20 +31,20 @@ if ~isempty(app.t.noSpikeRange)
     regionInBatch = regionInBatch | (offset < app.t.noSpikeRange(2,:) & app.t.noSpikeRange(2,:) <= sum(bl(1:c)));
     regionInBatch = find(regionInBatch);
     
-    yl = ylim(app.Trace);
+    yl = ylim(h);
     for ii = 1:length(regionInBatch)
         regionCoord = (app.t.noSpikeRange(:,regionInBatch(ii))-offset)*app.msConvert;
         x = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
         y = [yl(1), yl(2), yl(2), yl(1)];
         pgon = polyshape(x,y);
-        app.pNospike(ii) = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
-        set(app.pNospike(ii),'ButtonDownFcn',{@selectTimeblock,app});
+        app.pNospike(ii) = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
+        set(app.pNospike(ii),'ButtonDownFcn',{@selectTimeblock,app,h});
     end
 end
 end
 
 %% callback
-function selectTimeblock(~,evt,app)
+function selectTimeblock(~,evt,app,h)
 % get clicked coordinates
 u = evt.IntersectionPoint;
 
@@ -79,11 +79,11 @@ if ~ishandle(app.pSelection)
     
     % get first line and draw
     if q == 0
-        app.pSelection = plot(app.Trace, [u(1,1),u(1,1)], ylim(app.Trace), 'r');
+        app.pSelection = plot(h, [u(1,1),u(1,1)], ylim(h), 'r');
     end
 else
     % get second line and draw
-    yl = ylim(app.Trace);
+    yl = ylim(h);
     x = [app.pSelection.XData(1), app.pSelection.XData(1), u(1,1), u(1,1)];
     y = [yl(1), yl(2), yl(2), yl(1)];
     pgon = polyshape(x,y);
@@ -91,7 +91,7 @@ else
     app.t.noSpikeRange(:,end+1) = sort([app.pSelection.XData(1); u(1,1)])/app.msConvert + offset;
     delete(app.pSelection);
     
-    app.pSelection = plot(app.Trace, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
+    app.pSelection = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
     app.pNospike(end+1) = app.pSelection;
     set(app.pNospike(end),'ButtonDownFcn',{@selectTimeblock,app});
     app.pSelection = gobjects(1);

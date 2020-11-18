@@ -30,7 +30,12 @@ while figOpen
 			figData = get(f,'UserData');
 			close(f);
 			pressedEnter = 1;
-		end
+        elseif k == 27
+            figOpen = 0;
+            figData = [];
+            close(f);
+            pressedEnter = 0;
+        end
 	end
 end
 end

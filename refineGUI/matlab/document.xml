@@ -25,6 +25,7 @@
         ScalingButton                   matlab.ui.control.Button
         LossButton                      matlab.ui.control.Button
         GainButton                      matlab.ui.control.Button
+        GraphicalscalingButton          matlab.ui.control.Button
         TabGroup                        matlab.ui.container.TabGroup
         ScalingsTab                     matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
@@ -226,12 +227,12 @@
 
         % Value changed function: devHist1DropDown, devHist2DropDown
         function devHist1DropDownValueChanged(app, event)
-            value(1) = string(app.devHist1DropDown.Value);
-            value(2) = string(app.devHist2DropDown.Value);
+            value(1) = app.devHist1DropDown.Value;
+            value(2) = app.devHist2DropDown.Value;
             if app.lastHist(1) == value(1)
-                app.updateHist(app.devhistAx2, value(2))
+                app.updateHist(app.devhistAx2, string(value(2)))
             else
-                app.updateHist(app.devhistAx1, value(1))
+                app.updateHist(app.devhistAx1, string(value(1)))
             end
             app.lastHist = value;
             
@@ -290,7 +291,7 @@
                 app.iterations = app.iterations + 1;
             end
             
-            app.plotResults();
+            app.plotResults(w);
             
             app.DoneButton.Enable = 'on';
         end
@@ -305,9 +306,9 @@
         function ScalingButtonPushed(app, event)
             prop = sum(app.ScalingTable.Data.ScalingLock)/length(app.ScalingTable.Data.ScalingLock);
             if prop > 0.5
-                app.ScalingTable.Data.ScalingLock = zeros(size(app.ScalingTable.Data.ScalingLock));
+                app.ScalingTable.Data.ScalingLock = false(size(app.ScalingTable.Data.ScalingLock));
             else
-                app.ScalingTable.Data.ScalingLock = ones(size(app.ScalingTable.Data.ScalingLock));
+                app.ScalingTable.Data.ScalingLock = true(size(app.ScalingTable.Data.ScalingLock));
             end
         end
 
@@ -315,9 +316,9 @@
         function LossButtonPushed(app, event)
             prop = sum(app.ScalingTable.Data.LossLock)/length(app.ScalingTable.Data.LossLock);
             if prop > 0.5
-                app.ScalingTable.Data.LossLock = zeros(size(app.ScalingTable.Data.LossLock));
+                app.ScalingTable.Data.LossLock = false(size(app.ScalingTable.Data.LossLock));
             else
-                app.ScalingTable.Data.LossLock = ones(size(app.ScalingTable.Data.LossLock));
+                app.ScalingTable.Data.LossLock = true(size(app.ScalingTable.Data.LossLock));
             end
         end
 
@@ -325,10 +326,58 @@
         function GainButtonPushed(app, event)
             prop = sum(app.TagTable.Data.GainLock)/length(app.TagTable.Data.GainLock);
             if prop > 0.5
-                app.TagTable.Data.GainLock = zeros(size(app.TagTable.Data.GainLock));
+                app.TagTable.Data.GainLock = false(size(app.TagTable.Data.GainLock));
             else
-                app.TagTable.Data.GainLock = ones(size(app.TagTable.Data.GainLock));
+                app.TagTable.Data.GainLock = true(size(app.TagTable.Data.GainLock));
             end
+        end
+
+        % Button pushed function: GraphicalscalingButton
+        function GraphicalscalingButtonPushed(app, event)
+            if app.LockoriginalButton.Value == 0
+                w = app.p.rawSpikeWaves;
+            else
+                w = app.p.rawSpikeWaves(app.p.orphansInBatchBool,:,:);
+            end
+            
+            scaleArray = ones(size(app.p.s.clusters));
+            app.d = deviationRefine(app.p.s, app.p.t, w, app.p.templateBatches, ...
+                app.p.numTemplates, app.p.m.sRateHz, scaleArray, app.d);
+            
+            figure;
+            set(gcf, 'Position',  [200, 200, 900, 700]);
+            sgtitle("Click on subplots left to right up to down to set threshold scaling");
+            clicked = ones(1,length(app.p.s.clusters));
+            h = gobjects(1,length(app.p.s.clusters));
+            q = gobjects(1,length(app.p.s.clusters));
+            
+            subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
+            
+            unitsToPlot = app.p.s.clusters;
+            sp = ceil(length(unitsToPlot)/3);
+            ax = gobjects(length(unitsToPlot),1);
+            
+            for ii=1:length(app.p.s.clusters)
+                ax(ii) = subplott(sp,3,ii);
+                devScaled = app.d.devMatrix(:,ii); %scale the deviation matrix
+                h(ii) = histogram(ax(ii), devScaled, 'Linestyle','none','BinWidth',0.05);
+                hold(ax(ii),'on');
+            end
+
+            for ii=1:length(app.p.s.clusters)
+                [x, ~] = ginput(1);
+                scaler = app.p.t.add2UnitThr(1)/x;
+                delete(q(ii));
+                q(ii) = plot(gca, [x x], [0 max(h(ii).Values)], 'r', 'LineWidth', 2);
+                clicked(ismember(ax, gca)) = scaler;
+            end
+            
+            app.ScalingTable.Data.Scaling = clicked';
+            close(gcf);
+            
+            app.plotResults(w);
+            
+            app.DoneButton.Enable = 'on';
         end
     end
 
@@ -522,6 +571,14 @@
             app.GainButton.Layout.Row = 9;
             app.GainButton.Layout.Column = [6 7];
             app.GainButton.Text = 'Gain';
+
+            % Create GraphicalscalingButton
+            app.GraphicalscalingButton = uibutton(app.GridLayout2, 'push');
+            app.GraphicalscalingButton.ButtonPushedFcn = createCallbackFcn(app, @GraphicalscalingButtonPushed, true);
+            app.GraphicalscalingButton.FontWeight = 'bold';
+            app.GraphicalscalingButton.Layout.Row = 4;
+            app.GraphicalscalingButton.Layout.Column = [2 7];
+            app.GraphicalscalingButton.Text = 'Graphical scaling (beta)';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);
