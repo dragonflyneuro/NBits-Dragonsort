@@ -11,7 +11,7 @@ app.pEvent = [];
 
 
 for ii = 1:4
-    cla(app.spT(ii));
+%     cla(app.spT(ii));
 end
 ht.UserData = []; % Used for storing selected orphans
 
@@ -94,19 +94,19 @@ for ii = 1:length(app.unitArray)
     unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(app.t,app.currentBatch);
     tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
     if ~isempty(tempUnit)
-        ms = getMarker(size(app.cmap,1), ii);
+        [ms, msSize] = getMarker(size(app.cmap,1), ii);
         
         % set up interactivity with assigned spikes to select
         % waveforms in left unit figure from trace
         app.pAssigned(d) = line(ht, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit), ...
-            'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(ii-1,25)+1,:));
+            'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', app.cmap(rem(ii-1,25)+1,:));
         set(app.pAssigned(d), 'UserData', ii, 'ButtonDownFcn',{@clickedAssigned,app,hl});
         
         % markers on if multiple channels enabled
         if size(app.xi,1) > 0 && app.PlotallchButton.Value
             for jj = 1:size(app.xi,1)
                 line(app.spT(jj), tempUnit*app.msConvert, app.xi(jj,tempUnit), ...
-                    'LineStyle', 'none', 'Marker', ms, 'Color', app.cmap(rem(ii-1,25)+1,:));
+                    'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', app.cmap(rem(ii-1,25)+1,:));
             end
         end
         d = d+1;
@@ -125,6 +125,9 @@ end
 % allow box selection of orphans
 function boxClick(~,evt,app,h)
 if isempty(app.pUnassigned)
+    return;
+end
+if app.interactingFlag(1)
     return;
 end
 % get clicked coordinates
@@ -168,6 +171,9 @@ end
 
 % allow selection of orphans in Trace
 function clickedUnassigned(~,evt,app,h)
+if app.interactingFlag(1)
+    return;
+end
 u = evt.IntersectionPoint;
 
 X = get(app.pUnassigned,'XData');
@@ -194,6 +200,10 @@ function clickedAssigned(src,evt,app,hl)
 if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData))
     return;
 end
+if app.interactingFlag(1)
+    return;
+end
+
 u = evt.IntersectionPoint;
 X = get(src,'XData');
 Y = get(src,'YData');

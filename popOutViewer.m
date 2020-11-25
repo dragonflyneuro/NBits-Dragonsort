@@ -1,4 +1,4 @@
-classdef unit < handle
+classdef popOutViewer < handle
     properties
         waves {mustBeNumeric} = [];
         spikeTimes {mustBeInteger} = [];
@@ -103,7 +103,6 @@ classdef unit < handle
         end
 
         function obj = spikeRemover(obj,n,I)
-            n = n(1);
             obj(n).spikeTimes(I) = [];
             obj(n).waves(I,:,:) = [];
             obj(n).spikeIndex(I) = [];
@@ -112,7 +111,7 @@ classdef unit < handle
         function obj = spikeAdder(obj,t,m,c,w,n,I,force,fuzzy)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
-            n = n(1);
+            
             [orphanSpikes, orphanWaves, orphansIndex] = obj.getOrphanSpikes(t,c,w);
             templateWaves = orphanWaves(I,:,:);
             
@@ -138,14 +137,13 @@ classdef unit < handle
         function obj = refinedSpikeAdder(obj,n,a,b,c)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
-            n = n(1);
+            
             obj(n).spikeTimes = [obj(n).spikeTimes, a];
             obj(n).waves = cat(1,obj(n).waves, b);
             obj(n).spikeIndex = [obj(n).spikeIndex, c];
         end
         
         function obj = unitSplitter(obj,n,I)
-            n = n(1);
             newUnit = unit(obj(n).spikeTimes(I),obj(n).waves(I,:,:),obj(n).spikeIndex(I),obj(n).mainCh);
             
             obj(n).spikeTimes(I) = [];

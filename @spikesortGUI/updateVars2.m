@@ -11,6 +11,7 @@ fileNotFound = 1;
 while fileNotFound ~= 0
     try
         app.fm = memmapfile([app.m.fP app.m.fN],'Format','int16','Writable',false);
+        fileNotFound = 0;
     catch
         fileNotFound = -1;
     end

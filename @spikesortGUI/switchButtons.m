@@ -1,107 +1,72 @@
 function [] = switchButtons(app, opt)
+initialMenus = [app.InitialiseMenu,...
+    app.LoadMenu];
+
+opsMenus = [app.AddspikeMenu,...
+app.AutosplitMenu,...
+app.ForceaddMenu,...
+app.NextbatchMenu,...
+app.PreviousbatchMenu,...
+app.LoadtemplatesMenu,...
+app.MergeMenu,...
+app.NewunitMenu,...
+app.RefinebatchMenu,...
+app.RemovespikeMenu,...
+app.SaveMenu,...
+app.ScrubthroughunitMenu,...
+app.SplitMenu,...
+app.UndoMenu,...
+app.RedoMenu,...
+app.UnitfrequencyMenu];
+
+opsButtons = [app.AddspikeButton,...
+app.AutosplitButton,...
+app.BinarynamecopyButton,...
+app.CleanupButton,...
+app.DeleteunitButton,...
+app.ForceaddButton,...
+app.NextbatchButton,...
+app.PreviousbatchButton,...
+app.GotobatchButton,...
+app.MergeButton,...
+app.NewunitButton,...
+app.RefinebatchButton,...
+app.RemovespikeButton,...
+app.ResortbatchButton,...
+app.SavenamecopyButton,...
+app.ShowallButton,...
+app.ShowloadedtemplatesButton,...
+app.SplitButton,...
+app.UnitfreqButton,...
+app.UnitscrubButton,...
+app.AutosortButton,...
+app.ToggletagButton,...
+app.TagmanagementButton,...
+app.AutocreatejunkunitsButton,...
+app.AutocreateunitsButton];
+
+opsStateButtons = [app.VieweventmarkersButton,...
+    app.SelectedButton,...
+    app.PlottedButton,...
+    app.BatchButton];
+
+opsDropDowns = [app.LeftUnitDropDown,...
+app.RightUnitDropDown];
+
 switch opt
     case 0
-        app.InitialiseMenu.Enable = 'off';
-        app.LoadMenu.Enable = 'off';
+        [initialMenus.Enable] = deal('off');
     case 1
-        app.InitialiseMenu.Enable = 'on';
-        app.LoadMenu.Enable = 'on';
-        
+        [initialMenus.Enable] = deal('on');
     case 2
-        app.AddspikeButton.Enable = 'off';
-        app.AddspikeMenu.Enable = 'off';
-        app.AutosplitBatchButton.Enable = 'off';
-        app.AutosplitButton.Enable = 'off';
-        app.AutosplitMenu.Enable = 'off';
-        app.BinarynamecopyButton.Enable = 'off';
-        app.CleanupButton.Enable = 'off';
-        app.DeleteunitButton.Enable = 'off';
-        app.ForceaddButton.Enable = 'off';
-        app.ForceaddMenu.Enable = 'off';
-        app.GotobatchButton.Enable = 'off';
-        app.LeftUnitDropDown.Enable = 'off';
-        app.LoadtemplatesMenu.Enable = 'off';
-        app.MergeButton.Enable = 'off';
-        app.MergeMenu.Enable = 'off';
-        app.NewunitButton.Enable = 'off';
-        app.NewunitMenu.Enable = 'off';
-        app.NextbatchButton.Enable = 'off';
-        app.NextbatchMenu.Enable = 'off';
-        app.PreviousbatchButton.Enable = 'off';
-        app.PreviousbatchMenu.Enable = 'off';
-        app.RefinebatchButton.Enable = 'off';
-        app.RefinebatchMenu.Enable = 'off';
-        app.RemoveplottedButton.Enable = 'off';
-        app.RemovespikeButton.Enable = 'off';
-        app.RemovespikeMenu.Enable = 'off';
-        app.ResortbatchButton.Enable = 'off';
-        app.RightUnitDropDown.Enable = 'off';
-        app.SaveMenu.Enable = 'off';
-        app.SavenamecopyButton.Enable = 'off';
-        app.ScrubthroughunitMenu.Enable = 'off';
-        app.ShowallButton.Enable = 'off';
-        app.ShowloadedtemplatesButton.Enable = 'off';
-        app.SplitMenu.Enable = 'off';
-        app.SplitplottedButton.Enable = 'off';
-        app.SplitunitButton.Enable = 'off';
-        app.UndoMenu.Enable = 'off';
-        app.RedoMenu.Enable = 'off';
-        app.UnitfreqButton.Enable = 'off';
-        app.UnitfrequencyMenu.Enable = 'off';
-        app.UnitscrubButton.Enable = 'off';
-        app.AutosortButton.Enable = 'off';
-        app.ToggletagButton.Enable = 'off';
-        app.TagmanagementButton.Enable = 'off';
-        app.AutocreatejunkunitsButton.Enable = 'off';
-        app.AutocreateunitsButton.Enable = 'off';
-        app.VieweventmarkersButton.Enable = 'off';
+        [opsMenus.Enable] = deal('off');
+        [opsButtons.Enable] = deal('off');
+        [opsStateButtons.Enable] = deal('off');
+        [opsDropDowns.Enable] = deal('off');
     case 3
-        app.AddspikeButton.Enable = 'on';
-        app.AddspikeMenu.Enable = 'on';
-        app.AutosplitBatchButton.Enable = 'on';
-        app.AutosplitButton.Enable = 'on';
-        app.AutosplitMenu.Enable = 'on';
-        app.BinarynamecopyButton.Enable = 'on';
-        app.CleanupButton.Enable = 'on';
-        app.DeleteunitButton.Enable = 'on';
-        app.ForceaddButton.Enable = 'on';
-        app.ForceaddMenu.Enable = 'on';
-        app.GotobatchButton.Enable = 'on';
-        app.LeftUnitDropDown.Enable = 'on';
-        app.LoadtemplatesMenu.Enable = 'on';
-        app.MergeButton.Enable = 'on';
-        app.MergeMenu.Enable = 'on';
-        app.NewunitButton.Enable = 'on';
-        app.NewunitMenu.Enable = 'on';
-        app.NextbatchButton.Enable = 'on';
-        app.NextbatchMenu.Enable = 'off';
-        app.PreviousbatchButton.Enable = 'on';
-        app.PreviousbatchMenu.Enable = 'on';
-        app.RefinebatchButton.Enable = 'on';
-        app.RefinebatchMenu.Enable = 'on';
-        app.RemoveplottedButton.Enable = 'on';
-        app.RemovespikeButton.Enable = 'on';
-        app.RemovespikeMenu.Enable = 'on';
-        app.ResortbatchButton.Enable = 'on';
-        app.RightUnitDropDown.Enable = 'on';
-        app.SaveMenu.Enable = 'on';
-        app.SavenamecopyButton.Enable = 'on';
-        app.ScrubthroughunitMenu.Enable = 'on';
-        app.ShowallButton.Enable = 'on';
-        app.ShowloadedtemplatesButton.Enable = 'on';
-        app.SplitMenu.Enable = 'on';
-        app.SplitplottedButton.Enable = 'on';
-        app.SplitunitButton.Enable = 'on';
-        app.UndoMenu.Enable = 'on';
-        app.RedoMenu.Enable = 'on';
-        app.UnitfreqButton.Enable = 'on';
-        app.UnitfrequencyMenu.Enable = 'on';
-        app.UnitscrubButton.Enable = 'on';
-        app.AutosortButton.Enable = 'on';
-        app.ToggletagButton.Enable = 'on';
-        app.TagmanagementButton.Enable = 'on';
-        app.AutocreatejunkunitsButton.Enable = 'on';
-        app.AutocreateunitsButton.Enable = 'on';
-        app.VieweventmarkersButton.Enable = 'on';
+        [opsMenus.Enable] = deal('on');
+        [opsButtons.Enable] = deal('on');
+        [opsStateButtons.Enable] = deal('on');
+        [opsDropDowns.Enable] = deal('on');
 end
 end

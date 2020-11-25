@@ -45,6 +45,9 @@ end
 
 %% callback
 function selectTimeblock(~,evt,app,h)
+if app.interactingFlag(1)
+    return;
+end
 % get clicked coordinates
 u = evt.IntersectionPoint;
 

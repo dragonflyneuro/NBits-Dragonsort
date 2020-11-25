@@ -1,4 +1,30 @@
-function [] = redrawUnitPlots2(app,h)
+function [] = redrawUnitPlots2(app, h, varargin)
+
+h = [h(2), h(3), h(1)];
+
+if nargin > 2
+    updateFigs = varargin{1};
+    if updateFigs == 1
+        delete(app.lSelection); delete(app.pL); delete(app.pTL);
+        for ii = 1:4
+%             cla(app.spL(ii));
+        end
+        set(h(1),'UserData', []); % reset selected spikes in left unit
+        app.lSelection = gobjects(1);
+    else
+        delete(app.pR); delete(app.pTR);
+        for ii = 1:4
+%             cla(app.spR(ii));
+        end
+    end
+else
+    updateFigs = 1:2;
+    delete(app.lSelection); delete(app.pL); delete(app.pR); delete(app.pTL); delete(app.pTR);
+    for ii = 1:4
+%         cla(app.spL(ii)); cla(app.spR(ii));
+    end
+end
+
 c = app.currentBatch;
 bl = app.t.batchLengths;
 
@@ -6,20 +32,11 @@ bl = app.t.batchLengths;
 app.StatusLabel.Value = "Redrawing units...";
 % drawnow
 
-%    setup
-delete(app.lSelection); delete(app.pL); delete(app.pR); delete(app.pTL); delete(app.pTR);
-for ii = 1:4
-    cla(app.spL(ii)); cla(app.spR(ii));
-end
-h = [h(2), h(3), h(1)];
 d = ["<", ">"];
 u = [str2double(app.LeftUnitDropDown.Value), str2double(app.RightUnitDropDown.Value)];
-set(h(1),'UserData', []); % reset selected spikes in left unit
-
-app.lSelection = gobjects(1);
 
 %    ii == 1 is left unit, ii == 2 is right unit
-for ii = 1:2
+for ii = updateFigs
     tempWaves = [];
     if length(app.unitArray) >= u(ii) && ~isempty(app.unitArray(u(ii)).spikeTimes) % if there are spikes in the unit
         %    find spikes in selected batches
@@ -83,7 +100,7 @@ for ii = 1:2
             end
         elseif ii == 2 % Right unit
             app.pR = line(h(ii), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,app.m.mainCh)');
-            if u(1) ~= u(2) && q % if left and right units are different
+            if q % if left and right units are different
                 app.pTR = line(h(3), tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                     'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(u(ii)-1,25)+1,:));
                 h(3).Children = h(3).Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
@@ -136,6 +153,9 @@ function boxClick(~,evt,app,h)
 if isempty(app.pUnassigned)
     return;
 end
+if app.interactingFlag(2)
+    return;
+end
 % get clicked coordinates
 u = evt.IntersectionPoint;
 % if box corner not defined yet
@@ -176,6 +196,9 @@ end
 end
 
 function lineSelected(src, ~, app, w, h)
+if app.interactingFlag(2)
+    return;
+end
 lineIdx = find(app.pL == src);
 if strcmp(src.LineStyle, ':')
     src.LineStyle = '-';

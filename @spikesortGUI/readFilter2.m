@@ -46,11 +46,11 @@ if length(offsetSpikes) ~= diff(oldSpikeRange)+1
     app.t.rawSpikeSample = insertLongArrays(app.t.rawSpikeSample, offsetSpikes, oldSpikeRange);
 end
 
-app.rawSpikeWaves = [];
+newWaves = zeros(size(app.xi,1),app.m.spikeWidth*2+1,length(detectedSpikes));
 for ii=1:length(detectedSpikes)
-    tempWave=app.xi(:, detectedSpikes(ii)-app.m.spikeWidth:detectedSpikes(ii)+app.m.spikeWidth);
-    app.rawSpikeWaves=cat(1,app.rawSpikeWaves, permute(tempWave, [3 2 1])); % accumulate a wave
+    newWaves(:,:,ii) = app.xi(:, detectedSpikes(ii)-app.m.spikeWidth:detectedSpikes(ii)+app.m.spikeWidth);
 end
+app.rawSpikeWaves = permute(newWaves, [3 2 1]);
 
 app.StatusLabel.Value = "Ready";
 
