@@ -1,6 +1,7 @@
 function [] = redrawUnitPlots2(app, h, varargin)
 
-h = [h(2), h(3), h(1)];
+hTrace = h(1);
+h = h(2:3);
 
 if nargin > 2
     updateFigs = varargin{1};
@@ -10,7 +11,6 @@ if nargin > 2
 %             cla(app.spL(ii));
         end
         set(h(1),'UserData', []); % reset selected spikes in left unit
-        app.lSelection = gobjects(1);
     else
         delete(app.pR); delete(app.pTR);
         for ii = 1:4
@@ -20,6 +20,7 @@ if nargin > 2
 else
     updateFigs = 1:2;
     delete(app.lSelection); delete(app.pL); delete(app.pR); delete(app.pTL); delete(app.pTR);
+    set(h(1),'UserData', []); % reset selected spikes in left unit
     for ii = 1:4
 %         cla(app.spL(ii)); cla(app.spR(ii));
     end
@@ -34,6 +35,7 @@ app.StatusLabel.Value = "Redrawing units...";
 
 d = ["<", ">"];
 u = [str2double(app.LeftUnitDropDown.Value), str2double(app.RightUnitDropDown.Value)];
+t = [app.LTitle, app.RTitle];
 
 %    ii == 1 is left unit, ii == 2 is right unit
 for ii = updateFigs
@@ -57,23 +59,23 @@ for ii = updateFigs
         else
             junkText = "";
         end
-        title(h(ii), string(length(app.unitArray(u(ii)).spikeTimes)) +...
+        t(ii).Value = string(length(app.unitArray(u(ii)).spikeTimes)) +...
             " spikes total, " + last3Batches(1) + "/" + last3Batches(2) +...
-            "/" + last3Batches(3) + " spikes -2/-1/0 batches ago" + junkText)
+            "/" + last3Batches(3) + " spikes -2/-1/0 batches ago" + junkText;
         
         q = 1;
     elseif length(app.unitArray) >= u(ii) && ~isempty(app.unitArray(u(ii)).loadedTemplateWaves)
         tempWaves = app.unitArray(u(ii)).loadedTemplateWaves;
-        title(h(ii), "TEMPLATE SPIKES ONLY")
+        t(ii).Value = "TEMPLATE SPIKES ONLY";
         q = 0;
     else
-        title(h(ii), "No spikes!")
+        t(ii).Value = "No spikes!";
     end
     
     %     If there are waveforms in the selected unit OR there are templates
     if ~isempty(tempWaves)
         %userdata{2} is for getting selected spikes in trace
-        [unitSpikesInBatch,~,~,h(1).UserData{2}] = app.unitArray(u(ii)).getAssignedSpikes(app.t,app.currentBatch);
+        [unitSpikesInBatch,~,~,unitSpikesInBatchIdx] = app.unitArray(u(ii)).getAssignedSpikes(app.t,app.currentBatch);
         tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
         %      If the unit size is over the number to be plotted
         if size(tempWaves,1) > round(app.SpikeshownField.Value)
@@ -84,26 +86,27 @@ for ii = updateFigs
         end
         %      Draw units
         if ii == 1 % Left unit
+            h(ii).UserData{2} = unitSpikesInBatchIdx;
             app.pL = line(h(ii), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,app.m.mainCh)');
             if q % if there are spikes in the unit
-                set(app.pL, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx, h(1)}) % click on spikes callback
-                app.pTL = line(h(3), tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
+                set(app.pL, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx, h(2)}) % click on spikes callback
+                app.pTL = line(hTrace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                     'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(u(ii)-1,25)+1,:));
-                h(3).Children = h(3).Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
+                hTrace.Children = hTrace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
                 if size(app.xi,1) > 0 && app.PlotallchButton.Value
                     for jj = 1:size(app.xi,1)
                         line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
                             'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(u(ii)-1,25)+1,:));
                     end
                 end
-                set(h(1),'ButtonDownFcn',{@boxClick,app,h(1)})
+                set(h(ii),'ButtonDownFcn',{@boxClick,app,app.plottedWavesIdx,h(ii)})
             end
         elseif ii == 2 % Right unit
             app.pR = line(h(ii), -app.m.spikeWidth:app.m.spikeWidth, tempWaves(:,:,app.m.mainCh)');
             if q % if left and right units are different
-                app.pTR = line(h(3), tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
+                app.pTR = line(hTrace, tempUnit*app.msConvert, app.xi(app.m.mainCh,tempUnit),...
                     'LineStyle', 'none', 'Marker', d(ii), 'Color', app.cmap(rem(u(ii)-1,25)+1,:));
-                h(3).Children = h(3).Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
+                hTrace.Children = hTrace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
                 if size(app.xi,1) > 0 && app.PlotallchButton.Value
                     for jj = 1:size(app.xi,1)
                         line(app.spT(jj), -tempUnit*app.msConvert, app.xi(jj,tempUnit),...
@@ -149,7 +152,7 @@ app.StatusLabel.Value = "Ready";
 end
 
 %%    callback for selected spikes
-function boxClick(~,evt,app,h)
+function boxClick(~,evt,app, w, h)
 if isempty(app.pUnassigned)
     return;
 end
@@ -172,12 +175,12 @@ else
     X = get(app.pL,'XData');
     Y = get(app.pL,'YData');
     
-    selectedLine = zeros(size(X));
+    selectedLine = false(size(X));
     % select orphans inside box
     for ii = 1:length(X)
         selectedLine(ii) = any(inpolygon(X{ii},Y{ii},xBox,yBox));
     end
-    selectedLine = find(selectedLine);
+    selectedLine = w(selectedLine);
     drawnow
     
     % store selected spikes in UserData

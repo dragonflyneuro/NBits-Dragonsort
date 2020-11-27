@@ -3,7 +3,7 @@ classdef unit < handle
         waves {mustBeNumeric} = [];
         spikeTimes {mustBeInteger} = [];
         spikeIndex {mustBeInteger} = [];
-        tags = [];
+        tags = string.empty();
         mainCh {mustBeInteger} = 1;
         refineSettings {mustBeNumeric} = 1;
         loadedTemplateWaves {mustBeNumeric} = [];
@@ -43,8 +43,12 @@ classdef unit < handle
         
         function out = copy(obj)
             p = properties(obj);
-            for ii = 1:length(p)
-                out.(p{ii}) = obj.(p{ii});
+            out = [];
+            for ii = 1:length(obj)
+                out = [out, unit()];
+                for jj = 1:length(p)
+                    out(ii).(p{jj}) = obj(ii).(p{jj});
+                end
             end
         end
         
@@ -104,6 +108,10 @@ classdef unit < handle
 
         function obj = spikeRemover(obj,n,I)
             n = n(1);
+            if isempty(I)
+                return;
+            end
+            
             obj(n).spikeTimes(I) = [];
             obj(n).waves(I,:,:) = [];
             obj(n).spikeIndex(I) = [];
@@ -146,6 +154,10 @@ classdef unit < handle
         
         function obj = unitSplitter(obj,n,I)
             n = n(1);
+            if isempty(I)
+                return;
+            end
+            
             newUnit = unit(obj(n).spikeTimes(I),obj(n).waves(I,:,:),obj(n).spikeIndex(I),obj(n).mainCh);
             
             obj(n).spikeTimes(I) = [];

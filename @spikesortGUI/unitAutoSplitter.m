@@ -6,7 +6,7 @@ if isempty(idx)
     idx = 1:size(u.waves,1);
 end
 croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
-croppedWaves = reshape(croppedWaves, size(u.waves,1), []);
+croppedWaves = reshape(croppedWaves, length(idx), []);
 
 % perform PCA and cluster waves
 PC = pca(croppedWaves);

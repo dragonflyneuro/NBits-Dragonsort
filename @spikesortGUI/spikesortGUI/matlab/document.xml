@@ -45,9 +45,11 @@
         LGrid                         matlab.ui.container.GridLayout
         LeftUnitDropDown              matlab.ui.control.DropDown
         LPanel                        matlab.ui.container.Panel
+        LTitle                        matlab.ui.control.EditField
         RGrid                         matlab.ui.container.GridLayout
         RightUnitDropDown             matlab.ui.control.DropDown
         RPanel                        matlab.ui.container.Panel
+        RTitle                        matlab.ui.control.EditField
         ControlTabs                   matlab.ui.container.TabGroup
         GeneralTab                    matlab.ui.container.Tab
         GridLayout2                   matlab.ui.container.GridLayout
@@ -78,13 +80,15 @@
         PlottedButton                 matlab.ui.control.StateButton
         BatchButton                   matlab.ui.control.StateButton
         AutosplitField                matlab.ui.control.NumericEditField
-        AutointoLabel                 matlab.ui.control.Label
+        AutosplitintoLabel            matlab.ui.control.Label
         AutoGrid                      matlab.ui.container.GridLayout
         StuffLabel                    matlab.ui.control.Label
         CleanupButton                 matlab.ui.control.Button
         AutocreatejunkunitsButton     matlab.ui.control.Button
         AutocreateunitsButton         matlab.ui.control.Button
         UnitscrubButton               matlab.ui.control.Button
+        ShowallButton                 matlab.ui.control.Button
+        UnitfreqButton                matlab.ui.control.Button
         ParametersDataTab             matlab.ui.container.Tab
         GridLayout                    matlab.ui.container.GridLayout
         ViewingGrid                   matlab.ui.container.GridLayout
@@ -96,11 +100,13 @@
         FuturebatchesLabel            matlab.ui.control.Label
         FuturebatchesField            matlab.ui.control.NumericEditField
         PlotallchButton               matlab.ui.control.StateButton
-        TraceylimitLabel              matlab.ui.control.Label
+        YlimitLabel                   matlab.ui.control.Label
         yLimLowField                  matlab.ui.control.NumericEditField
-        yLimHighField                 matlab.ui.control.NumericEditField
         BatchSizesamplesLabel         matlab.ui.control.Label
         BatchsizeEditField            matlab.ui.control.NumericEditField
+        MainchannelSpinnerLabel       matlab.ui.control.Label
+        MainchannelSpinner            matlab.ui.control.Spinner
+        yLimHighField                 matlab.ui.control.NumericEditField
         ThresholdsGrid                matlab.ui.container.GridLayout
         ThresholdsLabel               matlab.ui.control.Label
         CurrentunitsLabel             matlab.ui.control.Label
@@ -118,19 +124,14 @@
         SavenameEditField             matlab.ui.control.EditField
         BinarynamecopyButton          matlab.ui.control.Button
         SavenamecopyButton            matlab.ui.control.Button
-        DatasummaryGrid               matlab.ui.container.GridLayout
-        ShowloadedtemplatesButton     matlab.ui.control.Button
-        ShowallButton                 matlab.ui.control.Button
-        DatasummaryLabel              matlab.ui.control.Label
-        UnitfreqButton                matlab.ui.control.Button
         TemplategenerateionGrid       matlab.ui.container.GridLayout
         FuturebatchesLabel_2          matlab.ui.control.Label
         FuturebatchesTField           matlab.ui.control.NumericEditField
         SpikestotalEditFieldLabel     matlab.ui.control.Label
         SpikesusedEditField           matlab.ui.control.NumericEditField
-        TemplategenerationLabel       matlab.ui.control.Label
         PastbatchesLabel_2            matlab.ui.control.Label
         PastbatchesTField             matlab.ui.control.NumericEditField
+        TemplategenerationLabel       matlab.ui.control.Label
         GridLayout3                   matlab.ui.container.GridLayout
         TagLabel                      matlab.ui.control.Label
         ToggletagButton               matlab.ui.control.Button
@@ -143,7 +144,9 @@
         ImporteventmarkerdataButton   matlab.ui.control.Button
         VieweventmarkersButton        matlab.ui.control.StateButton
         ImportspikeshapeweightingdataButton  matlab.ui.control.Button
+        ShowloadedtemplatesButton     matlab.ui.control.Button
         TracePanel                    matlab.ui.container.Panel
+        TTitle                        matlab.ui.control.EditField
     end
 
     
@@ -167,9 +170,13 @@
         
         %   plot object handles
         pL = []; % left unit waves
-        pR = []; % right unit waves
         pTL = []; % left unit trace markers
+        spL % left unit subplots
+        lSelection = gobjects(1); % temporary objects to show user selection regions
+        
+        pR = []; % right unit waves
         pTR = []; % right unit trace markers
+        spR % right unit subplots
         
         pAssigned = []; % markers on trace for assigned spikes
         pUnassigned = []; % markers on trace for unassigned spikes
@@ -179,15 +186,10 @@
         pEvent = []; % shaded areas on trace for event marker regions
         pRaw = []; % raw data trace
         
-        lSelection = gobjects(1); % temporary objects to show user selection regions
-        
         figureHandles = [];
         
-        %   axes handles
-        spT % trace subplots
-        spL % left unit subplots
-        spR % right unit subplots
         Trace % trace plot
+        spT % trace subplots
         LeftUnit
         RightUnit
         
@@ -275,15 +277,18 @@
                 if current(1) > current(2)
                     app.LeftUnitDropDown.Value = current(2);
                 elseif current(1) < current(2)
-                    app.LeftUnitDropDown.Value = current(2)-1;                    
+                    app.LeftUnitDropDown.Value = current(2)-1;
                 end
                 app.RightUnitDropDown.Value = app.RightUnitDropDown.Value(1);
             end
         end
-
-        parseConfig(app)
         
-%         switchButtons(app)
+        function [] = standardUpdate(app)
+            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
+            app.redrawUnitPlots2(app.figureHandles);
+            app.StatusLabel.Value = "Ready";
+            app.addHistory();
+        end
         
     end
 
@@ -308,9 +313,7 @@
             app.updateDropdown();
             app.LeftUnitDropDown.FontColor = app.cmap(str2double(app.LeftUnitDropDown.Value),:);
             app.RightUnitDropDown.FontColor = app.cmap(str2double(app.RightUnitDropDown.Value),:);
-  
-            
-            
+
             app.figureHandles = [app.Trace, app.LeftUnit, app.RightUnit];
             for ii = 1:length(app.figureHandles)
                 hold(app.figureHandles(ii), 'on');
@@ -342,7 +345,7 @@
             app.unitArray = [app.unitArray, unit()];
             app.updateDropdown();
             app.LeftUnitDropDown.Value = string(length(app.unitArray));
-            title(app.LeftUnit, "");
+            app.LTitle.Value ="";
             app.redrawUnitPlots2(app.figureHandles);
             
             app.StatusLabel.Value = "Ready";
@@ -366,11 +369,7 @@
             
             app.updateDropdown();
             app.LeftUnitDropDown.Value = string(1);
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
-            
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
             
         end
 
@@ -390,26 +389,24 @@
             app.unitArray = app.unitArray.spikeAdder(app.t,app.m,app.currentBatch,app.rawSpikeWaves,value,I, ...
                 event.Source.UserData,app.FuzzyButton.Value);
             
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
-            
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
             
         end
 
         % Callback function: MergeButton, MergeMenu, 
         % RemovespikeButton, RemovespikeMenu, SplitButton, SplitMenu
-        function RemovespikeButtonPushed(app, event)
+        function basicopsButtonPushed(app, event)
             % unassign currently selected spikes in left unit
             value(1) = str2double(app.LeftUnitDropDown.Value);
             value(2) = str2double(app.RightUnitDropDown.Value);
-            app.StatusLabel.Value = "Performing unit operations...";
             
             if isempty(app.unitArray(value(1)).spikeTimes)
                 app.StatusLabel.Value = "Left unit is empty";
                 return;
             end
+            
+            app.StatusLabel.Value = "Performing unit operations...";
+            drawnow
             
             mode = app.basicModes.getUserData();
             if strcmpi(mode, "batch")
@@ -421,18 +418,14 @@
             end
             
             app.unitArray = basicUnitOp(app.unitArray, event.Source.UserData{1}, value, I);
-            
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
             app.updateDropdown(event.Source.UserData{2});
-
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            
+            standardUpdate(app);
             
         end
 
-        % Menu selected function: AutosplitMenu
-        function AutosplitBatchButtonPushed(app, event)
+        % Callback function: AutosplitButton, AutosplitMenu
+        function AutosplitButtonPushed(app, event)
             % perform PCA on the left unit to find clusters of similar spikes
             % to make units of. Asks user if they want to keep the new
             % assignment of spikes or not. Only works on spikes from this
@@ -443,10 +436,7 @@
                 app.StatusLabel.Value = "Left unit is empty!";
                 return;
             end
-            
-            app.StatusLabel.Value = "Autosplitting left unit into " + string(app.AutosplitField.Value) + " units...";
-            drawnow
-            
+
             mode = app.basicModes.getUserData();
             if strcmpi(mode, "batch")
                 [~,~,~,I] = app.unitArray(value).getAssignedSpikes(app.t, app.currentBatch);
@@ -459,6 +449,9 @@
             if isempty(I)
                 return;
             end
+            
+            app.StatusLabel.Value = "Autosplitting left unit into " + string(app.AutosplitField.Value) + " units...";
+            drawnow
             
             % PCA split unit and check if user confirmed
             [clust, yn] = app.unitAutoSplitter(value, I);
@@ -477,98 +470,66 @@
                 clust(clust == ii) = [];
                 app.updateDropdown("remove");
             end
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
             
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
-            
-%             value = str2double(app.LeftUnitDropDown.Value);
-%             if isempty(app.unitArray(value).spikeTimes) || length(app.unitArray(value).spikeTimes) < app.AutosplitField.Value
-%                 app.StatusLabel.Value = "Left unit is empty!";
-%                 return;
-%             end
-%             
-%             app.StatusLabel.Value = "Autosplitting left unit into " + string(app.AutosplitField.Value) + " units...";
-%             drawnow
-%             
-%             % PCA split unit and check if user confirmed
-%             [clust, yn] = app.unitAutoSplitter(value, []);
-%             if ~yn
-%                 return;
-%             end
-%             
-%             truncClust = unique(clust);
-%             truncClust = truncClust(2:end);
-%             for ii = truncClust'
-%                 app.unitArray = app.unitArray.unitSplitter(value, clust == ii);
-%                 clust(clust == ii) = [];
-%                 app.updateDropdown();
-%             end
-%             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-%             app.redrawUnitPlots2(app.figureHandles);
-%             
-%             app.StatusLabel.Value = "Ready";
-%             app.addHistory();
-            
+            standardUpdate(app);
         end
 
         % Button pushed function: AutosortButton
         function AutosortButtonPushed(app, event)
             % sort unassigned spikes in current and future batches into currently initialised units
             
-%             app.unitRefactorer();
-%             app.unitSorter();
-%             
-%             if isempty(app.s.unit_1)
-%                 app.StatusLabel.Value = "No units to sort into!";
-%                 return;
-%             end
-%             if app.currentBatch < round(app.uptoField.Value)
-%                 app.StatusLabel.Value = "End batch is before current batch!";
-%                 return;
-%             end
-%             
-%             app.StatusLabel.Value = "Autosorting up to batch"+round(app.uptoField.Value);
-%             drawnow
-%             
-%             bl = app.t.batchLengths;
-%             c = app.currentBatch;
-%             nsib = app.t.numSpikesInBatch;
-%             
-%             
-%             if app.uptoField.Value > length(app.t.batchLengths)
-%                 r = length(bl)-c;
-%             else
-%                 r = app.uptoField.Value-c;
-%             end
-%             
-%             for ii = 1:round(r)
-%                 app.readFilter2(1);
-%                 spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-%                 orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
-%                 orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
-%                 orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
-%                 
-%                 templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
-%                 
-%                 % assign spikes to units, if within deviation threshold
-%                 [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
-%                     templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
-%                 
-%                 % update structures
-%                 for jj = 1:length(app.s.clusters)
-%                     assignedSpikes = spikesInBatch(matches == jj);
-%                     app.t.orphanBool(assignedSpikes) = 0;
-%                     app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(jj));
-%                 end
-%                 app.unitSorter();
-%             end
-%             
-%             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-%             app.redrawUnitPlots2(app.figureHandles);
-%             app.StatusLabel.Value = "Ready";
-%                 app.addHistory();
+            %             app.unitRefactorer();
+            %             app.unitSorter();
+            %
+            %             if isempty(app.s.unit_1)
+            %                 app.StatusLabel.Value = "No units to sort into!";
+            %                 return;
+            %             end
+            %             if app.currentBatch < round(app.uptoField.Value)
+            %                 app.StatusLabel.Value = "End batch is before current batch!";
+            %                 return;
+            %             end
+            %
+            %             app.StatusLabel.Value = "Autosorting up to batch"+round(app.uptoField.Value);
+            %             drawnow
+            %
+            %             bl = app.t.batchLengths;
+            %             c = app.currentBatch;
+            %             nsib = app.t.numSpikesInBatch;
+            %
+            %
+            %             if app.uptoField.Value > length(app.t.batchLengths)
+            %                 r = length(bl)-c;
+            %             else
+            %                 r = app.uptoField.Value-c;
+            %             end
+            %
+            %             for ii = 1:round(r)
+            %                 app.readFilter2(1);
+            %                 spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
+            %                 orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
+            %                 orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
+            %                 orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
+            %
+            %                 templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
+            %
+            %                 % assign spikes to units, if within deviation threshold
+            %                 [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
+            %                     templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
+            %
+            %                 % update structures
+            %                 for jj = 1:length(app.s.clusters)
+            %                     assignedSpikes = spikesInBatch(matches == jj);
+            %                     app.t.orphanBool(assignedSpikes) = 0;
+            %                     app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(jj));
+            %                 end
+            %                 app.unitSorter();
+            %             end
+            %
+            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
+            %             app.redrawUnitPlots2(app.figureHandles);
+            %             app.StatusLabel.Value = "Ready";
+            %                 app.addHistory();
             
         end
 
@@ -599,11 +560,8 @@
             drawnow
             
             app.readFilter2(value - c);
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
             
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
             
         end
 
@@ -647,80 +605,46 @@
         function ResortbatchButtonPushed(app, event)
             % sort unassigned spikes in current batch into currently initialised units
             
-%             app.unitRefactorer();
-%             app.unitSorter();
-%             
-%             if isempty(app.s.unit_1)
-%                 app.StatusLabel.Value = "No units to sort into!";
-%                 return;
-%             end
-%             
-%             app.StatusLabel.Value = "Re-sorting batch " + string(app.currentBatch) + "...";
-%             drawnow
-%             
-%             bl = app.t.batchLengths;
-%             c = app.currentBatch;
-%             nsib = app.t.numSpikesInBatch;
-%             
-%             
-%             
-%             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-%             orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
-%             orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
-%             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
-%             
-%             templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
-%             
-%             % assign spikes to units, if within deviation threshold
-%             [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
-%                 templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
-%             
-%             % update structures
-%             for ii = 1:length(app.s.clusters)
-%                 assignedSpikes = spikesInBatch(matches == ii);
-%                 app.t.orphanBool(assignedSpikes) = 0;
-%                 app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(ii));
-%             end
-%             
-%             app.unitSorter();
-%             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-%             app.redrawUnitPlots2(app.figureHandles);
-% app.StatusLabel.Value = "Ready";
-%             app.addHistory();
-            
-        end
-
-        % Menu selected function: SaveMenu
-        function SaveButtonPushed(app, event)
-            % save current sorting
-            
-            app.StatusLabel.Value = "Saving...";
-            drawnow
-            
-            if app.savePath == 0
-                app.savePath = app.m.fP;
-            end
-            sP = uigetdir(app.savePath,'Select save path');
-            
-            figure(app.UIBase);
-            if sP == 0
-                app.StatusLabel.Value = "Ready";
-                return;
-            end
-            app.savePath = sP;
-            m = app.m; %#ok<ADPROPLC>
-            unitArray = app.unitArray; %#ok<ADPROPLC>
-            t = app.t; %#ok<ADPROPLC>
-            m.msec = app.m.sRateHz/1000; %#ok<ADPROPLC> % need this for further pipeline stuff - REMOVE
-            
-            if app.AddtimestampMenu.Checked
-                timeStamp = "_"+datestr(now,'yymmddHHMM');
-            else
-                timeStamp = "";
-            end
-            sN = string(app.SavenameEditField.Value)+timeStamp+".mat";
-            save(app.savePath+string(filesep)+sN,'m', 'unitArray', 't');
-            app.StatusLabel.Value = "Saved! (" + sN + ")";
+            %             app.unitRefactorer();
+            %             app.unitSorter();
+            %
+            %             if isempty(app.s.unit_1)
+            %                 app.StatusLabel.Value = "No units to sort into!";
+            %                 return;
+            %             end
+            %
+            %             app.StatusLabel.Value = "Re-sorting batch " + string(app.currentBatch) + "...";
+            %             drawnow
+            %
+            %             bl = app.t.batchLengths;
+            %             c = app.currentBatch;
+            %             nsib = app.t.numSpikesInBatch;
+            %
+            %
+            %
+            %             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
+            %             orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
+            %             orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
+            %             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
+            %
+            %             templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
+            %
+            %             % assign spikes to units, if within deviation threshold
+            %             [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
+            %                 templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
+            %
+            %             % update structures
+            %             for ii = 1:length(app.s.clusters)
+            %                 assignedSpikes = spikesInBatch(matches == ii);
+            %                 app.t.orphanBool(assignedSpikes) = 0;
+            %                 app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(ii));
+            %             end
+            %
+            %             app.unitSorter();
+            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
+            %             app.redrawUnitPlots2(app.figureHandles);
+            % app.StatusLabel.Value = "Ready";
+            %             app.addHistory();
             
         end
 
@@ -757,6 +681,40 @@
             showAllUnits(app,app.unitArray,unitsToPlot);
             
             app.StatusLabel.Value = "Ready";
+            
+        end
+
+        % Menu selected function: SaveMenu
+        function SaveButtonPushed(app, event)
+            % save current sorting
+            
+            app.StatusLabel.Value = "Saving...";
+            drawnow
+            
+            if app.savePath == 0
+                app.savePath = app.m.fP;
+            end
+            sP = uigetdir(app.savePath,'Select save path');
+            
+            figure(app.UIBase);
+            if sP == 0
+                app.StatusLabel.Value = "Ready";
+                return;
+            end
+            app.savePath = sP;
+            m = app.m; %#ok<ADPROPLC>
+            unitArray = app.unitArray; %#ok<ADPROPLC>
+            t = app.t; %#ok<ADPROPLC>
+            m.msec = app.m.sRateHz/1000; %#ok<ADPROPLC> % need this for further pipeline stuff - REMOVE
+            
+            if app.AddtimestampMenu.Checked
+                timeStamp = "_"+datestr(now,'yymmddHHMM');
+            else
+                timeStamp = "";
+            end
+            sN = string(app.SavenameEditField.Value)+timeStamp+".mat";
+            save(app.savePath+string(filesep)+sN,'m', 'unitArray', 't');
+            app.StatusLabel.Value = "Saved! (" + sN + ")";
             
         end
 
@@ -916,11 +874,8 @@
             app.unitArray = app.unitArray.unitRefactorer();
             app.unitArray = app.unitArray.unitSorter();
             app.updateDropdown();
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
             
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
             
         end
 
@@ -935,31 +890,13 @@
         % Value changed function: LeftUnitDropDown
         function LeftUnitDropDownValueChanged(app, event)
             delete(app.pL); delete(app.lSelection);
-                app.redrawUnitPlots2(app.figureHandles,1);
+            app.redrawUnitPlots2(app.figureHandles,1);
         end
 
         % Value changed function: RightUnitDropDown
         function RightUnitDropDownValueChanged(app, event)
             delete(app.pR);
            app.redrawUnitPlots2(app.figureHandles,2);
-            
-        end
-
-        % Close request function: UIBase
-        function UIBaseCloseRequest(app, event)
-            % exit dragonsort after confirmation and cleanup
-            
-            msg = 'Exit DragonSort?';
-            title = 'Confirm Exit';
-            selection = uiconfirm(app.UIBase,msg,title,"Icon","warning");
-            if strcmp(selection, 'OK')
-                app.StatusLabel.Value = "Shutting down...";
-                close all
-                delete(app.initialisePop)
-                delete(app.refinePop)
-                delete(app.tagPop)
-                delete(app)
-            end
             
         end
 
@@ -976,7 +913,7 @@
                 return;
             end
 
-             unitScrubber(app,value);
+            unitScrubber(app,value);
             
         end
 
@@ -986,17 +923,25 @@
             
         end
 
-        % Menu selected function: LResetMenu
-        function LResetMenuSelected(app, event)
-            ylim(app.figureHandles(event.Source.UserData), [-inf inf]);
-            xlim(app.figureHandles(event.Source.UserData), [-inf inf]);
+        % Menu selected function: LZoomMenu, TZoomMenu
+        function ZoomMenuSelected(app, event)
+            zoom(app.figureHandles(event.Source.UserData),'on');
+            app.interactingFlag(event.Source.UserData) = 1;
             
         end
 
-        % Menu selected function: LZoomMenu, TZoomMenu
-        function TZoomMenuSelected(app, event)
-            zoom(app.figureHandles(event.Source.UserData),'on');
+        % Menu selected function: LPanMenu, TPanMenu
+        function PanMenuSelected(app, event)
+            pan(app.figureHandles(event.Source.UserData),'on');
             app.interactingFlag(event.Source.UserData) = 1;
+            
+        end
+
+        % Menu selected function: LPointerMenu, TPointerMenu
+        function PointerMenuSelected(app, event)
+            zoom(app.figureHandles(event.Source.UserData),'off');
+            pan(app.figureHandles(event.Source.UserData),'off');
+            app.interactingFlag(event.Source.UserData) = 0;
             
         end
 
@@ -1011,18 +956,50 @@
             
         end
 
-        % Menu selected function: LPanMenu, TPanMenu
-        function TPanMenuSelected(app, event)
-            pan(app.figureHandles(event.Source.UserData),'on');
-            app.interactingFlag(event.Source.UserData) = 1;
+        % Menu selected function: LResetMenu
+        function LResetMenuSelected(app, event)
+            ylim(app.figureHandles(event.Source.UserData), [-inf inf]);
+            xlim(app.figureHandles(event.Source.UserData), [-inf inf]);
             
         end
 
-        % Menu selected function: LPointerMenu, TPointerMenu
-        function TPointerMenuSelected(app, event)
-            zoom(app.figureHandles(event.Source.UserData),'off');
-            pan(app.figureHandles(event.Source.UserData),'off');
-            app.interactingFlag(event.Source.UserData) = 0;
+        % Menu selected function: TUnselectMenu
+        function TUnselectMenuSelected(app, event)
+            delete(app.pSelection);
+            app.figureHandles(1).UserData = [];
+            if ~isempty(app.pSelected)
+                for ii = 1:length(app.pSelected)
+                    if ishandle(app.pSelected(ii))
+                        delete(app.pSelected(ii));
+                    end
+                end
+            end
+            app.pSelected = [];
+        end
+
+        % Menu selected function: LUnselectMenu
+        function LUnselectMenuSelected(app, event)
+            delete(app.lSelection);
+            app.figureHandles(2).UserData{1} = [];
+            if ~isempty(app.pL)
+                for ii = 1:length(app.pL)
+                    if ishandle(app.pL(ii)) && strcmp(app.pL(ii).LineStyle, ':')
+                        app.pL(ii).LineStyle = '-';
+                    end
+                end
+            end
+        end
+
+        % Menu selected function: MatchunityaxisMenu
+        function MatchunityaxisMenuSelected(app, event)
+            % make ylim same on left and right unit plots for ease of comparison
+            
+            y = ylim(app.figureHandles(2));
+            y(2,:) = ylim(app.figureHandles(3));
+            yN(1) = min(y(:,1),[],1);
+            yN(2) = max(y(:,2),[],1);
+            ylim(app.figureHandles(2), yN);
+            ylim(app.figureHandles(3), yN);
             
         end
 
@@ -1053,7 +1030,6 @@
         % Menu selected function: AddtimestampMenu
         function AddtimestampMenuSelected(app, event)
             % add timestamp to sorting file save name
-            
             if strcmp(app.AddtimestampMenu.Checked, 'on')
                 app.AddtimestampMenu.Checked = 'off';
             else
@@ -1065,19 +1041,6 @@
         % Menu selected function: HelpMenu
         function HelpMenuSelected(app, event)
             open('Dragonsort Documentation.docx');
-            
-        end
-
-        % Menu selected function: MatchunityaxisMenu
-        function MatchunityaxisMenuSelected(app, event)
-            % make ylim same on left and right unit plots for ease of comparison
-            
-            y = ylim(app.figureHandles(2));
-            y(2,:) = ylim(app.figureHandles(3));
-            yN(1) = min(y(:,1),[],1);
-            yN(2) = max(y(:,2),[],1);
-            ylim(app.figureHandles(2), yN);
-            ylim(app.figureHandles(3), yN);
             
         end
 
@@ -1146,11 +1109,7 @@
                     end
                     app.readFilter2(0);
                     app.unitArray = app.unitArray.unitSorter();
-                    app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-                    app.redrawUnitPlots2(app.figureHandles);
-
-                    app.StatusLabel.Value = "Ready";
-                    app.addHistory();
+                    standardUpdate(app);
                 else
                     app.DetectThr1EditField.Value = app.t.detectThr(1);
                     app.DetectThr2EditField.Value = app.t.detectThr(2);
@@ -1161,11 +1120,7 @@
                 
                 app.t.detectThr = value;
                 app.readFilter2(0);
-                app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-                app.redrawUnitPlots2(app.figureHandles);
-
-                app.StatusLabel.Value = "Ready";
-                app.addHistory();
+                standardUpdate(app);
             end
             
         end
@@ -1228,11 +1183,8 @@
             closestBatch = interp1(cumsum([0 blNew]),1:length(blNew)+1,currentBatchStart,'nearest','extrap');
 %             offset = app.m.nChans*app.m.dbytes*sum(blNew(1:closestBatch-1));
             app.readFilter2(closestBatch-c);
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
             
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
             
         end
 
@@ -1240,47 +1192,47 @@
         function AutocreatejunkunitsButtonPushed(app, event)
             % auto-generates junk units using PCA then deviation index thresholding
             
-%             bl = app.t.batchLengths;
-%             c = app.currentBatch;
-%             nsib = app.t.numSpikesInBatch;
-%             offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
-%             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-%             orphanIdx = find(app.t.orphanBool(spikesInBatch)); % indices along spikesInBatch for unassigned spikes
-%             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphanIdx)) - offset; % time sample of unassigned spikes
-%             
-%             if isempty(orphanSpikes)
-%                 app.StatusLabel.Value = "No unassigned spikes to put in units in this batch!";
-%                 return;
-%             end
-%             
-%             % ask user for amplitude cutoff point for spikes used in unit generation
-%             prompt = 'Create junk units from spikes with peak amplitude MORE +VE than (uV):';
-%             dlgtitle = 'Create junk units';
-%             dims = [1 35];
-%             answer = inputdlg(prompt,dlgtitle,dims);
-%             if isempty(answer)
-%                 return;
-%             end
-%             
-%             % generate units
-%             y = app.xi(app.m.mainCh,orphanSpikes);
-%             [app.s, app.t, nnU] = autoCreateUnits(app.s, app.t, app.rawSpikeWaves(orphanIdx,:,:), y, ...
-%                 app.m.sRateHz, spikesInBatch(orphanIdx), orphanSpikes + offset, str2double(answer), 1, 1);
-%             
-%             if nnU == 0 % number of newly generated units
-%                 return;
-%             end
-%             for ii = 1:nnU
-%                 app.incDropDown();
-%                 app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
-%                 app.t.refineSettings{2}(end+1) = 1;
-%                 app.s.tags.("unit_"+app.getMaxUnit(0)) = [1; false(size(app.s.tags,1)-1,1)];
-%             end
-%             
-%             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-%             app.redrawUnitPlots2(app.figureHandles);
-%             app.StatusLabel.Value = "Ready";
-%             app.addHistory();
+            %             bl = app.t.batchLengths;
+            %             c = app.currentBatch;
+            %             nsib = app.t.numSpikesInBatch;
+            %             offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+            %             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
+            %             orphanIdx = find(app.t.orphanBool(spikesInBatch)); % indices along spikesInBatch for unassigned spikes
+            %             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphanIdx)) - offset; % time sample of unassigned spikes
+            %
+            %             if isempty(orphanSpikes)
+            %                 app.StatusLabel.Value = "No unassigned spikes to put in units in this batch!";
+            %                 return;
+            %             end
+            %
+            %             % ask user for amplitude cutoff point for spikes used in unit generation
+            %             prompt = 'Create junk units from spikes with peak amplitude MORE +VE than (uV):';
+            %             dlgtitle = 'Create junk units';
+            %             dims = [1 35];
+            %             answer = inputdlg(prompt,dlgtitle,dims);
+            %             if isempty(answer)
+            %                 return;
+            %             end
+            %
+            %             % generate units
+            %             y = app.xi(app.m.mainCh,orphanSpikes);
+            %             [app.s, app.t, nnU] = autoCreateUnits(app.s, app.t, app.rawSpikeWaves(orphanIdx,:,:), y, ...
+            %                 app.m.sRateHz, spikesInBatch(orphanIdx), orphanSpikes + offset, str2double(answer), 1, 1);
+            %
+            %             if nnU == 0 % number of newly generated units
+            %                 return;
+            %             end
+            %             for ii = 1:nnU
+            %                 app.incDropDown();
+            %                 app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
+            %                 app.t.refineSettings{2}(end+1) = 1;
+            %                 app.s.tags.("unit_"+app.getMaxUnit(0)) = [1; false(size(app.s.tags,1)-1,1)];
+            %             end
+            %
+            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
+            %             app.redrawUnitPlots2(app.figureHandles);
+            %             app.StatusLabel.Value = "Ready";
+            %             app.addHistory();
             
         end
 
@@ -1288,54 +1240,55 @@
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
             
-%             bl = app.t.batchLengths;
-%             c = app.currentBatch;
-%             nsib = app.t.numSpikesInBatch;
-%             offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
-%             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-%             orphanIdx = find(app.t.orphanBool(spikesInBatch)); %indices along spikesInBatch for unassigned spikes
-%             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphanIdx)) - offset; % time sample of unassigned spikes
-%             
-%             if isempty(orphanSpikes)
-%                 app.StatusLabel.Value = "No unassigned spikes to put in units in this batch!";
-%                 return;
-%             end
-%             
-%             % ask user for amplitude cutoff point for spikes used in unit generation
-%             prompt = 'Create k units from spikes with peak amplitude MORE -VE than (uV):';
-%             dlgtitle = 'Create units';
-%             dims = [1 35];
-%             answer = inputdlg(prompt,dlgtitle,dims);
-%             if isempty(answer)
-%                 return;
-%             end
-%             
-%             % generate units
-%             y = app.xi(app.m.mainCh,orphanSpikes);
-%             [app.s, app.t, nnU] = autoCreateUnits(app.s, app.t, app.rawSpikeWaves(orphanIdx,:,:), y, ...
-%                 app.m.sRateHz, spikesInBatch(orphanIdx), orphanSpikes + offset, str2double(answer), 0, 1);
-%             
-%             if nnU == 0 % number of newly generated units
-%                 return;
-%             end
-%             for ii = 1:nnU
-%                 app.incDropDown();
-%                 app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
-%                 app.t.refineSettings{2}(end+1) = 1;
-%                 app.s.tags.("unit_"+app.getMaxUnit(0)) = false(size(app.s.tags,1),1);
-%             end
-%             
-%             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-%             app.redrawUnitPlots2(app.figureHandles);
-%             app.StatusLabel.Value = "Ready";
-%             app.addHistory();
+            %             bl = app.t.batchLengths;
+            %             c = app.currentBatch;
+            %             nsib = app.t.numSpikesInBatch;
+            %             offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+            %             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
+            %             orphanIdx = find(app.t.orphanBool(spikesInBatch)); %indices along spikesInBatch for unassigned spikes
+            %             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphanIdx)) - offset; % time sample of unassigned spikes
+            %
+            %             if isempty(orphanSpikes)
+            %                 app.StatusLabel.Value = "No unassigned spikes to put in units in this batch!";
+            %                 return;
+            %             end
+            %
+            %             % ask user for amplitude cutoff point for spikes used in unit generation
+            %             prompt = 'Create k units from spikes with peak amplitude MORE -VE than (uV):';
+            %             dlgtitle = 'Create units';
+            %             dims = [1 35];
+            %             answer = inputdlg(prompt,dlgtitle,dims);
+            %             if isempty(answer)
+            %                 return;
+            %             end
+            %
+            %             % generate units
+            %             y = app.xi(app.m.mainCh,orphanSpikes);
+            %             [app.s, app.t, nnU] = autoCreateUnits(app.s, app.t, app.rawSpikeWaves(orphanIdx,:,:), y, ...
+            %                 app.m.sRateHz, spikesInBatch(orphanIdx), orphanSpikes + offset, str2double(answer), 0, 1);
+            %
+            %             if nnU == 0 % number of newly generated units
+            %                 return;
+            %             end
+            %             for ii = 1:nnU
+            %                 app.incDropDown();
+            %                 app.t.refineSettings{1}(end+1) = app.getMaxUnit(0);
+            %                 app.t.refineSettings{2}(end+1) = 1;
+            %                 app.s.tags.("unit_"+app.getMaxUnit(0)) = false(size(app.s.tags,1),1);
+            %             end
+            %
+            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
+            %             app.redrawUnitPlots2(app.figureHandles);
+            %             app.StatusLabel.Value = "Ready";
+            %             app.addHistory();
             
         end
 
         % Button pushed function: ToggletagButton
         function ToggletagButtonPushed(app, event)
-            app.unitArray = app.unitArray(str2double(app.LeftUnitDropDown.Value)).tagToggler("Junk");
+            app.unitArray(str2double(app.LeftUnitDropDown.Value)) = app.unitArray(str2double(app.LeftUnitDropDown.Value)).tagToggler("Junk");
             app.redrawUnitPlots2(app.figureHandles);
+            app.addHistory();
             
         end
 
@@ -1378,33 +1331,6 @@
                 app.addHistory();
             end
 
-        end
-
-        % Menu selected function: TUnselectMenu
-        function TUnselectMenuSelected(app, event)
-            delete(app.pSelection);
-            app.figureHandles(1).UserData = [];
-            if ~isempty(app.pSelected)
-                for ii = 1:length(app.pSelected)
-                    if ishandle(app.pSelected(ii))
-                        delete(app.pSelected(ii));
-                    end
-                end
-            end
-            app.pSelected = [];
-        end
-
-        % Menu selected function: LUnselectMenu
-        function LUnselectMenuSelected(app, event)
-            delete(app.lSelection);
-            app.figureHandles(2).UserData{1} = [];
-            if ~isempty(app.pL)
-                for ii = 1:length(app.pL)
-                    if ishandle(app.pL(ii)) && strcmp(app.pL(ii).LineStyle, ':')
-                        app.pL(ii).LineStyle = '-';
-                    end
-                end
-            end
         end
 
         % Button pushed function: ImporteventmarkerdataButton
@@ -1453,6 +1379,24 @@
         % ImportspikeshapeweightingdataButton
         function ImportspikeshapeweightingdataButtonPushed(app, event)
             return;
+        end
+
+        % Close request function: UIBase
+        function UIBaseCloseRequest(app, event)
+            % exit dragonsort after confirmation and cleanup
+            
+            msg = 'Exit DragonSort?';
+            title = 'Confirm Exit';
+            selection = uiconfirm(app.UIBase,msg,title,"Icon","warning");
+            if strcmp(selection, 'OK')
+                app.StatusLabel.Value = "Shutting down...";
+                close all
+                delete(app.initialisePop)
+                delete(app.refinePop)
+                delete(app.tagPop)
+                delete(app)
+            end
+            
         end
     end
 
@@ -1554,22 +1498,22 @@
 
             % Create RemovespikeMenu
             app.RemovespikeMenu = uimenu(app.UnitMenu);
-            app.RemovespikeMenu.MenuSelectedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.RemovespikeMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.RemovespikeMenu.Text = 'Remove spike from left unit';
 
             % Create SplitMenu
             app.SplitMenu = uimenu(app.UnitMenu);
-            app.SplitMenu.MenuSelectedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.SplitMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.SplitMenu.Text = 'Split left unit';
 
             % Create MergeMenu
             app.MergeMenu = uimenu(app.UnitMenu);
-            app.MergeMenu.MenuSelectedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.MergeMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.MergeMenu.Text = 'Merge units';
 
             % Create AutosplitMenu
             app.AutosplitMenu = uimenu(app.UnitMenu);
-            app.AutosplitMenu.MenuSelectedFcn = createCallbackFcn(app, @AutosplitBatchButtonPushed, true);
+            app.AutosplitMenu.MenuSelectedFcn = createCallbackFcn(app, @AutosplitButtonPushed, true);
             app.AutosplitMenu.Text = 'Autosplit left unit';
 
             % Create AutomergeMenu
@@ -1587,7 +1531,7 @@
 
             % Create LZoomMenu
             app.LZoomMenu = uimenu(app.FigureshortcutsMenu);
-            app.LZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @TZoomMenuSelected, true);
+            app.LZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
             app.LZoomMenu.Text = 'Left unit: zoom';
 
             % Create LResetMenu
@@ -1597,12 +1541,12 @@
 
             % Create LPanMenu
             app.LPanMenu = uimenu(app.FigureshortcutsMenu);
-            app.LPanMenu.MenuSelectedFcn = createCallbackFcn(app, @TPanMenuSelected, true);
+            app.LPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
             app.LPanMenu.Text = 'Left unit: pan';
 
             % Create LPointerMenu
             app.LPointerMenu = uimenu(app.FigureshortcutsMenu);
-            app.LPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @TPointerMenuSelected, true);
+            app.LPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
             app.LPointerMenu.Text = 'Left unit: pointer';
 
             % Create LUnselectMenu
@@ -1612,7 +1556,7 @@
 
             % Create TZoomMenu
             app.TZoomMenu = uimenu(app.FigureshortcutsMenu);
-            app.TZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @TZoomMenuSelected, true);
+            app.TZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
             app.TZoomMenu.Text = 'Trace: zoom';
 
             % Create TResetMenu
@@ -1622,12 +1566,12 @@
 
             % Create TPanMenu
             app.TPanMenu = uimenu(app.FigureshortcutsMenu);
-            app.TPanMenu.MenuSelectedFcn = createCallbackFcn(app, @TPanMenuSelected, true);
+            app.TPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
             app.TPanMenu.Text = 'Trace: pan';
 
             % Create TPointerMenu
             app.TPointerMenu = uimenu(app.FigureshortcutsMenu);
-            app.TPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @TPointerMenuSelected, true);
+            app.TPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
             app.TPointerMenu.Text = 'Trace: pointer';
 
             % Create TUnselectMenu
@@ -1652,7 +1596,7 @@
             % Create GridMain
             app.GridMain = uigridlayout(app.UIBase);
             app.GridMain.ColumnWidth = {'0.6x', '1x', '1x'};
-            app.GridMain.RowHeight = {'1x', '1x', '0.05x'};
+            app.GridMain.RowHeight = {'1x', 22, '1x', '0.05x'};
             app.GridMain.ColumnSpacing = 5;
             app.GridMain.RowSpacing = 5;
             app.GridMain.Padding = [5 5 5 5];
@@ -1662,14 +1606,14 @@
             app.StatusLabel.Editable = 'off';
             app.StatusLabel.FontColor = [1 1 1];
             app.StatusLabel.BackgroundColor = [0 0 0];
-            app.StatusLabel.Layout.Row = 3;
+            app.StatusLabel.Layout.Row = 4;
             app.StatusLabel.Layout.Column = [1 2];
             app.StatusLabel.Value = 'Ready';
 
             % Create LGrid
             app.LGrid = uigridlayout(app.GridMain);
-            app.LGrid.ColumnWidth = {'1x'};
-            app.LGrid.RowHeight = {'0.05x', '1x'};
+            app.LGrid.ColumnWidth = {140, '1x'};
+            app.LGrid.RowHeight = {22, '1x'};
             app.LGrid.ColumnSpacing = 2;
             app.LGrid.RowSpacing = 2;
             app.LGrid.Padding = [0 0 0 0];
@@ -1687,13 +1631,22 @@
 
             % Create LPanel
             app.LPanel = uipanel(app.LGrid);
+            app.LPanel.BorderType = 'none';
             app.LPanel.Layout.Row = 2;
-            app.LPanel.Layout.Column = 1;
+            app.LPanel.Layout.Column = [1 2];
+
+            % Create LTitle
+            app.LTitle = uieditfield(app.LGrid, 'text');
+            app.LTitle.Editable = 'off';
+            app.LTitle.FontWeight = 'bold';
+            app.LTitle.BackgroundColor = [0.8 0.8 0.8];
+            app.LTitle.Layout.Row = 1;
+            app.LTitle.Layout.Column = 2;
 
             % Create RGrid
             app.RGrid = uigridlayout(app.GridMain);
-            app.RGrid.ColumnWidth = {'1x'};
-            app.RGrid.RowHeight = {'0.05x', '1x'};
+            app.RGrid.ColumnWidth = {140, '1x'};
+            app.RGrid.RowHeight = {22, '1x'};
             app.RGrid.ColumnSpacing = 2;
             app.RGrid.RowSpacing = 2;
             app.RGrid.Padding = [0 0 0 0];
@@ -1711,8 +1664,17 @@
 
             % Create RPanel
             app.RPanel = uipanel(app.RGrid);
+            app.RPanel.BorderType = 'none';
             app.RPanel.Layout.Row = 2;
-            app.RPanel.Layout.Column = 1;
+            app.RPanel.Layout.Column = [1 2];
+
+            % Create RTitle
+            app.RTitle = uieditfield(app.RGrid, 'text');
+            app.RTitle.Editable = 'off';
+            app.RTitle.FontWeight = 'bold';
+            app.RTitle.BackgroundColor = [0.8 0.8 0.8];
+            app.RTitle.Layout.Row = 1;
+            app.RTitle.Layout.Column = 2;
 
             % Create ControlTabs
             app.ControlTabs = uitabgroup(app.GridMain);
@@ -1849,7 +1811,7 @@
 
             % Create RemovespikeButton
             app.RemovespikeButton = uibutton(app.ManualGrid, 'push');
-            app.RemovespikeButton.ButtonPushedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.RemovespikeButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.RemovespikeButton.BackgroundColor = [0.0745 0.6235 1];
             app.RemovespikeButton.FontSize = 11.5;
             app.RemovespikeButton.Layout.Row = 5;
@@ -1858,7 +1820,7 @@
 
             % Create SplitButton
             app.SplitButton = uibutton(app.ManualGrid, 'push');
-            app.SplitButton.ButtonPushedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.SplitButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.SplitButton.BackgroundColor = [0.0745 0.6235 1];
             app.SplitButton.Layout.Row = 6;
             app.SplitButton.Layout.Column = 1;
@@ -1882,7 +1844,7 @@
 
             % Create MergeButton
             app.MergeButton = uibutton(app.ManualGrid, 'push');
-            app.MergeButton.ButtonPushedFcn = createCallbackFcn(app, @RemovespikeButtonPushed, true);
+            app.MergeButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.MergeButton.BackgroundColor = [0.0745 0.6235 1];
             app.MergeButton.Layout.Row = 7;
             app.MergeButton.Layout.Column = 1;
@@ -1890,6 +1852,7 @@
 
             % Create AutosplitButton
             app.AutosplitButton = uibutton(app.ManualGrid, 'push');
+            app.AutosplitButton.ButtonPushedFcn = createCallbackFcn(app, @AutosplitButtonPushed, true);
             app.AutosplitButton.BackgroundColor = [0.8784 0.8784 0.1137];
             app.AutosplitButton.Layout.Row = 8;
             app.AutosplitButton.Layout.Column = 1;
@@ -1946,15 +1909,16 @@
             app.AutosplitField.Layout.Column = 2;
             app.AutosplitField.Value = 3;
 
-            % Create AutointoLabel
-            app.AutointoLabel = uilabel(app.GridLayout6);
-            app.AutointoLabel.HorizontalAlignment = 'center';
-            app.AutointoLabel.Layout.Row = 4;
-            app.AutointoLabel.Layout.Column = 1;
-            app.AutointoLabel.Text = 'Auto into:';
+            % Create AutosplitintoLabel
+            app.AutosplitintoLabel = uilabel(app.GridLayout6);
+            app.AutosplitintoLabel.HorizontalAlignment = 'center';
+            app.AutosplitintoLabel.Layout.Row = 4;
+            app.AutosplitintoLabel.Layout.Column = 1;
+            app.AutosplitintoLabel.Text = 'Autosplit into:';
 
             % Create AutoGrid
             app.AutoGrid = uigridlayout(app.GridLayout2);
+            app.AutoGrid.ColumnWidth = {'1x', '1x', '1x'};
             app.AutoGrid.RowHeight = {20, '1x', '1x'};
             app.AutoGrid.ColumnSpacing = 2;
             app.AutoGrid.RowSpacing = 2;
@@ -1967,7 +1931,7 @@
             app.StuffLabel.HorizontalAlignment = 'center';
             app.StuffLabel.FontWeight = 'bold';
             app.StuffLabel.Layout.Row = 1;
-            app.StuffLabel.Layout.Column = [1 2];
+            app.StuffLabel.Layout.Column = [1 3];
             app.StuffLabel.Text = 'Stuff';
 
             % Create CleanupButton
@@ -2002,6 +1966,22 @@
             app.UnitscrubButton.Layout.Column = 2;
             app.UnitscrubButton.Text = 'Scrub through unit';
 
+            % Create ShowallButton
+            app.ShowallButton = uibutton(app.AutoGrid, 'push');
+            app.ShowallButton.ButtonPushedFcn = createCallbackFcn(app, @ShowallButtonButtonPushed, true);
+            app.ShowallButton.BackgroundColor = [1 1 0];
+            app.ShowallButton.Layout.Row = 2;
+            app.ShowallButton.Layout.Column = 3;
+            app.ShowallButton.Text = 'Show unit overview';
+
+            % Create UnitfreqButton
+            app.UnitfreqButton = uibutton(app.AutoGrid, 'push');
+            app.UnitfreqButton.ButtonPushedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
+            app.UnitfreqButton.BackgroundColor = [1 1 0];
+            app.UnitfreqButton.Layout.Row = 3;
+            app.UnitfreqButton.Layout.Column = 3;
+            app.UnitfreqButton.Text = 'Unit freq time series';
+
             % Create ParametersDataTab
             app.ParametersDataTab = uitab(app.ControlTabs);
             app.ParametersDataTab.Title = 'Parameters & Data';
@@ -2015,11 +1995,11 @@
 
             % Create ViewingGrid
             app.ViewingGrid = uigridlayout(app.GridLayout);
-            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '0.5x', '0.5x', '1x', '1x'};
             app.ViewingGrid.ColumnSpacing = 2;
             app.ViewingGrid.RowSpacing = 2;
             app.ViewingGrid.Padding = [0 0 0 0];
-            app.ViewingGrid.Layout.Row = [2 3];
+            app.ViewingGrid.Layout.Row = [2 4];
             app.ViewingGrid.Layout.Column = 2;
 
             % Create SpikestotalLabel
@@ -2081,34 +2061,27 @@
             app.PlotallchButton = uibutton(app.ViewingGrid, 'state');
             app.PlotallchButton.Text = 'Plot AllCh';
             app.PlotallchButton.BackgroundColor = [0 1 0];
-            app.PlotallchButton.Layout.Row = 5;
+            app.PlotallchButton.Layout.Row = 9;
             app.PlotallchButton.Layout.Column = [1 2];
 
-            % Create TraceylimitLabel
-            app.TraceylimitLabel = uilabel(app.ViewingGrid);
-            app.TraceylimitLabel.HorizontalAlignment = 'center';
-            app.TraceylimitLabel.Layout.Row = 7;
-            app.TraceylimitLabel.Layout.Column = [1 2];
-            app.TraceylimitLabel.Text = 'Trace y-limit';
+            % Create YlimitLabel
+            app.YlimitLabel = uilabel(app.ViewingGrid);
+            app.YlimitLabel.HorizontalAlignment = 'right';
+            app.YlimitLabel.Layout.Row = [6 7];
+            app.YlimitLabel.Layout.Column = 1;
+            app.YlimitLabel.Text = 'Y-limit';
 
             % Create yLimLowField
             app.yLimLowField = uieditfield(app.ViewingGrid, 'numeric');
             app.yLimLowField.ValueChangedFcn = createCallbackFcn(app, @yLimLowFieldValueChanged, true);
-            app.yLimLowField.Layout.Row = 8;
-            app.yLimLowField.Layout.Column = 1;
+            app.yLimLowField.Layout.Row = 7;
+            app.yLimLowField.Layout.Column = 2;
             app.yLimLowField.Value = -Inf;
-
-            % Create yLimHighField
-            app.yLimHighField = uieditfield(app.ViewingGrid, 'numeric');
-            app.yLimHighField.ValueChangedFcn = createCallbackFcn(app, @yLimLowFieldValueChanged, true);
-            app.yLimHighField.Layout.Row = 8;
-            app.yLimHighField.Layout.Column = 2;
-            app.yLimHighField.Value = Inf;
 
             % Create BatchSizesamplesLabel
             app.BatchSizesamplesLabel = uilabel(app.ViewingGrid);
             app.BatchSizesamplesLabel.HorizontalAlignment = 'right';
-            app.BatchSizesamplesLabel.Layout.Row = 6;
+            app.BatchSizesamplesLabel.Layout.Row = 5;
             app.BatchSizesamplesLabel.Layout.Column = 1;
             app.BatchSizesamplesLabel.Text = {'Batch Size'; '(samples)'};
 
@@ -2117,9 +2090,29 @@
             app.BatchsizeEditField.Limits = [1000 100000000];
             app.BatchsizeEditField.RoundFractionalValues = 'on';
             app.BatchsizeEditField.ValueChangedFcn = createCallbackFcn(app, @BatchsizeEditFieldValueChanged, true);
-            app.BatchsizeEditField.Layout.Row = 6;
+            app.BatchsizeEditField.Layout.Row = 5;
             app.BatchsizeEditField.Layout.Column = 2;
             app.BatchsizeEditField.Value = 1000;
+
+            % Create MainchannelSpinnerLabel
+            app.MainchannelSpinnerLabel = uilabel(app.ViewingGrid);
+            app.MainchannelSpinnerLabel.HorizontalAlignment = 'right';
+            app.MainchannelSpinnerLabel.Layout.Row = 8;
+            app.MainchannelSpinnerLabel.Layout.Column = 1;
+            app.MainchannelSpinnerLabel.Text = 'Main channel';
+
+            % Create MainchannelSpinner
+            app.MainchannelSpinner = uispinner(app.ViewingGrid);
+            app.MainchannelSpinner.Layout.Row = 8;
+            app.MainchannelSpinner.Layout.Column = 2;
+            app.MainchannelSpinner.Value = 1;
+
+            % Create yLimHighField
+            app.yLimHighField = uieditfield(app.ViewingGrid, 'numeric');
+            app.yLimHighField.ValueChangedFcn = createCallbackFcn(app, @yLimLowFieldValueChanged, true);
+            app.yLimHighField.Layout.Row = 6;
+            app.yLimHighField.Layout.Column = 2;
+            app.yLimHighField.Value = Inf;
 
             % Create ThresholdsGrid
             app.ThresholdsGrid = uigridlayout(app.GridLayout);
@@ -2151,7 +2144,7 @@
             app.OldField.ValueChangedFcn = createCallbackFcn(app, @OldFieldValueChanged, true);
             app.OldField.Layout.Row = 2;
             app.OldField.Layout.Column = 2;
-            app.OldField.Value = 6;
+            app.OldField.Value = 1;
 
             % Create NewField
             app.NewField = uieditfield(app.ThresholdsGrid, 'numeric');
@@ -2159,7 +2152,7 @@
             app.NewField.ValueChangedFcn = createCallbackFcn(app, @NewFieldValueChanged, true);
             app.NewField.Layout.Row = 3;
             app.NewField.Layout.Column = 2;
-            app.NewField.Value = 6;
+            app.NewField.Value = 1;
 
             % Create NewunitLabel
             app.NewunitLabel = uilabel(app.ThresholdsGrid);
@@ -2170,16 +2163,16 @@
 
             % Create SpikedetectionEditFieldLabel
             app.SpikedetectionEditFieldLabel = uilabel(app.ThresholdsGrid);
-            app.SpikedetectionEditFieldLabel.HorizontalAlignment = 'center';
-            app.SpikedetectionEditFieldLabel.Layout.Row = 5;
-            app.SpikedetectionEditFieldLabel.Layout.Column = [1 2];
+            app.SpikedetectionEditFieldLabel.HorizontalAlignment = 'right';
+            app.SpikedetectionEditFieldLabel.Layout.Row = [5 6];
+            app.SpikedetectionEditFieldLabel.Layout.Column = 1;
             app.SpikedetectionEditFieldLabel.Text = 'Spike detection';
 
             % Create DetectThr1EditField
             app.DetectThr1EditField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.DetectThr1EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
             app.DetectThr1EditField.Layout.Row = 6;
-            app.DetectThr1EditField.Layout.Column = 1;
+            app.DetectThr1EditField.Layout.Column = 2;
 
             % Create FuzzyButton
             app.FuzzyButton = uibutton(app.ThresholdsGrid, 'state');
@@ -2192,7 +2185,7 @@
             % Create DetectThr2EditField
             app.DetectThr2EditField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.DetectThr2EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
-            app.DetectThr2EditField.Layout.Row = 6;
+            app.DetectThr2EditField.Layout.Row = 5;
             app.DetectThr2EditField.Layout.Column = 2;
 
             % Create InfoGrid
@@ -2243,56 +2236,14 @@
             app.SavenamecopyButton.Layout.Column = 3;
             app.SavenamecopyButton.Text = 'Copy';
 
-            % Create DatasummaryGrid
-            app.DatasummaryGrid = uigridlayout(app.GridLayout);
-            app.DatasummaryGrid.ColumnWidth = {'1x'};
-            app.DatasummaryGrid.RowHeight = {20, '1x', '1x', '1x'};
-            app.DatasummaryGrid.ColumnSpacing = 2;
-            app.DatasummaryGrid.RowSpacing = 2;
-            app.DatasummaryGrid.Padding = [0 0 0 0];
-            app.DatasummaryGrid.Layout.Row = 3;
-            app.DatasummaryGrid.Layout.Column = 1;
-
-            % Create ShowloadedtemplatesButton
-            app.ShowloadedtemplatesButton = uibutton(app.DatasummaryGrid, 'push');
-            app.ShowloadedtemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ShowloadedtemplatesButtonPushed, true);
-            app.ShowloadedtemplatesButton.BackgroundColor = [1 1 0];
-            app.ShowloadedtemplatesButton.Layout.Row = 4;
-            app.ShowloadedtemplatesButton.Layout.Column = 1;
-            app.ShowloadedtemplatesButton.Text = 'Show loaded templates';
-
-            % Create ShowallButton
-            app.ShowallButton = uibutton(app.DatasummaryGrid, 'push');
-            app.ShowallButton.ButtonPushedFcn = createCallbackFcn(app, @ShowallButtonButtonPushed, true);
-            app.ShowallButton.BackgroundColor = [1 1 0];
-            app.ShowallButton.Layout.Row = 2;
-            app.ShowallButton.Layout.Column = 1;
-            app.ShowallButton.Text = 'Show unit overview';
-
-            % Create DatasummaryLabel
-            app.DatasummaryLabel = uilabel(app.DatasummaryGrid);
-            app.DatasummaryLabel.HorizontalAlignment = 'center';
-            app.DatasummaryLabel.FontWeight = 'bold';
-            app.DatasummaryLabel.Layout.Row = 1;
-            app.DatasummaryLabel.Layout.Column = 1;
-            app.DatasummaryLabel.Text = 'Data summary';
-
-            % Create UnitfreqButton
-            app.UnitfreqButton = uibutton(app.DatasummaryGrid, 'push');
-            app.UnitfreqButton.ButtonPushedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
-            app.UnitfreqButton.BackgroundColor = [1 1 0];
-            app.UnitfreqButton.Layout.Row = 3;
-            app.UnitfreqButton.Layout.Column = 1;
-            app.UnitfreqButton.Text = 'Unit freq time series';
-
             % Create TemplategenerateionGrid
             app.TemplategenerateionGrid = uigridlayout(app.GridLayout);
             app.TemplategenerateionGrid.RowHeight = {20, '1x', '1x', '1x'};
             app.TemplategenerateionGrid.ColumnSpacing = 2;
             app.TemplategenerateionGrid.RowSpacing = 2;
             app.TemplategenerateionGrid.Padding = [0 0 0 0];
-            app.TemplategenerateionGrid.Layout.Row = 4;
-            app.TemplategenerateionGrid.Layout.Column = 2;
+            app.TemplategenerateionGrid.Layout.Row = 3;
+            app.TemplategenerateionGrid.Layout.Column = 1;
 
             % Create FuturebatchesLabel_2
             app.FuturebatchesLabel_2 = uilabel(app.TemplategenerateionGrid);
@@ -2323,14 +2274,6 @@
             app.SpikesusedEditField.Layout.Column = 2;
             app.SpikesusedEditField.Value = 60;
 
-            % Create TemplategenerationLabel
-            app.TemplategenerationLabel = uilabel(app.TemplategenerateionGrid);
-            app.TemplategenerationLabel.HorizontalAlignment = 'center';
-            app.TemplategenerationLabel.FontWeight = 'bold';
-            app.TemplategenerationLabel.Layout.Row = 1;
-            app.TemplategenerationLabel.Layout.Column = [1 2];
-            app.TemplategenerationLabel.Text = 'Template generation';
-
             % Create PastbatchesLabel_2
             app.PastbatchesLabel_2 = uilabel(app.TemplategenerateionGrid);
             app.PastbatchesLabel_2.HorizontalAlignment = 'right';
@@ -2345,6 +2288,14 @@
             app.PastbatchesTField.Layout.Row = 2;
             app.PastbatchesTField.Layout.Column = 2;
             app.PastbatchesTField.Value = 2;
+
+            % Create TemplategenerationLabel
+            app.TemplategenerationLabel = uilabel(app.TemplategenerateionGrid);
+            app.TemplategenerationLabel.HorizontalAlignment = 'center';
+            app.TemplategenerationLabel.FontWeight = 'bold';
+            app.TemplategenerationLabel.Layout.Row = 1;
+            app.TemplategenerationLabel.Layout.Column = [1 2];
+            app.TemplategenerationLabel.Text = 'Template generation';
 
             % Create GridLayout3
             app.GridLayout3 = uigridlayout(app.GridLayout);
@@ -2398,11 +2349,11 @@
 
             % Create GridLayout5
             app.GridLayout5 = uigridlayout(app.GridLayout4);
-            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x'};
+            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x', '1x'};
             app.GridLayout5.ColumnSpacing = 2;
             app.GridLayout5.RowSpacing = 2;
             app.GridLayout5.Padding = [0 0 0 0];
-            app.GridLayout5.Layout.Row = 1;
+            app.GridLayout5.Layout.Row = [1 2];
             app.GridLayout5.Layout.Column = 1;
 
             % Create ManualartifactremoverButton
@@ -2434,10 +2385,29 @@
             app.ImportspikeshapeweightingdataButton.Layout.Column = [1 2];
             app.ImportspikeshapeweightingdataButton.Text = {'Import spike shape'; 'weighting data'};
 
+            % Create ShowloadedtemplatesButton
+            app.ShowloadedtemplatesButton = uibutton(app.GridLayout5, 'push');
+            app.ShowloadedtemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ShowloadedtemplatesButtonPushed, true);
+            app.ShowloadedtemplatesButton.BackgroundColor = [1 1 0];
+            app.ShowloadedtemplatesButton.Layout.Row = 5;
+            app.ShowloadedtemplatesButton.Layout.Column = [1 2];
+            app.ShowloadedtemplatesButton.Text = 'Show loaded templates';
+
             % Create TracePanel
             app.TracePanel = uipanel(app.GridMain);
-            app.TracePanel.Layout.Row = 2;
+            app.TracePanel.BorderType = 'none';
+            app.TracePanel.Layout.Row = 3;
             app.TracePanel.Layout.Column = [1 3];
+
+            % Create TTitle
+            app.TTitle = uieditfield(app.GridMain, 'text');
+            app.TTitle.Editable = 'off';
+            app.TTitle.HorizontalAlignment = 'center';
+            app.TTitle.FontWeight = 'bold';
+            app.TTitle.BackgroundColor = [0.8 0.8 0.8];
+            app.TTitle.Layout.Row = 2;
+            app.TTitle.Layout.Column = [1 3];
+            app.TTitle.Value = 'Data Trace';
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';

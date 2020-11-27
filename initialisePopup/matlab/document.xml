@@ -37,7 +37,6 @@
         Label                         matlab.ui.control.Label
         Label_2                       matlab.ui.control.Label
         Label_3                       matlab.ui.control.Label
-        Label_4                       matlab.ui.control.Label
         Label_5                       matlab.ui.control.Label
         Label_6                       matlab.ui.control.Label
         Label_7                       matlab.ui.control.Label
@@ -50,6 +49,17 @@
         LowpassEditField              matlab.ui.control.NumericEditField
         FilterhighpasscutoffEditFieldLabel  matlab.ui.control.Label
         HighpassEditField             matlab.ui.control.NumericEditField
+        LowpassfilterCheckBox         matlab.ui.control.CheckBox
+        CutoffHzEditFieldLabel        matlab.ui.control.Label
+        CutoffHzEditField             matlab.ui.control.NumericEditField
+        HighpassfilterCheckBox        matlab.ui.control.CheckBox
+        CutoffHzEditField_2Label      matlab.ui.control.Label
+        CutoffHzEditField_2           matlab.ui.control.NumericEditField
+        NotchfilterCheckBox           matlab.ui.control.CheckBox
+        LowcutoffHzEditFieldLabel     matlab.ui.control.Label
+        LowcutoffHzEditField          matlab.ui.control.NumericEditField
+        HighcutoffHzEditFieldLabel    matlab.ui.control.Label
+        HighcutoffHzEditField         matlab.ui.control.NumericEditField
         InitialiseButton              matlab.ui.control.Button
     end
 
@@ -138,6 +148,22 @@
             app.initt.batchSize = app.SplitlengthEditField.Value;
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
             
+%             b1 = []; a1 = [];
+%             if app.LowpassfilterCheckBox.Value == 1 && app.HighpassfilterCheckBox.Value == 0
+%                 [b1, a1] = butter(6, 2*app.CutoffHzEditField.Value/app.SamplingrateHzEditField.Value);
+%             elseif app.HighpassfilterCheckBox.Value == 1 && app.LowpassfilterCheckBox.Value == 0
+%                 [b1, a1] = butter(6, 2*app.CutoffHzEditField_2.Value/app.SamplingrateHzEditField.Value, 'high');
+%             elseif app.LowpassfilterCheckBox.Value == 1 && app.HighpassfilterCheckBox.Value == 1
+%                 [b1, a1] = butter(3, 2*[app.CutoffHzEditField_2.Value, app.CutoffHzEditField.Value]/app.SamplingrateHzEditField.Value);
+%             elseif app.NotchfilterCheckBox.Value == 1
+%                 [b1, a1] = butter(3, 2*sort([app.LowcutoffHzEditField.Value, app.HighcutoffHzEditField.Value])/app.SamplingrateHzEditField.Value, 'bandstop');
+%             end
+%             hold(app.UIAxes,'off')
+%             
+%             if ~isempty(b1)
+%                 app.d = filtfilt(b1,a1,app.d);
+%             end
+            
             app.InitialiseButton.Enable = "off";
             updateVars2(app.CallingApp, app.initm, app.initt, []);
             switchButtons(app.CallingApp,1);
@@ -223,47 +249,47 @@
             % Create MainchanelnumberSpinnerLabel
             app.MainchanelnumberSpinnerLabel = uilabel(app.GridLayout2);
             app.MainchanelnumberSpinnerLabel.HorizontalAlignment = 'right';
-            app.MainchanelnumberSpinnerLabel.Layout.Row = 7;
+            app.MainchanelnumberSpinnerLabel.Layout.Row = 9;
             app.MainchanelnumberSpinnerLabel.Layout.Column = [2 3];
             app.MainchanelnumberSpinnerLabel.Text = 'Main chanel number';
 
             % Create MainchannelnumberSpinner
             app.MainchannelnumberSpinner = uispinner(app.GridLayout2);
             app.MainchannelnumberSpinner.Limits = [1 4.1];
-            app.MainchannelnumberSpinner.Layout.Row = 7;
+            app.MainchannelnumberSpinner.Layout.Row = 9;
             app.MainchannelnumberSpinner.Layout.Column = 4;
             app.MainchannelnumberSpinner.Value = 1;
 
             % Create SamplingrateHzEditFieldLabel
             app.SamplingrateHzEditFieldLabel = uilabel(app.GridLayout2);
             app.SamplingrateHzEditFieldLabel.HorizontalAlignment = 'right';
-            app.SamplingrateHzEditFieldLabel.Layout.Row = 8;
+            app.SamplingrateHzEditFieldLabel.Layout.Row = 7;
             app.SamplingrateHzEditFieldLabel.Layout.Column = [2 3];
             app.SamplingrateHzEditFieldLabel.Text = 'Sampling rate (Hz)';
 
             % Create SamplingrateHzEditField
             app.SamplingrateHzEditField = uieditfield(app.GridLayout2, 'numeric');
-            app.SamplingrateHzEditField.Layout.Row = 8;
+            app.SamplingrateHzEditField.Layout.Row = 7;
             app.SamplingrateHzEditField.Layout.Column = 4;
             app.SamplingrateHzEditField.Value = 30000;
 
             % Create SpikewidtheithersideofpeakmsLabel
             app.SpikewidtheithersideofpeakmsLabel = uilabel(app.GridLayout2);
             app.SpikewidtheithersideofpeakmsLabel.HorizontalAlignment = 'right';
-            app.SpikewidtheithersideofpeakmsLabel.Layout.Row = 9;
+            app.SpikewidtheithersideofpeakmsLabel.Layout.Row = 8;
             app.SpikewidtheithersideofpeakmsLabel.Layout.Column = [2 3];
             app.SpikewidtheithersideofpeakmsLabel.Text = 'Spike width either side of peak (ms)';
 
             % Create SpikewidthEditField
             app.SpikewidthEditField = uieditfield(app.GridLayout2, 'numeric');
-            app.SpikewidthEditField.Layout.Row = 9;
+            app.SpikewidthEditField.Layout.Row = 8;
             app.SpikewidthEditField.Layout.Column = 4;
             app.SpikewidthEditField.Value = 0.67;
 
             % Create DuplexdataCheckBox
             app.DuplexdataCheckBox = uicheckbox(app.GridLayout2);
             app.DuplexdataCheckBox.Text = 'Duplex data?';
-            app.DuplexdataCheckBox.Layout.Row = 8;
+            app.DuplexdataCheckBox.Layout.Row = 7;
             app.DuplexdataCheckBox.Layout.Column = 5;
             app.DuplexdataCheckBox.Value = true;
 
@@ -398,13 +424,6 @@
             app.Label_3.Layout.Column = 1;
             app.Label_3.Text = '*';
 
-            % Create Label_4
-            app.Label_4 = uilabel(app.GridLayout2);
-            app.Label_4.HorizontalAlignment = 'center';
-            app.Label_4.Layout.Row = 7;
-            app.Label_4.Layout.Column = 1;
-            app.Label_4.Text = '*';
-
             % Create Label_5
             app.Label_5 = uilabel(app.GridLayout2);
             app.Label_5.HorizontalAlignment = 'center';
@@ -415,7 +434,7 @@
             % Create Label_6
             app.Label_6 = uilabel(app.GridLayout2);
             app.Label_6.HorizontalAlignment = 'center';
-            app.Label_6.Layout.Row = 9;
+            app.Label_6.Layout.Row = 7;
             app.Label_6.Layout.Column = 1;
             app.Label_6.Text = '*';
 
@@ -447,41 +466,111 @@
             % Create FilterlengthinsamplesEditFieldLabel
             app.FilterlengthinsamplesEditFieldLabel = uilabel(app.GridLayout);
             app.FilterlengthinsamplesEditFieldLabel.HorizontalAlignment = 'right';
-            app.FilterlengthinsamplesEditFieldLabel.Layout.Row = 7;
+            app.FilterlengthinsamplesEditFieldLabel.Layout.Row = 2;
             app.FilterlengthinsamplesEditFieldLabel.Layout.Column = [2 3];
             app.FilterlengthinsamplesEditFieldLabel.Text = 'Filter length in samples';
 
             % Create FilterLengthEditField
             app.FilterLengthEditField = uieditfield(app.GridLayout, 'numeric');
-            app.FilterLengthEditField.Layout.Row = 7;
+            app.FilterLengthEditField.Layout.Row = 2;
             app.FilterLengthEditField.Layout.Column = 4;
             app.FilterLengthEditField.Value = 400;
 
             % Create FilterlowpasscutoffEditFieldLabel
             app.FilterlowpasscutoffEditFieldLabel = uilabel(app.GridLayout);
             app.FilterlowpasscutoffEditFieldLabel.HorizontalAlignment = 'right';
-            app.FilterlowpasscutoffEditFieldLabel.Layout.Row = 9;
+            app.FilterlowpasscutoffEditFieldLabel.Layout.Row = 4;
             app.FilterlowpasscutoffEditFieldLabel.Layout.Column = [2 3];
             app.FilterlowpasscutoffEditFieldLabel.Text = 'Filter lowpass cutoff';
 
             % Create LowpassEditField
             app.LowpassEditField = uieditfield(app.GridLayout, 'numeric');
-            app.LowpassEditField.Layout.Row = 9;
+            app.LowpassEditField.Layout.Row = 4;
             app.LowpassEditField.Layout.Column = 4;
             app.LowpassEditField.Value = 7000;
 
             % Create FilterhighpasscutoffEditFieldLabel
             app.FilterhighpasscutoffEditFieldLabel = uilabel(app.GridLayout);
             app.FilterhighpasscutoffEditFieldLabel.HorizontalAlignment = 'right';
-            app.FilterhighpasscutoffEditFieldLabel.Layout.Row = 8;
+            app.FilterhighpasscutoffEditFieldLabel.Layout.Row = 3;
             app.FilterhighpasscutoffEditFieldLabel.Layout.Column = [2 3];
             app.FilterhighpasscutoffEditFieldLabel.Text = 'Filter highpass cutoff';
 
             % Create HighpassEditField
             app.HighpassEditField = uieditfield(app.GridLayout, 'numeric');
-            app.HighpassEditField.Layout.Row = 8;
+            app.HighpassEditField.Layout.Row = 3;
             app.HighpassEditField.Layout.Column = 4;
             app.HighpassEditField.Value = 700;
+
+            % Create LowpassfilterCheckBox
+            app.LowpassfilterCheckBox = uicheckbox(app.GridLayout);
+            app.LowpassfilterCheckBox.Text = 'Lowpass filter';
+            app.LowpassfilterCheckBox.Layout.Row = 6;
+            app.LowpassfilterCheckBox.Layout.Column = [2 3];
+
+            % Create CutoffHzEditFieldLabel
+            app.CutoffHzEditFieldLabel = uilabel(app.GridLayout);
+            app.CutoffHzEditFieldLabel.HorizontalAlignment = 'right';
+            app.CutoffHzEditFieldLabel.Layout.Row = 7;
+            app.CutoffHzEditFieldLabel.Layout.Column = 2;
+            app.CutoffHzEditFieldLabel.Text = 'Cutoff (Hz)';
+
+            % Create CutoffHzEditField
+            app.CutoffHzEditField = uieditfield(app.GridLayout, 'numeric');
+            app.CutoffHzEditField.Layout.Row = 7;
+            app.CutoffHzEditField.Layout.Column = 3;
+            app.CutoffHzEditField.Value = 1;
+
+            % Create HighpassfilterCheckBox
+            app.HighpassfilterCheckBox = uicheckbox(app.GridLayout);
+            app.HighpassfilterCheckBox.Text = 'Highpass filter';
+            app.HighpassfilterCheckBox.Layout.Row = 9;
+            app.HighpassfilterCheckBox.Layout.Column = [2 3];
+
+            % Create CutoffHzEditField_2Label
+            app.CutoffHzEditField_2Label = uilabel(app.GridLayout);
+            app.CutoffHzEditField_2Label.HorizontalAlignment = 'right';
+            app.CutoffHzEditField_2Label.Layout.Row = 10;
+            app.CutoffHzEditField_2Label.Layout.Column = 2;
+            app.CutoffHzEditField_2Label.Text = 'Cutoff (Hz)';
+
+            % Create CutoffHzEditField_2
+            app.CutoffHzEditField_2 = uieditfield(app.GridLayout, 'numeric');
+            app.CutoffHzEditField_2.Layout.Row = 10;
+            app.CutoffHzEditField_2.Layout.Column = 3;
+            app.CutoffHzEditField_2.Value = 300;
+
+            % Create NotchfilterCheckBox
+            app.NotchfilterCheckBox = uicheckbox(app.GridLayout);
+            app.NotchfilterCheckBox.Text = 'Notch filter';
+            app.NotchfilterCheckBox.Layout.Row = 12;
+            app.NotchfilterCheckBox.Layout.Column = [2 3];
+
+            % Create LowcutoffHzEditFieldLabel
+            app.LowcutoffHzEditFieldLabel = uilabel(app.GridLayout);
+            app.LowcutoffHzEditFieldLabel.HorizontalAlignment = 'right';
+            app.LowcutoffHzEditFieldLabel.Layout.Row = 13;
+            app.LowcutoffHzEditFieldLabel.Layout.Column = 2;
+            app.LowcutoffHzEditFieldLabel.Text = 'Low cutoff (Hz)';
+
+            % Create LowcutoffHzEditField
+            app.LowcutoffHzEditField = uieditfield(app.GridLayout, 'numeric');
+            app.LowcutoffHzEditField.Layout.Row = 13;
+            app.LowcutoffHzEditField.Layout.Column = 3;
+            app.LowcutoffHzEditField.Value = 1;
+
+            % Create HighcutoffHzEditFieldLabel
+            app.HighcutoffHzEditFieldLabel = uilabel(app.GridLayout);
+            app.HighcutoffHzEditFieldLabel.HorizontalAlignment = 'right';
+            app.HighcutoffHzEditFieldLabel.Layout.Row = 14;
+            app.HighcutoffHzEditFieldLabel.Layout.Column = 2;
+            app.HighcutoffHzEditFieldLabel.Text = 'High cutoff (Hz)';
+
+            % Create HighcutoffHzEditField
+            app.HighcutoffHzEditField = uieditfield(app.GridLayout, 'numeric');
+            app.HighcutoffHzEditField.Layout.Row = 14;
+            app.HighcutoffHzEditField.Layout.Column = 3;
+            app.HighcutoffHzEditField.Value = 1;
 
             % Create InitialiseButton
             app.InitialiseButton = uibutton(app.SortinginitialiserUIFigure, 'push');

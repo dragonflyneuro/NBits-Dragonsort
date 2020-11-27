@@ -1,6 +1,6 @@
 function [obj, e] = basicUnitOp(obj, fh, n, I)
     e = 0;
-    if isempty(I) || length(I) == length(obj(n(1)).spikeTimes)
+    if length(I) == length(obj(n(1)).spikeTimes)
         % no point in doing operation
         e = 1;
         return;

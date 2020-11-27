@@ -39,6 +39,7 @@ app.t = [];
 
 %%%LEGACY CHECKS%%%
 
+% t struct %%%%%%%%%%%%%
 if isfield(newT,'rawSpikeSample')
     app.t = newT;
 elseif isfield(newT,'batchSize')
@@ -104,7 +105,7 @@ else
         end
     end
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % detection threshold %%%
 if length(app.t.detectThr) == 1
@@ -125,7 +126,7 @@ if ~isempty(newS)
             app.unitArray(ii) = unit(newS.("unit_"+newS.clusters(ii)),...
                 newS.("waves_"+newS.clusters(ii)),...
                 find(app.t.spikeClust == str2double(newS.clusters(ii))),...
-                app.m.mainCh, [], [], [], [], 1);
+                app.m.mainCh);
             %%%%%%%%%%%%%%%%%%%%%%%%%
             
             % templates %%%%%%%%%%%%%

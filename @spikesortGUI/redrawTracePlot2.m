@@ -16,8 +16,8 @@ end
 ht.UserData = []; % Used for storing selected orphans
 
 [orphanSpikes, ~, orphansIdx] = app.unitArray.getOrphanSpikes(app.t,app.currentBatch,app.rawSpikeWaves);
-title(ht,"Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
-    string(app.t.numSpikesInBatch(c)-length(orphansIdx)) + "/" + app.t.numSpikesInBatch(c));
+app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
+    string(app.t.numSpikesInBatch(c)-length(orphansIdx)) + "/" + app.t.numSpikesInBatch(c);
 
 % main data line
 app.pRaw = plotBig(ht, app.msConvert*(1:size(app.xi,2)), app.xi(app.m.mainCh,:),'Color','b');
