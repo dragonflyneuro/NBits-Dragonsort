@@ -50,12 +50,6 @@ else
     app.t.rawSpikeSample = [];
     app.t.spikeClust = [];
     
-    if ~isfield(app.m, 'el_cutL')
-        app.m.el_cutL = 7000;
-        app.m.el_cutH = app.m.el_cut;
-        app.m = rmfield(app.m, "el_cut");
-    end
-    
     if ~isfield(newT,'yscale')
         if isfield(app.m,'yscale')
             app.t.yscale = app.m.yscale;
@@ -90,16 +84,11 @@ else
             batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
             app.t.batchLengths = [app.t.batchSize*ones(1, batchNum),  app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum]; %in samples
             bL = [0 cumsum(app.t.batchLengths)];
-            app.t.numSpikesInBatch = [];
             if isfield(newT,"rawSpikeIdx")
                 for jj = 1:length(newT.spikeClust)
                     app.t.rawSpikeSample = [app.t.rawSpikeSample, newT.rawSpikeIdx{jj} + bL(jj)];
-                    app.t.numSpikesInBatch(jj) = length(newT.spikeClust{jj});
                     app.t.spikeClust = [app.t.spikeClust, newT.spikeClust{jj}];
                 end
-                app.t.numSpikesInBatch(length(newT.spikeClust)+1:length(app.t.batchLengths)) = 0;
-            else
-                app.t.numSpikesInBatch(1:length(app.t.batchLengths)) = 0;
             end
             break;
         end
@@ -107,6 +96,23 @@ else
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
+% m struct %%%%%%%%%%%%%%
+if ~isfield(app.m, 'filterSpec')
+    app.m.filterSpec.order = app.m.el_flen;
+    if isfield(app.m,'el_cut')
+        app.m.filterSpec.cutoffs = app.m.el_cut;
+        app.m.filterSpec.firstBandMode = 'stop';
+        app.m = rmfield(app.m, 'el_cut');
+    else
+        app.m.filterSpec.cutoffs = [app.m.el_cutH, app.m.el_cutL];
+        app.m.filterSpec.firstBandMode = 'stop';
+        app.m = rmfield(app.m, ["el_cutH", "el_cutL"]);
+    end
+    app.m = rmfield(app.m, 'el_flen');
+else
+end
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%
 % detection threshold %%%
 if length(app.t.detectThr) == 1
     app.t.detectThr(2) = -inf;
@@ -160,7 +166,9 @@ end
 if isfield(app.t, 'spikeClust')
     app.t = rmfield(app.t, 'spikeClust');
 end
-
+if isfield(app.t,'numSpikesInBatch')
+    app.t = rmfield(app.t,'numSpikesInBatch');
+end
 %%%LEGACY CHECKS%%%
 
 %    derived data
@@ -168,9 +176,7 @@ app.t.detectThr = sort(app.t.detectThr);
 app.currentBatch = 1;
 batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize));
 app.t.batchLengths = [app.t.batchSize*ones(1, batchNum), app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum];
-if ~isfield(app.t,'numSpikesInBatch')
-    app.t.numSpikesInBatch = zeros(size(app.t.batchLengths));
-end
+
 app.msConvert = 1000/app.m.sRateHz;
 if ~isempty(app.t.saveNameSuffix)
     suffix = "_"+app.t.saveNameSuffix;
@@ -193,17 +199,12 @@ app.RightUnitDropDown.Value = "1";
 app.VieweventmarkersButton.Value = 0;
 
 %    read and plot data
-app.readFilter2(0)
-app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-app.redrawUnitPlots2(app.figureHandles);
-app.switchButtons(3)
+app.readFilter2(app.currentBatch)
+switchButtons(app,3)
 
-app.updateDropdown();
+updateDropdown(app);
 app.LeftUnitDropDown.Value = "1";
 app.RightUnitDropDown.Value = "1";
-            
-app.historyStack = [];
-            
-app.StatusLabel.Value = "Ready";
-app.addHistory();
+
+standardUpdate(app);
 end

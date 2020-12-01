@@ -35,4 +35,8 @@ app.AutosplitMenu.UserData = {@unitSplitter, "split"};
 app.AutosplitButton.UserData = {@unitSplitter, "split"};
 app.AutomergeMenu.UserData = {@unitMerger, "merge"};
 app.AutomergeButton.UserData = {@unitMerger, "merge"};
+
+% sorting ops
+app.AutosortButton.UserData = 0;
+app.AutosortbatchButton.UserData = 1;
 end

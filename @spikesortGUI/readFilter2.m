@@ -1,26 +1,29 @@
-function [] = readFilter2(app, traceMove)
+function [] = readFilter2(app, batchNum)
 %   read a batch of data of length t.batchLengths samples and filter it.
 %   Extract spike times also
 app.StatusLabel.Value = "Reading data...";
 drawnow
-app.currentBatch = app.currentBatch + traceMove;
+app.currentBatch = batchNum;
 c = app.currentBatch;
 bl = app.t.batchLengths;
 
 x = double(app.t.yscale*app.fid(:,sum(bl(1:c-1))+1:sum(bl(1:c)))); % little endian open
-app.m.el_f = fir1(app.m.el_flen,[app.m.el_cutH app.m.el_cutL]./(app.m.sRateHz/2));
+if strcmpi(app.m.filterSpec.firstBandMode, 'stop')
+    app.m.filterSpec.filter = fir1(app.m.filterSpec.order,...
+        app.m.filterSpec.cutoffs./(app.m.sRateHz/2),'DC-0');
+else
+    app.m.filterSpec.filter = fir1(app.m.filterSpec.order,...
+        app.m.filterSpec.cutoffs./(app.m.sRateHz/2),'DC-1');
+end
+% end
 d = 1;
 app.xi = [];
 for ii=app.m.ech % filter each electrode channel in turns
-    app.xi(d,:) = splitconv(x(ii,:),app.m.el_f);
+    app.xi(d,:) = splitconv(x(ii,:),app.m.filterSpec.filter);
     d = d+1;
 end
 yOffset = prctile(app.xi,50,2); %yoffset = mean(xi,2);
 app.xi = app.xi - yOffset(1:size(app.xi,1),:); % remove DC offset
-
-% filtSTD=std(app.xi,0,2); %StD of the signal in real unit (mV)
-% filtRMS=rms(app.xi,2);
-% fprintf('Filtered Data [%i/%i]: \t STD: %.4f, \t RMS: %.4f \n', c, length(bl), filtSTD,filtRMS);
 
 [~, detectedSpikes] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
 detectedSpikes = detectedSpikes(detectedSpikes > app.m.spikeWidth+1);
@@ -32,18 +35,18 @@ if ~isempty(app.t.noSpikeRange)
     end
 end
 
-oldSpikeRange = [sum(app.t.numSpikesInBatch(1:c-1))+1, sum(app.t.numSpikesInBatch(1:c))];
-if length(offsetSpikes) ~= diff(oldSpikeRange)+1
-    app.t.numSpikesInBatch(c) = length(offsetSpikes);
-    if diff(oldSpikeRange)+1 ~= 0
+r = getBatchRange(app);
+oldSpikeBool = r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2);
+if length(offsetSpikes) ~= sum(oldSpikeBool)
+    if sum(oldSpikeBool) ~= 0
         for ii = 1:length(app.unitArray)
-            unitSpikesInBatchBool = sum(bl(1:c-1)) < app.unitArray(ii).spikeTimes &...
-                app.unitArray(ii).spikeTimes <= sum(bl(1:c));
-            deletedSpikes = unitSpikesInBatchBool & ~ismember(app.unitArray(ii).spikeTimes, offsetSpikes);
-            app.unitArray = app.unitArray.spikeRemover(ii,deletedSpikes);
+            [sTimes, ~, ~, unitIdx] = getAssignedSpikes(app.unitArray(ii));
+            deletedSpikes =  ~ismember(sTimes, offsetSpikes);
+            app.unitArray = app.unitArray.spikeRemover(ii,unitIdx(deletedSpikes));
         end
     end
-    app.t.rawSpikeSample = insertLongArrays(app.t.rawSpikeSample, offsetSpikes, oldSpikeRange);
+    app.t.rawSpikeSample = [app.t.rawSpikeSample(1:find(oldSpikeBool,1,'first')), offsetSpikes, ...
+        app.t.rawSpikeSample(find(oldSpikeBool,1,'last')+1:end)];
 end
 
 newWaves = zeros(size(app.xi,1),app.m.spikeWidth*2+1,length(detectedSpikes));
@@ -53,21 +56,5 @@ end
 app.rawSpikeWaves = permute(newWaves, [3 2 1]);
 
 app.StatusLabel.Value = "Ready";
-
-end
-
-function out = insertLongArrays(A, B, insertLoc)
-% Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
-% 
-% INPUT
-% A = array to insert into
-% B = array to insert
-% insertLoc = range of indices in A to replace and insert B into
-%		FORMAT [insert location start, insert location end]
-% 
-% OUTPUT
-% out = new combined array
-
-out = [A(1:insertLoc(1)-1), B, A(insertLoc(2)+1:end)];
 
 end

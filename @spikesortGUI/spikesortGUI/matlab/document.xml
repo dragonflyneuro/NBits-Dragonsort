@@ -59,7 +59,7 @@
         NextbatchButton               matlab.ui.control.Button
         AutosortButton                matlab.ui.control.Button
         uptoField                     matlab.ui.control.NumericEditField
-        ResortbatchButton             matlab.ui.control.Button
+        AutosortbatchButton           matlab.ui.control.Button
         RefinebatchButton             matlab.ui.control.Button
         GotobatchButton               matlab.ui.control.Button
         GotobatchField                matlab.ui.control.NumericEditField
@@ -83,12 +83,12 @@
         AutosplitintoLabel            matlab.ui.control.Label
         AutoGrid                      matlab.ui.container.GridLayout
         StuffLabel                    matlab.ui.control.Label
-        CleanupButton                 matlab.ui.control.Button
         AutocreatejunkunitsButton     matlab.ui.control.Button
         AutocreateunitsButton         matlab.ui.control.Button
         UnitscrubButton               matlab.ui.control.Button
         ShowallButton                 matlab.ui.control.Button
         UnitfreqButton                matlab.ui.control.Button
+        CleanupButton                 matlab.ui.control.Button
         ParametersDataTab             matlab.ui.container.Tab
         GridLayout                    matlab.ui.container.GridLayout
         ViewingGrid                   matlab.ui.container.GridLayout
@@ -218,6 +218,21 @@
         % update spike assignments from refine
         updateUnits(app, d, opt)
         
+        function r = getBatchRange(app,varargin)
+            c = app.currentBatch;
+            bl = app.t.batchLengths;
+            
+            if nargin > 1
+                spec = varargin{1};
+                spec(spec > length(bl)) = length(bl);
+                spec(spec < 1) = 1;
+                spec = sort(spec);
+                
+                r = [sum(bl(1:spec(1)-1)), sum(bl(1:spec(2)))];
+            else
+                r = [sum(bl(1:c-1)), sum(bl(1:c))];
+            end
+        end
     end
     
     methods (Access = private)
@@ -225,11 +240,10 @@
         %% data input
         
         % read in data and filter for displaying
-        readFilter2(app, traceMove)
-        
+        readFilter2(app, b)
         
         %% draw on axes
-        redrawUnitPlots2(app,hl,hr)
+        redrawUnitPlots2(app,h)
         
         redrawTracePlot2(app,ht,hl)
         
@@ -385,9 +399,25 @@
             if isempty(I)
                 return;
             end
+
+            [orphanSpikes, orphanIdx, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+            orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
+            templateWaves = orphanWaves(I,:,:);
             
-            app.unitArray = app.unitArray.spikeAdder(app.t,app.m,app.currentBatch,app.rawSpikeWaves,value,I, ...
-                event.Source.UserData,app.FuzzyButton.Value);
+            if event.Source.UserData == 0 % go through deviation matching to add new spikes to unit
+                % add loaded template waves if they exist for this unit
+                if ~isempty(app.unitArray(value).loadedTemplateWaves)
+                    templateWaves = [app.unitArray(value).loadedTemplateWaves; templateWaves];
+                end
+                matches = deviationTemplateMatch(orphanWaves, templateWaves, app.m.sRateHz, app.t.add2UnitThr(2), app.FuzzyButton.Value);
+                if ~isempty(matches)
+                    app.unitArray = app.unitArray.spikeAdder(value, orphanSpikes(matches), ...
+                        orphanWaves(matches,:,:), orphanIdx(matches));
+                end
+            elseif event.Source.UserData == 1 % force add spikes to unit - no deviation matching
+                app.unitArray = app.unitArray.spikeAdder(value, orphanSpikes(I), ...
+                        orphanWaves(I,:,:), orphanIdx(I));
+            end
             
             standardUpdate(app);
             
@@ -410,7 +440,7 @@
             
             mode = app.basicModes.getUserData();
             if strcmpi(mode, "batch")
-                [~,~,~,I] = app.unitArray(value(1)).getAssignedSpikes(app.t, app.currentBatch);
+                [~,~,~,I] = app.unitArray(value(1)).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
@@ -439,7 +469,7 @@
 
             mode = app.basicModes.getUserData();
             if strcmpi(mode, "batch")
-                [~,~,~,I] = app.unitArray(value).getAssignedSpikes(app.t, app.currentBatch);
+                [~,~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
@@ -474,62 +504,63 @@
             standardUpdate(app);
         end
 
-        % Button pushed function: AutosortButton
+        % Button pushed function: AutosortButton, 
+        % AutosortbatchButton
         function AutosortButtonPushed(app, event)
             % sort unassigned spikes in current and future batches into currently initialised units
+            value = str2double(app.LeftUnitDropDown.Value);
+            if length(app.unitArray) == 1 && isempty(app.unitArray(1).spikeTimes)
+                app.StatusLabel.Value = "No units to sort into!";
+                return;
+            end
             
-            %             app.unitRefactorer();
-            %             app.unitSorter();
-            %
-            %             if isempty(app.s.unit_1)
-            %                 app.StatusLabel.Value = "No units to sort into!";
-            %                 return;
-            %             end
-            %             if app.currentBatch < round(app.uptoField.Value)
-            %                 app.StatusLabel.Value = "End batch is before current batch!";
-            %                 return;
-            %             end
-            %
-            %             app.StatusLabel.Value = "Autosorting up to batch"+round(app.uptoField.Value);
-            %             drawnow
-            %
-            %             bl = app.t.batchLengths;
-            %             c = app.currentBatch;
-            %             nsib = app.t.numSpikesInBatch;
-            %
-            %
-            %             if app.uptoField.Value > length(app.t.batchLengths)
-            %                 r = length(bl)-c;
-            %             else
-            %                 r = app.uptoField.Value-c;
-            %             end
-            %
-            %             for ii = 1:round(r)
-            %                 app.readFilter2(1);
-            %                 spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-            %                 orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
-            %                 orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
-            %                 orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
-            %
-            %                 templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
-            %
-            %                 % assign spikes to units, if within deviation threshold
-            %                 [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
-            %                     templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
-            %
-            %                 % update structures
-            %                 for jj = 1:length(app.s.clusters)
-            %                     assignedSpikes = spikesInBatch(matches == jj);
-            %                     app.t.orphanBool(assignedSpikes) = 0;
-            %                     app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(jj));
-            %                 end
-            %                 app.unitSorter();
-            %             end
-            %
-            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            %             app.redrawUnitPlots2(app.figureHandles);
-            %             app.StatusLabel.Value = "Ready";
-            %                 app.addHistory();
+            if event.Source.UserData == 0
+                if app.currentBatch < round(app.uptoField.Value)
+                    app.StatusLabel.Value = "End batch is before current batch!";
+                    return;
+                end
+                if app.uptoField.Value > length(app.t.batchLengths)
+                    batches = app.currentBatch+1:length(app.t.batchLengths);
+                end
+                app.StatusLabel.Value = "Autosorting up to batch"+round(app.uptoField.Value);
+                drawnow
+                
+            else
+                batches = app.currentBatch;
+                app.StatusLabel.Value = "Re-sorting batch...";
+                drawnow
+            end
+            
+            for ii = batches
+                if event.Source.UserData == 0
+                    app.readFilter2(ii);
+                end
+                r = getBatchRange(app);
+                [orphanSpikes, inSortingIdx, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+                orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
+                
+                % assign spikes to units, if within deviation threshold
+                app.m.sRateHz, app.t.add2UnitThr(2), app.FuzzyButton.Value
+                
+                templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
+                r = getBatchRange(app, app.currentBatch+templateBatches);
+                
+                devMatrix = newGetDevMatrix(app.unitArray, app.t, orphanWaves, r, ...
+                    app.m.sRateHz, app.SpikesusedEditField.Value, app.FuzzyButton.Value);
+                
+                [devMins, devMinIdx] = min(devMatrix,[],1);
+                assigned = devMins < app.t.add2UnitThr(1)^2;
+                assignedUnit = assigned.*devMinIdx;
+                
+                % update structures
+                for jj = 1:length(app.unitArray)
+                    I = assignedUnit == jj;
+                    app.unitArray = app.unitArray.spikeAdder(value, orphanSpikes(I), ...
+                        orphanWaves(I,:,:), inSortingIdx(I));
+                end
+            end
+            
+            standardUpdate(app);
             
         end
 
@@ -559,7 +590,7 @@
             app.StatusLabel.Value = "Loading new batch of data...";
             drawnow
             
-            app.readFilter2(value - c);
+            app.readFilter2(value);
             
             standardUpdate(app);
             
@@ -573,78 +604,21 @@
             % stop user from interacting with main GUI while refining
             app.switchButtons(0);
             app.switchButtons(2);
-            
-            bl = app.t.batchLengths;
-            c = app.currentBatch;
-            nsib = app.t.numSpikesInBatch;
-            
-%             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-%             offset = sum(bl(1:(c-1))); % offset of start of batch sample to beginning of data
-            
+
             % input variables to refineGUI
             in.xi = app.xi;
             in.m = app.m;
             in.unitArray = app.unitArray;
             in.t = app.t;
             in.rawSpikeWaves = app.rawSpikeWaves;
-            in.currentBatch = c;
+            in.currentBatch = app.currentBatch;
             in.yL = [app.yLimLowField.Value, app.yLimHighField.Value];
             
-%             in.spikesInBatch = app.t.rawSpikeSample(spikesInBatch) - offset;
-%             in.orphansInBatchBool = app.t.orphanBool(spikesInBatch);
-%             in.spikeClustInBatch = app.t.spikeClust(spikesInBatch);
             in.numTemplates = app.SpikesusedEditField.Value;
             in.templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
             
-            app.refinePop = refineGUI2(app, in);
+            app.refinePop = refineGUI(app, in);
             app.StatusLabel.Value = "Refine window open!";
-            
-        end
-
-        % Button pushed function: ResortbatchButton
-        function ResortbatchButtonPushed(app, event)
-            % sort unassigned spikes in current batch into currently initialised units
-            
-            %             app.unitRefactorer();
-            %             app.unitSorter();
-            %
-            %             if isempty(app.s.unit_1)
-            %                 app.StatusLabel.Value = "No units to sort into!";
-            %                 return;
-            %             end
-            %
-            %             app.StatusLabel.Value = "Re-sorting batch " + string(app.currentBatch) + "...";
-            %             drawnow
-            %
-            %             bl = app.t.batchLengths;
-            %             c = app.currentBatch;
-            %             nsib = app.t.numSpikesInBatch;
-            %
-            %
-            %
-            %             spikesInBatch = sum(nsib(1:c-1))+1:sum(nsib(1:c)); % indices along orphanSpikes, spikeClust, rawSpikeSample for spikes within batch
-            %             orphansInBatchBool = app.t.orphanBool(spikesInBatch); % logical array along spikesInBatch for unassigned spikes
-            %             orphanWaves = app.rawSpikeWaves(orphansInBatchBool,:,:); % unassigned waves
-            %             orphanSpikes = app.t.rawSpikeSample(spikesInBatch(orphansInBatchBool)); % unassigned spike sample
-            %
-            %             templateBatch = [c-app.PastbatchesTField.Value, min([c+app.FuturebatchesTField.Value, length(bl)])]; % batches to make templates from
-            %
-            %             % assign spikes to units, if within deviation threshold
-            %             [app.s, matches] = prevTemplateMatch(app.s, app.t, orphanSpikes, orphanWaves,...
-            %                 templateBatch, app.m.sRateHz, app.t.add2UnitThr(1), app.SpikesusedEditField.Value, 0);
-            %
-            %             % update structures
-            %             for ii = 1:length(app.s.clusters)
-            %                 assignedSpikes = spikesInBatch(matches == ii);
-            %                 app.t.orphanBool(assignedSpikes) = 0;
-            %                 app.t.spikeClust(assignedSpikes) = str2double(app.s.clusters(ii));
-            %             end
-            %
-            %             app.unitSorter();
-            %             app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            %             app.redrawUnitPlots2(app.figureHandles);
-            % app.StatusLabel.Value = "Ready";
-            %             app.addHistory();
             
         end
 
@@ -1046,7 +1020,7 @@
 
         % Value changed function: FuturebatchesField, 
         % PastbatchesField
-        function PastbatchesFieldValueChanged(app, event)
+        function DrawnbatchesChanged(app, event)
             app.redrawUnitPlots2(app.figureHandles);
             
         end
@@ -1058,20 +1032,19 @@
             app.StatusLabel.Value = "Plotting unit time series...";
             drawnow
             
-            c = app.currentBatch;
-            bll = length(app.t.batchLengths);
+            bl = length(app.t.batchLengths);
             
             f = figure; ax = axes; set(f, 'Position',  [200, 200, 900, 700]);
             
             for ii=1:length(app.unitArray)
                 iiCmap = app.cmap(rem(ii-1,25)+1,:);
                 ms = getMarker(size(app.cmap,1), ii);
-                numInBatch = zeros(1,bll); % number of spikes in each unit in each batch
-                for jj = 1:bll
-                    spikesInBatch = app.unitArray(ii).getAssignedSpikes(app.t, app.currentBatch, [-c+jj-1, -c+jj]);
+                numInBatch = zeros(1,bl); % number of spikes in each unit in each batch
+                for jj = 1:bl
+                    spikesInBatch = app.unitArray(ii).getAssignedSpikes(getBatchRange(app,[jj-1, jj]));
                     numInBatch(jj) = numel(spikesInBatch); % number of spikes in each unit in each batch
                 end
-                line(ax, 1:bll, numInBatch, 'Color', iiCmap,"Marker",ms);
+                line(ax, 1:bl, numInBatch, 'Color', iiCmap,"Marker",ms);
             end
             
             xlabel(ax, "Batch number");
@@ -1084,7 +1057,7 @@
 
         % Value changed function: DetectThr1EditField, 
         % DetectThr2EditField
-        function DetectThr1EditFieldValueChanged(app, event)
+        function DetectThrChanged(app, event)
 %             re-detect spikes that are below the new amplitude threshold
             value = sort([app.DetectThr1EditField.Value, app.DetectThr2EditField.Value]);
             if value(2) < app.t.detectThr(2) || value(1) > app.t.detectThr(1) % remove prior detected spikes that are now below the threshold
@@ -1107,7 +1080,7 @@
                             app.unitArray = app.unitArray.spikeRemover(ii,outBool);
                         end
                     end
-                    app.readFilter2(0);
+                    app.readFilter2(app.currentBatch);
                     app.unitArray = app.unitArray.unitSorter();
                     standardUpdate(app);
                 else
@@ -1119,23 +1092,9 @@
                 drawnow
                 
                 app.t.detectThr = value;
-                app.readFilter2(0);
+                app.readFilter2(app.currentBatch);
                 standardUpdate(app);
             end
-            
-        end
-
-        % Value changed function: NewField
-        function NewFieldValueChanged(app, event)
-            value = app.NewField.Value;
-            app.t.add2UnitThr(2) = value;
-            
-        end
-
-        % Value changed function: OldField
-        function OldFieldValueChanged(app, event)
-            value = app.OldField.Value;
-            app.t.add2UnitThr(1) = value;
             
         end
 
@@ -1161,8 +1120,7 @@
             app.t.batchSize = value;
             bl = app.t.batchLengths;
             c = app.currentBatch;
-            nsib = app.t.numSpikesInBatch;
-            
+
             app.StatusLabel.Value = "Changing batch size...";
             drawnow
             
@@ -1170,19 +1128,11 @@
             batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize)); % new number of batches in dataset - 1
             app.t.batchLengths = [app.t.batchSize*ones(1, batchNum), app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum];
             
-            blNew = app.t.batchLengths;
-            
-            % add/remove elements in numSpikesInBatch to match number of batches
-            if length(blNew) > length(nsib)
-                app.t.numSpikesInBatch = [nsib, zeros(1,length(blNew)-length(nsib))];
-            elseif length(blNew) < length(nsib)
-                app.t.numSpikesInBatch(end-length(blNew)+1:end) = [];
-            end
-            
             % plot batch closest in sample number to the old batch
+            blNew = app.t.batchLengths;
             closestBatch = interp1(cumsum([0 blNew]),1:length(blNew)+1,currentBatchStart,'nearest','extrap');
 %             offset = app.m.nChans*app.m.dbytes*sum(blNew(1:closestBatch-1));
-            app.readFilter2(closestBatch-c);
+            app.readFilter2(closestBatch);
             
             standardUpdate(app);
             
@@ -1324,7 +1274,7 @@
                 app.switchButtons(3);
                 
 %                 offset = -app.m.nChans*app.m.dbytes*size(app.xi,2);
-                app.readFilter2(0);
+                app.readFilter2(app.currentBatch);
                 app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
                 app.redrawUnitPlots2(app.figureHandles);
                 app.StatusLabel.Value = "Ready";
@@ -1377,7 +1327,7 @@
 
         % Button pushed function: 
         % ImportspikeshapeweightingdataButton
-        function ImportspikeshapeweightingdataButtonPushed(app, event)
+        function ImportspikeshapeButtonPushed(app, event)
             return;
         end
 
@@ -1743,13 +1693,13 @@
             app.uptoField.Layout.Column = 2;
             app.uptoField.Value = 1;
 
-            % Create ResortbatchButton
-            app.ResortbatchButton = uibutton(app.DatascrubGrid, 'push');
-            app.ResortbatchButton.ButtonPushedFcn = createCallbackFcn(app, @ResortbatchButtonPushed, true);
-            app.ResortbatchButton.BackgroundColor = [0.9882 0.6431 0.1569];
-            app.ResortbatchButton.Layout.Row = 5;
-            app.ResortbatchButton.Layout.Column = [1 2];
-            app.ResortbatchButton.Text = 'Resort batch';
+            % Create AutosortbatchButton
+            app.AutosortbatchButton = uibutton(app.DatascrubGrid, 'push');
+            app.AutosortbatchButton.ButtonPushedFcn = createCallbackFcn(app, @AutosortButtonPushed, true);
+            app.AutosortbatchButton.BackgroundColor = [0.9882 0.6431 0.1569];
+            app.AutosortbatchButton.Layout.Row = 5;
+            app.AutosortbatchButton.Layout.Column = [1 2];
+            app.AutosortbatchButton.Text = 'Autosort batch';
 
             % Create RefinebatchButton
             app.RefinebatchButton = uibutton(app.DatascrubGrid, 'push');
@@ -1934,27 +1884,19 @@
             app.StuffLabel.Layout.Column = [1 3];
             app.StuffLabel.Text = 'Stuff';
 
-            % Create CleanupButton
-            app.CleanupButton = uibutton(app.AutoGrid, 'push');
-            app.CleanupButton.ButtonPushedFcn = createCallbackFcn(app, @CleanupButtonPushed, true);
-            app.CleanupButton.BackgroundColor = [1 1 0];
-            app.CleanupButton.Layout.Row = 2;
-            app.CleanupButton.Layout.Column = 1;
-            app.CleanupButton.Text = 'Nice-fy unit numbers';
-
             % Create AutocreatejunkunitsButton
             app.AutocreatejunkunitsButton = uibutton(app.AutoGrid, 'push');
             app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreatejunkunitsButtonPushed, true);
             app.AutocreatejunkunitsButton.BackgroundColor = [1 0.0745 0.651];
             app.AutocreatejunkunitsButton.Layout.Row = 3;
-            app.AutocreatejunkunitsButton.Layout.Column = 2;
+            app.AutocreatejunkunitsButton.Layout.Column = 1;
             app.AutocreatejunkunitsButton.Text = 'Autocreate junk units (BETA)';
 
             % Create AutocreateunitsButton
             app.AutocreateunitsButton = uibutton(app.AutoGrid, 'push');
             app.AutocreateunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
             app.AutocreateunitsButton.BackgroundColor = [1 0.0745 0.651];
-            app.AutocreateunitsButton.Layout.Row = 3;
+            app.AutocreateunitsButton.Layout.Row = 2;
             app.AutocreateunitsButton.Layout.Column = 1;
             app.AutocreateunitsButton.Text = 'Autocreate units (BETA)';
 
@@ -1962,7 +1904,7 @@
             app.UnitscrubButton = uibutton(app.AutoGrid, 'push');
             app.UnitscrubButton.ButtonPushedFcn = createCallbackFcn(app, @UnitscrubButtonPushed, true);
             app.UnitscrubButton.BackgroundColor = [1 1 0];
-            app.UnitscrubButton.Layout.Row = 2;
+            app.UnitscrubButton.Layout.Row = 3;
             app.UnitscrubButton.Layout.Column = 2;
             app.UnitscrubButton.Text = 'Scrub through unit';
 
@@ -1981,6 +1923,14 @@
             app.UnitfreqButton.Layout.Row = 3;
             app.UnitfreqButton.Layout.Column = 3;
             app.UnitfreqButton.Text = 'Unit freq time series';
+
+            % Create CleanupButton
+            app.CleanupButton = uibutton(app.AutoGrid, 'push');
+            app.CleanupButton.ButtonPushedFcn = createCallbackFcn(app, @CleanupButtonPushed, true);
+            app.CleanupButton.BackgroundColor = [1 1 0];
+            app.CleanupButton.Layout.Row = 2;
+            app.CleanupButton.Layout.Column = 2;
+            app.CleanupButton.Text = 'Nice-fy unit numbers';
 
             % Create ParametersDataTab
             app.ParametersDataTab = uitab(app.ControlTabs);
@@ -2029,7 +1979,7 @@
             app.PastbatchesField = uieditfield(app.ViewingGrid, 'numeric');
             app.PastbatchesField.Limits = [0 Inf];
             app.PastbatchesField.RoundFractionalValues = 'on';
-            app.PastbatchesField.ValueChangedFcn = createCallbackFcn(app, @PastbatchesFieldValueChanged, true);
+            app.PastbatchesField.ValueChangedFcn = createCallbackFcn(app, @DrawnbatchesChanged, true);
             app.PastbatchesField.Layout.Row = 2;
             app.PastbatchesField.Layout.Column = 2;
             app.PastbatchesField.Value = 3;
@@ -2053,7 +2003,7 @@
             app.FuturebatchesField = uieditfield(app.ViewingGrid, 'numeric');
             app.FuturebatchesField.Limits = [0 Inf];
             app.FuturebatchesField.RoundFractionalValues = 'on';
-            app.FuturebatchesField.ValueChangedFcn = createCallbackFcn(app, @PastbatchesFieldValueChanged, true);
+            app.FuturebatchesField.ValueChangedFcn = createCallbackFcn(app, @DrawnbatchesChanged, true);
             app.FuturebatchesField.Layout.Row = 3;
             app.FuturebatchesField.Layout.Column = 2;
 
@@ -2141,7 +2091,6 @@
             % Create OldField
             app.OldField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.OldField.Limits = [0 Inf];
-            app.OldField.ValueChangedFcn = createCallbackFcn(app, @OldFieldValueChanged, true);
             app.OldField.Layout.Row = 2;
             app.OldField.Layout.Column = 2;
             app.OldField.Value = 1;
@@ -2149,7 +2098,6 @@
             % Create NewField
             app.NewField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.NewField.Limits = [0 Inf];
-            app.NewField.ValueChangedFcn = createCallbackFcn(app, @NewFieldValueChanged, true);
             app.NewField.Layout.Row = 3;
             app.NewField.Layout.Column = 2;
             app.NewField.Value = 1;
@@ -2170,7 +2118,7 @@
 
             % Create DetectThr1EditField
             app.DetectThr1EditField = uieditfield(app.ThresholdsGrid, 'numeric');
-            app.DetectThr1EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
+            app.DetectThr1EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThrChanged, true);
             app.DetectThr1EditField.Layout.Row = 6;
             app.DetectThr1EditField.Layout.Column = 2;
 
@@ -2184,7 +2132,7 @@
 
             % Create DetectThr2EditField
             app.DetectThr2EditField = uieditfield(app.ThresholdsGrid, 'numeric');
-            app.DetectThr2EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThr1EditFieldValueChanged, true);
+            app.DetectThr2EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThrChanged, true);
             app.DetectThr2EditField.Layout.Row = 5;
             app.DetectThr2EditField.Layout.Column = 2;
 
@@ -2380,7 +2328,7 @@
 
             % Create ImportspikeshapeweightingdataButton
             app.ImportspikeshapeweightingdataButton = uibutton(app.GridLayout5, 'push');
-            app.ImportspikeshapeweightingdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeweightingdataButtonPushed, true);
+            app.ImportspikeshapeweightingdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeButtonPushed, true);
             app.ImportspikeshapeweightingdataButton.Layout.Row = 4;
             app.ImportspikeshapeweightingdataButton.Layout.Column = [1 2];
             app.ImportspikeshapeweightingdataButton.Text = {'Import spike shape'; 'weighting data'};

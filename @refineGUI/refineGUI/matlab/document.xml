@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef refineGUI < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        SortingrefinerUIFigure          matlab.ui.Figure
+        GridLayout                      matlab.ui.container.GridLayout
+        GridLayout2                     matlab.ui.container.GridLayout
+        DoneButton                      matlab.ui.control.Button
+        MaxdeviationthresholdEditFieldLabel  matlab.ui.control.Label
+        MaxdeviationthresholdEditField  matlab.ui.control.NumericEditField
+        GraphicalrefineButton           matlab.ui.control.Button
+        LockoriginalButton              matlab.ui.control.StateButton
+        ResetrefineButton               matlab.ui.control.Button
+        ToggleGainLossbytagsDropDownLabel  matlab.ui.control.Label
+        TagsDropDown                    matlab.ui.control.DropDown
+        LossTagButton                   matlab.ui.control.Button
+        GainTagButton                   matlab.ui.control.Button
+        ShowTraceButton                 matlab.ui.control.Button
+        TabGroup                        matlab.ui.container.TabGroup
+        ScalingsTab                     matlab.ui.container.Tab
+        GridLayout3                     matlab.ui.container.GridLayout
+        ScalingTable                    matlab.ui.control.Table
+        TagsTab                         matlab.ui.container.Tab
+        GridLayout6                     matlab.ui.container.GridLayout
+        TagTable                        matlab.ui.control.Table
+    end
+
+    
+    properties (Access = public)
+        CallingApp
+        d = [];
+        f = [];
+        p
+        iterations = 0
+        scaleBuffer
+        w
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app, mainapp, input)
+            app.CallingApp = mainapp;
+            app.p = input;
+            
+            temp = [app.p.unitArray.refineSettings]';
+            app.scaleBuffer = temp;
+            col = unique([app.p.unitArray.tags, "Junk"]);
+            allBool = [];
+            for ii = 1:length(col)
+                bool = app.p.unitArray.tagcmpi(col(ii));
+                allBool = cat(1,allBool,bool);
+            end
+            app.p.tags = array2table(logical(allBool'));
+            app.p.tags.Properties.VariableNames = col;
+            app.p.tags.Properties.RowNames = "u"+string(1:length(app.p.unitArray));
+            unitNames = app.p.tags.Properties.RowNames;
+            
+            Scaling = temp;
+            GainLock = true(size(temp));
+            LossLock = true(size(temp));
+            app.ScalingTable.Data = table(Scaling,GainLock,LossLock);
+            app.ScalingTable.RowName = unitNames;
+            app.ScalingTable.ColumnEditable = true;
+            
+            app.TagTable.Data = app.p.tags;
+            app.TagTable.RowName = app.p.tags.Properties.RowNames;
+            app.TagTable.ColumnName = app.p.tags.Properties.VariableNames;
+            app.TagTable.ColumnEditable = false(1,size(app.p.tags,2));
+            
+            app.TagsDropDown.Items = [app.TagsDropDown.Items; app.TagTable.ColumnName];
+
+            app.MaxdeviationthresholdEditField.Value = app.p.t.add2UnitThr(1);
+            
+        end
+
+        % Button pushed function: GraphicalrefineButton
+        function GraphicalrefineButtonPushed(app, event)
+            if app.LockoriginalButton.Value == 0
+                app.w = app.p.rawSpikeWaves;
+            else
+                [~, ~, batchIdx] = app.p.unitArray.getOrphanSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
+                app.w = app.p.rawSpikeWaves(batchIdx, :, :);
+            end
+            if isempty(app.d)
+                r = getBatchRange(app.CallingApp, app.p.currentBatch+app.p.templateBatches);
+                app.d = newDeviationRefine(app.p.unitArray, app.p.t, app.w, r, ...
+                    app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling, app.d);
+            end
+            
+            [e, newass] = graphicScaling(app);
+            if e == 1
+                app.d.prevAssignment = app.d.spikeAssignmentUnit;
+                app.d.spikeAssignmentUnit = zeros(1,length(newass{3}));
+                for ii = 1:min(size(newass{3}))
+                    app.d.spikeAssignmentUnit = app.d.spikeAssignmentUnit+ newass{3}(ii,:)*ii;
+                end            
+            end
+            
+            app.DoneButton.Enable = 'on';
+        end
+
+        % Value changed function: MaxdeviationthresholdEditField
+        function MaxdeviationthresholdEditFieldValueChanged(app, event)
+            value = app.MaxdeviationthresholdEditField.Value;
+            app.p.t.add2UnitThr(1) = value;
+            
+        end
+
+        % Callback function: LockoriginalButton, ResetrefineButton
+        function ResetrefineButtonPushed(app, event)
+            app.d = [];
+            app.ScalingTable.Data.Scaling = [app.p.unitArray.refineSettings]';
+            delete(app.f);
+            
+        end
+
+        % Button pushed function: LossTagButton
+        function LossTagButtonPushed(app, event)
+            tag = app.TagsDropDown.Value;
+            if strcmpi(tag,"all")
+                prop = sum(app.ScalingTable.Data.LossLock)/length(app.ScalingTable.Data.LossLock);
+                if prop > 0.5
+                    app.ScalingTable.Data.LossLock = false(size(app.ScalingTable.Data.LossLock));
+                else
+                    app.ScalingTable.Data.LossLock = true(size(app.ScalingTable.Data.LossLock));
+                end
+            else
+                tagCol = strcmpi(tag,app.TagTable.ColumnName);
+                taggedUnits = table2array(app.TagTable.Data(:,tagCol));
+                prop = sum(app.ScalingTable.Data.LossLock(taggedUnits))/sum(taggedUnits);
+                if prop > 0.5
+                    app.ScalingTable.Data.LossLock(taggedUnits) = false;
+                else
+                    app.ScalingTable.Data.LossLock(taggedUnits) = true;
+                end
+            end
+        end
+
+        % Button pushed function: GainTagButton
+        function GainTagButtonPushed(app, event)
+            tag = app.TagsDropDown.Value;
+            if strcmpi(tag,"all")
+                prop = sum(app.ScalingTable.Data.GainLock)/length(app.ScalingTable.Data.GainLock);
+                if prop > 0.5
+                    app.ScalingTable.Data.GainLock = false(size(app.ScalingTable.Data.GainLock));
+                else
+                    app.ScalingTable.Data.GainLock = true(size(app.ScalingTable.Data.GainLock));
+                end
+            else
+                tagCol = strcmpi(tag,app.TagTable.ColumnName);
+                taggedUnits = table2array(app.TagTable.Data(:,tagCol));
+                prop = sum(app.ScalingTable.Data.GainLock(taggedUnits))/sum(taggedUnits);
+                if prop > 0.5
+                    app.ScalingTable.Data.GainLock(taggedUnits) = false;
+                else
+                    app.ScalingTable.Data.GainLock(taggedUnits) = true;
+                end
+            end
+        end
+
+        % Button pushed function: DoneButton
+        function DoneButtonPushed(app, event)
+            if ~isempty(app.d)
+                app.d.scaleArray = app.ScalingTable.Data.Scaling';
+                app.d.add2UnitThr(1) = app.p.t.add2UnitThr(1);
+                updateUnits(app.CallingApp, app.d, app.LockoriginalButton.Value);
+            end
+            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,3);
+            close all
+            delete(app)
+            
+        end
+
+        % Close request function: SortingrefinerUIFigure
+        function SortingrefinerUIFigureCloseRequest(app, event)
+            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,3);
+            close all
+            delete(app)
+            
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create SortingrefinerUIFigure and hide until all components are created
+            app.SortingrefinerUIFigure = uifigure('Visible', 'off');
+            app.SortingrefinerUIFigure.Position = [100 100 500 563];
+            app.SortingrefinerUIFigure.Name = 'Sorting refiner';
+            app.SortingrefinerUIFigure.CloseRequestFcn = createCallbackFcn(app, @SortingrefinerUIFigureCloseRequest, true);
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.SortingrefinerUIFigure);
+            app.GridLayout.ColumnWidth = {'1x', '1.8x'};
+            app.GridLayout.RowHeight = {'1x'};
+            app.GridLayout.ColumnSpacing = 5;
+            app.GridLayout.RowSpacing = 5;
+            app.GridLayout.Padding = [5 5 5 5];
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.GridLayout);
+            app.GridLayout2.ColumnWidth = {'5x', '5x', '5x', '5x', '5x', '5x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.ColumnSpacing = 0;
+            app.GridLayout2.RowSpacing = 3;
+            app.GridLayout2.Padding = [5 5 5 5];
+            app.GridLayout2.Layout.Row = 1;
+            app.GridLayout2.Layout.Column = 1;
+
+            % Create DoneButton
+            app.DoneButton = uibutton(app.GridLayout2, 'push');
+            app.DoneButton.ButtonPushedFcn = createCallbackFcn(app, @DoneButtonPushed, true);
+            app.DoneButton.Enable = 'off';
+            app.DoneButton.Layout.Row = [19 20];
+            app.DoneButton.Layout.Column = [1 6];
+            app.DoneButton.Text = 'Done';
+
+            % Create MaxdeviationthresholdEditFieldLabel
+            app.MaxdeviationthresholdEditFieldLabel = uilabel(app.GridLayout2);
+            app.MaxdeviationthresholdEditFieldLabel.HorizontalAlignment = 'center';
+            app.MaxdeviationthresholdEditFieldLabel.FontWeight = 'bold';
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 16;
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Column = [1 6];
+            app.MaxdeviationthresholdEditFieldLabel.Text = 'Max deviation threshold';
+
+            % Create MaxdeviationthresholdEditField
+            app.MaxdeviationthresholdEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.MaxdeviationthresholdEditField.Limits = [0 Inf];
+            app.MaxdeviationthresholdEditField.ValueChangedFcn = createCallbackFcn(app, @MaxdeviationthresholdEditFieldValueChanged, true);
+            app.MaxdeviationthresholdEditField.HorizontalAlignment = 'center';
+            app.MaxdeviationthresholdEditField.Layout.Row = 17;
+            app.MaxdeviationthresholdEditField.Layout.Column = [1 6];
+            app.MaxdeviationthresholdEditField.Value = 1;
+
+            % Create GraphicalrefineButton
+            app.GraphicalrefineButton = uibutton(app.GridLayout2, 'push');
+            app.GraphicalrefineButton.ButtonPushedFcn = createCallbackFcn(app, @GraphicalrefineButtonPushed, true);
+            app.GraphicalrefineButton.BackgroundColor = [0 1 0];
+            app.GraphicalrefineButton.FontWeight = 'bold';
+            app.GraphicalrefineButton.Layout.Row = [6 9];
+            app.GraphicalrefineButton.Layout.Column = [1 6];
+            app.GraphicalrefineButton.Text = 'Graphical refine';
+
+            % Create LockoriginalButton
+            app.LockoriginalButton = uibutton(app.GridLayout2, 'state');
+            app.LockoriginalButton.ValueChangedFcn = createCallbackFcn(app, @ResetrefineButtonPushed, true);
+            app.LockoriginalButton.Text = {'Lock pre-refine'; 'spike assignments'; '(resets refine)'};
+            app.LockoriginalButton.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.LockoriginalButton.Layout.Row = [3 4];
+            app.LockoriginalButton.Layout.Column = [1 6];
+
+            % Create ResetrefineButton
+            app.ResetrefineButton = uibutton(app.GridLayout2, 'push');
+            app.ResetrefineButton.ButtonPushedFcn = createCallbackFcn(app, @ResetrefineButtonPushed, true);
+            app.ResetrefineButton.Layout.Row = [1 2];
+            app.ResetrefineButton.Layout.Column = [1 6];
+            app.ResetrefineButton.Text = 'Reset refine';
+
+            % Create ToggleGainLossbytagsDropDownLabel
+            app.ToggleGainLossbytagsDropDownLabel = uilabel(app.GridLayout2);
+            app.ToggleGainLossbytagsDropDownLabel.HorizontalAlignment = 'center';
+            app.ToggleGainLossbytagsDropDownLabel.FontWeight = 'bold';
+            app.ToggleGainLossbytagsDropDownLabel.Layout.Row = 12;
+            app.ToggleGainLossbytagsDropDownLabel.Layout.Column = [1 6];
+            app.ToggleGainLossbytagsDropDownLabel.Text = 'Toggle Gain/Loss by tags';
+
+            % Create TagsDropDown
+            app.TagsDropDown = uidropdown(app.GridLayout2);
+            app.TagsDropDown.Items = {'All'};
+            app.TagsDropDown.Layout.Row = 13;
+            app.TagsDropDown.Layout.Column = [1 6];
+            app.TagsDropDown.Value = 'All';
+
+            % Create LossTagButton
+            app.LossTagButton = uibutton(app.GridLayout2, 'push');
+            app.LossTagButton.ButtonPushedFcn = createCallbackFcn(app, @LossTagButtonPushed, true);
+            app.LossTagButton.Layout.Row = 14;
+            app.LossTagButton.Layout.Column = [1 3];
+            app.LossTagButton.Text = 'Loss';
+
+            % Create GainTagButton
+            app.GainTagButton = uibutton(app.GridLayout2, 'push');
+            app.GainTagButton.ButtonPushedFcn = createCallbackFcn(app, @GainTagButtonPushed, true);
+            app.GainTagButton.Layout.Row = 14;
+            app.GainTagButton.Layout.Column = [4 6];
+            app.GainTagButton.Text = 'Gain';
+
+            % Create ShowTraceButton
+            app.ShowTraceButton = uibutton(app.GridLayout2, 'push');
+            app.ShowTraceButton.Layout.Row = 10;
+            app.ShowTraceButton.Layout.Column = [1 6];
+            app.ShowTraceButton.Text = 'Show trace';
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.GridLayout);
+            app.TabGroup.Layout.Row = 1;
+            app.TabGroup.Layout.Column = 2;
+
+            % Create ScalingsTab
+            app.ScalingsTab = uitab(app.TabGroup);
+            app.ScalingsTab.Title = 'Scalings';
+
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.ScalingsTab);
+            app.GridLayout3.ColumnWidth = {'1x'};
+            app.GridLayout3.RowHeight = {'1x'};
+            app.GridLayout3.ColumnSpacing = 0;
+            app.GridLayout3.RowSpacing = 0;
+            app.GridLayout3.Padding = [0 0 0 0];
+
+            % Create ScalingTable
+            app.ScalingTable = uitable(app.GridLayout3);
+            app.ScalingTable.ColumnName = {'Scaling'; 'Gain'; 'Loss'};
+            app.ScalingTable.RowName = {'Unit'};
+            app.ScalingTable.ColumnEditable = [true true true];
+            app.ScalingTable.Layout.Row = 1;
+            app.ScalingTable.Layout.Column = 1;
+
+            % Create TagsTab
+            app.TagsTab = uitab(app.TabGroup);
+            app.TagsTab.Title = 'Tags';
+
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.TagsTab);
+            app.GridLayout6.ColumnWidth = {'1x'};
+            app.GridLayout6.RowHeight = {'1x'};
+            app.GridLayout6.ColumnSpacing = 0;
+            app.GridLayout6.RowSpacing = 0;
+            app.GridLayout6.Padding = [0 0 0 0];
+
+            % Create TagTable
+            app.TagTable = uitable(app.GridLayout6);
+            app.TagTable.ColumnName = {'Gain'};
+            app.TagTable.RowName = {};
+            app.TagTable.ColumnEditable = true;
+            app.TagTable.Layout.Row = 1;
+            app.TagTable.Layout.Column = 1;
+
+            % Show the figure after all components are created
+            app.SortingrefinerUIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = refineGUI(varargin)
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.SortingrefinerUIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.SortingrefinerUIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>

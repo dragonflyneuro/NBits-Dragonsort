@@ -42,8 +42,8 @@ for ii = updateFigs
     tempWaves = [];
     if length(app.unitArray) >= u(ii) && ~isempty(app.unitArray(u(ii)).spikeTimes) % if there are spikes in the unit
         %    find spikes in selected batches
-        plotBatch = [-round(app.PastbatchesField.Value)-1, min([round(app.FuturebatchesField.Value), length(bl)-c])];
-        [~,~,~,unitSpikesInPlotIdx] = app.unitArray(u(ii)).getAssignedSpikes(app.t,app.currentBatch,plotBatch);
+        plotBatch = c + [-round(app.PastbatchesField.Value), min([round(app.FuturebatchesField.Value), length(bl)-c])];
+        [~,~,~,unitSpikesInPlotIdx] = app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app,plotBatch));
         if ii == 1
             app.plottedWavesIdx = unitSpikesInPlotIdx;
         end
@@ -51,7 +51,7 @@ for ii = updateFigs
         
         %    find how many spikes there were in the last 3 batches
         for jj = 3:-1:1
-            last3Batches(jj) = nnz(app.unitArray(u(ii)).getAssignedSpikes(app.t,app.currentBatch,[-jj,-jj+1]));
+            last3Batches(jj) = nnz(app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app,c+[-jj,-jj+1])));
         end
         
         if strcmpi("Junk",app.unitArray(u(ii)).tags)
@@ -75,7 +75,7 @@ for ii = updateFigs
     %     If there are waveforms in the selected unit OR there are templates
     if ~isempty(tempWaves)
         %userdata{2} is for getting selected spikes in trace
-        [unitSpikesInBatch,~,~,unitSpikesInBatchIdx] = app.unitArray(u(ii)).getAssignedSpikes(app.t,app.currentBatch);
+        [unitSpikesInBatch,~,~,unitSpikesInBatchIdx] = app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app));
         tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
         %      If the unit size is over the number to be plotted
         if size(tempWaves,1) > round(app.SpikeshownField.Value)

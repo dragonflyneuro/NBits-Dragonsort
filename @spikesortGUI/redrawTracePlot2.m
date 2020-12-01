@@ -15,7 +15,7 @@ for ii = 1:4
 end
 ht.UserData = []; % Used for storing selected orphans
 
-[orphanSpikes, ~, orphansIdx] = app.unitArray.getOrphanSpikes(app.t,app.currentBatch,app.rawSpikeWaves);
+[orphanSpikes, orphansIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
 app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
     string(app.t.numSpikesInBatch(c)-length(orphansIdx)) + "/" + app.t.numSpikesInBatch(c);
 
@@ -91,7 +91,7 @@ end
 % draw markers on data line for unit spikes
 d = 1;
 for ii = 1:length(app.unitArray)
-    unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(app.t,app.currentBatch);
+    unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
     tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
     if ~isempty(tempUnit)
         [ms, msSize] = getMarker(size(app.cmap,1), ii);

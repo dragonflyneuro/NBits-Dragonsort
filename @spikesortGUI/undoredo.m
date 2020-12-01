@@ -24,7 +24,7 @@ app.savePath = app.historyStack(app.counter).savePath;
 app.SpikeshownField.Value = app.historyStack(app.counter).spikesshown;
 
 %             offset = app.m.nChans*app.m.dbytes*sum(app.t.batchLengths(1:(app.currentBatch-1)));
-app.readFilter2(0);
+app.readFilter2(app.currentBatch);
 app.redrawTracePlot2(app.figureHandles(1),app.figureHandles(2));
 app.redrawUnitPlots2(app.figureHandles);
 

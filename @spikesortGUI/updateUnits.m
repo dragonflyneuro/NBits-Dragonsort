@@ -2,16 +2,16 @@ function [] = updateUnits(app, d, opt)
 
 if ~opt
     for ii = 1:length(app.unitArray)
-        [~, ~, ~, idx] = app.unitArray(ii).getAssignedSpikes(app.t, app.currentBatch);
+        [~, ~, ~, idx] = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
         app.unitArray = app.unitArray.spikeRemover(ii,idx);
     end
 end
-[a,b,c]=app.unitArray.getOrphanSpikes(app.t,app.currentBatch,app.rawSpikeWaves);
-
+[sTimes,globalIdx,batchIdx]=app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+sWaves = app.rawSpikeWaves(batchIdx,:,:);
 for ii = 1:length(app.unitArray)
     app.unitArray(ii).refineSettings = d.scaleArray(ii);
-    app.unitArray = app.unitArray.refinedSpikeAdder(ii,a(d.spikeAssignmentUnit == ii),...
-        b(d.spikeAssignmentUnit == ii,:,:),c(d.spikeAssignmentUnit == ii));
+    app.unitArray = app.unitArray.refinedSpikeAdder(ii,sTimes(d.spikeAssignmentUnit == ii),...
+        sWaves(d.spikeAssignmentUnit == ii,:,:),globalIdx(d.spikeAssignmentUnit == ii));
 end
 app.unitArray = app.unitArray.unitSorter();
 app.t.add2UnitThr(1) = d.add2UnitThr(1);
@@ -37,9 +37,6 @@ app.t.add2UnitThr(1) = d.add2UnitThr(1);
 %     app.s.("waves_"+ii) = [app.s.("waves_"+ii); app.rawSpikeWaves(reassginedSpikesBool,:,:)];
 % end
 
-app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-app.redrawUnitPlots2(app.figureHandles);
-
-app.addHistory();
+standardUpdate(app)
 figure(app.UIBase);
 end
