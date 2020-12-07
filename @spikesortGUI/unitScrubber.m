@@ -8,7 +8,7 @@ ax = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
 p = line(ax, -floor(size(waves,2)/2):floor(size(waves,2)/2), waves');
 set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
 if length(p) > 1 % make future spikes invisible for now
-    set(p(2:end),'LineStyle', 'none');
+    set(p(2:end),'Visible', 'off');
 end
 
 title(ax, "Unit "+n,'Color',app.cmap(rem(n-1,25)+1,:));
@@ -31,8 +31,8 @@ end
 %% callbacks
 % reveal/hide spike lines as unit timeline is interacted with
 function sliderMoving(~, e, p)
-set(p(round(e.Value)+1:end), 'LineStyle', 'none');% delete(p(round(event.Value)+1:end));
-set(p(1:round(e.Value)), 'LineStyle', '-');
+set(p(round(e.Value)+1:end), 'Visible', 'off');% delete(p(round(event.Value)+1:end));
+set(p(1:round(e.Value)), 'Visible', 'on');
 end
 
 

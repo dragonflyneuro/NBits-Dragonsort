@@ -59,6 +59,8 @@
         Cutoffs2EditField             matlab.ui.control.NumericEditField
         SetButton                     matlab.ui.control.Button
         LowpassButton                 matlab.ui.control.StateButton
+        PlotButton                    matlab.ui.control.Button
+        NoneButton                    matlab.ui.control.StateButton
         UIAxes                        matlab.ui.control.UIAxes
         InitialiseButton              matlab.ui.control.Button
     end
@@ -89,23 +91,26 @@
                 end
             end
             
-            if app.DuplexdataCheckBox.Value
-                r = app.SamplingrateHzEditField.Value;
-            else
-                r = app.SamplingrateHzEditField.Value/2;
+            temp = app.snippet;
+            if ~isempty(eval(app.CutoffsEditField.Value))
+                if app.DuplexdataCheckBox.Value
+                    r = app.SamplingrateHzEditField.Value;
+                else
+                    r = app.SamplingrateHzEditField.Value/2;
+                end
+    
+                if ~app.FirstbandCheckBox.Value
+                    f = fir1(app.FilterLengthEditField.Value,...
+                        eval(app.CutoffsEditField.Value)./r,'DC-0');
+                else
+                    f = fir1(app.FilterLengthEditField.Value,...
+                        eval(app.CutoffsEditField.Value)./r,'DC-1');
+                end
+                
+                temp = splitconv(app.snippet,f);
+                yOffset = prctile(temp,50,2); %yoffset = mean(xi,2);
+                temp = temp - yOffset(1,:); % remove DC offset
             end
-
-            if ~app.FirstbandCheckBox.Value
-                f = fir1(app.FilterLengthEditField.Value,...
-                    eval(app.CutoffsEditField.Value)./r,'DC-0');
-            else
-                f = fir1(app.FilterLengthEditField.Value,...
-                    eval(app.CutoffsEditField.Value)./r,'DC-1');
-            end
-            
-            temp = splitconv(app.snippet,f);
-            yOffset = prctile(temp,50,2); %yoffset = mean(xi,2);
-            temp = temp - yOffset(1,:); % remove DC offset
             
             plot(app.UIAxes,1:length(temp),temp);
         end
@@ -116,31 +121,66 @@
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainapp, varargin)
             app.CallingApp = mainapp;
             app.InitialiseButton.Enable = 'off';
             
-            app.toggles = uiToggleGroup([app.LowpassButton,app.HighpassButton,app.BandpassButton,app.NotchButton],1:4);
+            app.toggles = uiToggleGroup([app.LowpassButton,app.HighpassButton,app.BandpassButton,app.NotchButton],1:5,2);
             
             xlabel(app.UIAxes,[]);
             ylabel(app.UIAxes,[]);
+            
+            if nargin > 3
+                tempT = varargin{2};
+                
+                app.AddtotemplateEditField.Value = tempT.add2UnitThr(1);
+                app.NewtemplateEditField.Value = tempT.add2UnitThr(2);
+                app.SuffixEditField.Value = tempT.saveNameSuffix;
+                app.ScaleEditField.Value = tempT.yscale;
+                app.SplitlengthEditField.Value = tempT.batchSize;
+                app.Ampthreshold1EditField.Value = tempT.detectThr(1);
+                app.Ampthreshold2EditField.Value = tempT.detectThr(2);
+            end
+
+            if nargin > 2
+                tempM = varargin{1};
+                app.BytespersampleEditField.Value = tempM.dbytes;
+                app.nchEditField.Value = tempM.nChans;
+                app.echEditField.Value = parseToArray(num2str(tempM.ech));
+                app.MainchannelnumberSpinner.Value = tempM.mainCh;
+                app.SamplingrateHzEditField.Value = tempM.sRateHz;
+                app.FilterLengthEditField.Value = tempM.filterSpec.order;
+                app.CutoffsEditField.Value = parseToArray(num2str(tempM.filterSpec.cutoffs));
+                if all(tempM.filterSpec.firstBandMode == 'pass')
+                    app.FirstbandCheckBox.Value = 1;
+                elseif all(tempM.filterSpec.firstBandMode == 'stop')
+                    app.FirstbandCheckBox.Value = 0;
+                end
+                app.DuplexdataCheckBox.Value = 0;
+                app.SamplingrateHzEditField.Value = tempM.sRateHz;
+                app.SpikewidthEditField.Value = tempM.spikeWidth*1000/tempM.sRateHz;
+            end
+            
         end
 
         % Button pushed function: ChoosebinButton
         function ChoosebinButtonPushed(app, event)
-            [app.initm.fN, app.initm.fP] = uigetfile('*.bin');
-            if app.initm.fN ~= 0
-                fid = fopen([app.initm.fP app.initm.fN],'r');
+            [fN, fP] = uigetfile([app.CallingApp.loadPath '*.bin'],'Pick *.bin file to load');
+            if fN ~= 0
+                fid = fopen([fP fN],'r');
                 
                 if fid > 0
                     fseek(fid,0,'eof');
                     app.initm.fileSizeBytes = ftell(fid);
                     fclose(fid);
                     
-                    app.FileLabel.Text = app.initm.fN;
+                    app.FileLabel.Text = fN;
                     app.FileLabel.FontColor = [0 0 0];
                     app.InitialiseButton.Enable = 'on';
                     app.snippet = [];
+                    app.initm.fN = fN;
+                    app.initm.fP = fP;
+                    app.CallingApp.loadPath = fP;
                 else
                     fclose(fid);
                     app.FileLabel.Text = "Could not open file!";
@@ -186,9 +226,6 @@
                 app.initm.filterSpec.firstBandMode = 'stop';
             end
             
-%             app.initm.el_cutH = app.HighpassEditField.Value;
-%             app.initm.el_cutL = app.LowpassEditField.Value;
-            
             if app.DuplexdataCheckBox.Value
                 app.initm.sRateHz = 2*app.SamplingrateHzEditField.Value;
             else
@@ -196,8 +233,8 @@
             end
             app.initm.spikeWidth = round(app.SpikewidthEditField.Value*app.initm.sRateHz/1000);
             
-            app.initt.add2UnitThr(1) = app.NewtemplateEditField.Value;
-            app.initt.add2UnitThr(2) = app.AddtotemplateEditField.Value;
+            app.initt.add2UnitThr(1) = app.AddtotemplateEditField.Value;
+            app.initt.add2UnitThr(2) = app.NewtemplateEditField.Value;
             app.initt.saveNameSuffix = app.SuffixEditField.Value;
             app.initt.yscale = app.ScaleEditField.Value;
             app.initt.batchSize = app.SplitlengthEditField.Value;
@@ -208,54 +245,54 @@
             switchButtons(app.CallingApp,1);
             
             delete(app)
+            
         end
 
         % Value changed function: nchEditField
         function nchEditFieldValueChanged(app, event)
             value = app.nchEditField.Value;
             app.MainchannelnumberSpinner.Limits = [1 value+0.1];
+            
         end
 
         % Value changed function: echEditField
         function cleanArray(app, event)
             event.Source.Value = parseToArray(event.Source.Value);
+            
         end
 
         % Button pushed function: SetButton
         function SetButtonPushed(app, event)
             ud = getUserData(app.toggles);
-            if ud == 1
+            if ud == 2
                 app.CutoffsEditField.Value = parseToArray(string(app.Cutoffs1EditField.Value));
                 app.FirstbandCheckBox.Value = 1;
-            elseif ud == 2
-                app.CutoffsEditField.Value = parseToArray(string(app.Cutoffs1EditField.Value));
-                app.FirstbandCheckBox.Value = 0;
             elseif ud == 3
+                app.CutoffsEditField.Value = parseToArray(string(app.Cutoffs1EditField.Value));
+                app.FirstbandCheckBox.Value = 0;
+            elseif ud == 4
                 app.CutoffsEditField.Value = parseToArray(string(app.Cutoffs1EditField.Value)+","+string(app.Cutoffs2EditField.Value));
                 app.FirstbandCheckBox.Value = 0;
-            else
+            elseif ud == 5
                 app.CutoffsEditField.Value = parseToArray(string(app.Cutoffs1EditField.Value)+","+string(app.Cutoffs2EditField.Value));
                 app.FirstbandCheckBox.Value = 1;
+            else
+                app.CutoffsEditField.Value = parseToArray("");
             end
             updateFig(app)
-        end
-
-        % Value changed function: HighpassButton, LowpassButton
-        function LowpassButtonValueChanged(app, event)
-            app.Cutoffs2EditField.Enable = "off";
-            
-        end
-
-        % Value changed function: BandpassButton, NotchButton
-        function BandpassButtonValueChanged(app, event)
-            app.Cutoffs2EditField.Enable = "on";
             
         end
 
         % Value changed function: CutoffsEditField
         function CutoffsEditFieldValueChanged(app, event)
-            event.Source.Value = parseToArray(event.Source.Value);
+            event.Source.Value = parseToArray(event.Source.Value);        
+            
+        end
+
+        % Button pushed function: PlotButton
+        function PlotButtonPushed(app, event)
             updateFig(app)
+            
         end
     end
 
@@ -410,7 +447,7 @@
             app.NewtemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.NewtemplateEditField.Layout.Row = 12;
             app.NewtemplateEditField.Layout.Column = 4;
-            app.NewtemplateEditField.Value = 1;
+            app.NewtemplateEditField.Value = 0.7;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2);
@@ -423,7 +460,7 @@
             app.AddtotemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.AddtotemplateEditField.Layout.Row = 13;
             app.AddtotemplateEditField.Layout.Column = 4;
-            app.AddtotemplateEditField.Value = 1;
+            app.AddtotemplateEditField.Value = 0.7;
 
             % Create SuffixtoputonsaveddataEditFieldLabel
             app.SuffixtoputonsaveddataEditFieldLabel = uilabel(app.GridLayout2);
@@ -525,7 +562,7 @@
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.FilteringoptionsTab);
-            app.GridLayout.ColumnWidth = {'0.1x', '0.5x', '0.5x', '0.5x', '0.5x', '0.1x'};
+            app.GridLayout.ColumnWidth = {'0.1x', '0.5x', '0.5x', '0.5x', '0.5x', '0.5x', '0.1x'};
             app.GridLayout.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout.ColumnSpacing = 2;
             app.GridLayout.RowSpacing = 2;
@@ -541,36 +578,33 @@
             app.FilterLengthEditField = uieditfield(app.GridLayout, 'numeric');
             app.FilterLengthEditField.Layout.Row = 5;
             app.FilterLengthEditField.Layout.Column = 3;
-            app.FilterLengthEditField.Value = 300;
+            app.FilterLengthEditField.Value = 400;
 
             % Create PresetsLabel
             app.PresetsLabel = uilabel(app.GridLayout);
             app.PresetsLabel.HorizontalAlignment = 'center';
             app.PresetsLabel.FontWeight = 'bold';
             app.PresetsLabel.Layout.Row = 1;
-            app.PresetsLabel.Layout.Column = [2 5];
+            app.PresetsLabel.Layout.Column = [2 6];
             app.PresetsLabel.Text = 'Presets';
 
             % Create HighpassButton
             app.HighpassButton = uibutton(app.GridLayout, 'state');
-            app.HighpassButton.ValueChangedFcn = createCallbackFcn(app, @LowpassButtonValueChanged, true);
             app.HighpassButton.Text = 'Highpass';
             app.HighpassButton.Layout.Row = 2;
-            app.HighpassButton.Layout.Column = 3;
+            app.HighpassButton.Layout.Column = 4;
 
             % Create BandpassButton
             app.BandpassButton = uibutton(app.GridLayout, 'state');
-            app.BandpassButton.ValueChangedFcn = createCallbackFcn(app, @BandpassButtonValueChanged, true);
             app.BandpassButton.Text = 'Bandpass';
             app.BandpassButton.Layout.Row = 2;
-            app.BandpassButton.Layout.Column = 4;
+            app.BandpassButton.Layout.Column = 5;
 
             % Create NotchButton
             app.NotchButton = uibutton(app.GridLayout, 'state');
-            app.NotchButton.ValueChangedFcn = createCallbackFcn(app, @BandpassButtonValueChanged, true);
             app.NotchButton.Text = 'Notch';
             app.NotchButton.Layout.Row = 2;
-            app.NotchButton.Layout.Column = 5;
+            app.NotchButton.Layout.Column = 6;
 
             % Create CutoffsHzEditFieldLabel
             app.CutoffsHzEditFieldLabel = uilabel(app.GridLayout);
@@ -583,7 +617,7 @@
             app.CutoffsEditField = uieditfield(app.GridLayout, 'text');
             app.CutoffsEditField.ValueChangedFcn = createCallbackFcn(app, @CutoffsEditFieldValueChanged, true);
             app.CutoffsEditField.Layout.Row = 6;
-            app.CutoffsEditField.Layout.Column = [3 5];
+            app.CutoffsEditField.Layout.Column = [3 4];
             app.CutoffsEditField.Value = '[300]';
 
             % Create CustomLabel
@@ -591,21 +625,21 @@
             app.CustomLabel.HorizontalAlignment = 'center';
             app.CustomLabel.FontWeight = 'bold';
             app.CustomLabel.Layout.Row = 4;
-            app.CustomLabel.Layout.Column = [2 5];
+            app.CustomLabel.Layout.Column = [2 6];
             app.CustomLabel.Text = 'Custom';
 
             % Create HelpLabel
             app.HelpLabel = uilabel(app.GridLayout);
             app.HelpLabel.VerticalAlignment = 'top';
             app.HelpLabel.Layout.Row = [7 8];
-            app.HelpLabel.Layout.Column = [2 5];
+            app.HelpLabel.Layout.Column = [2 6];
             app.HelpLabel.Text = {'For "Cutoffs (Hz)" specs Wn = [W1 W2 W3 W4 W5 ... WN], create a multiband filter with'; 'bands 0 < W < W1, W1 < W < W2, ..., WN < W < inf'; '"First band pass/stop" decides whether or not the first band is passband or stopband'};
 
             % Create FirstbandCheckBox
             app.FirstbandCheckBox = uicheckbox(app.GridLayout);
             app.FirstbandCheckBox.Text = 'First band mode: pass (on) / stop (off)';
             app.FirstbandCheckBox.Layout.Row = 5;
-            app.FirstbandCheckBox.Layout.Column = [4 5];
+            app.FirstbandCheckBox.Layout.Column = [4 6];
 
             % Create CutoffsHzEditFieldLabel_2
             app.CutoffsHzEditFieldLabel_2 = uilabel(app.GridLayout);
@@ -624,30 +658,41 @@
             app.Cutoffs2EditField = uieditfield(app.GridLayout, 'numeric');
             app.Cutoffs2EditField.Layout.Row = 3;
             app.Cutoffs2EditField.Layout.Column = 4;
-            app.Cutoffs2EditField.Value = 3000;
+            app.Cutoffs2EditField.Value = 15000;
 
             % Create SetButton
             app.SetButton = uibutton(app.GridLayout, 'push');
             app.SetButton.ButtonPushedFcn = createCallbackFcn(app, @SetButtonPushed, true);
             app.SetButton.BackgroundColor = [0.651 0.651 0.651];
             app.SetButton.Layout.Row = 3;
-            app.SetButton.Layout.Column = 5;
+            app.SetButton.Layout.Column = [5 6];
             app.SetButton.Text = 'Set!';
 
             % Create LowpassButton
             app.LowpassButton = uibutton(app.GridLayout, 'state');
-            app.LowpassButton.ValueChangedFcn = createCallbackFcn(app, @LowpassButtonValueChanged, true);
             app.LowpassButton.Text = 'Lowpass';
             app.LowpassButton.Layout.Row = 2;
-            app.LowpassButton.Layout.Column = 2;
+            app.LowpassButton.Layout.Column = 3;
+
+            % Create PlotButton
+            app.PlotButton = uibutton(app.GridLayout, 'push');
+            app.PlotButton.ButtonPushedFcn = createCallbackFcn(app, @PlotButtonPushed, true);
+            app.PlotButton.BackgroundColor = [0.651 0.651 0.651];
+            app.PlotButton.Layout.Row = 6;
+            app.PlotButton.Layout.Column = [5 6];
+            app.PlotButton.Text = 'Plot!';
+
+            % Create NoneButton
+            app.NoneButton = uibutton(app.GridLayout, 'state');
+            app.NoneButton.Text = 'None';
+            app.NoneButton.Layout.Row = 2;
+            app.NoneButton.Layout.Column = 2;
 
             % Create UIAxes
             app.UIAxes = uiaxes(app.GridLayout);
-            title(app.UIAxes, '')
-            xlabel(app.UIAxes, '')
             ylabel(app.UIAxes, 'Hz')
             app.UIAxes.Layout.Row = [9 12];
-            app.UIAxes.Layout.Column = [2 5];
+            app.UIAxes.Layout.Column = [2 6];
 
             % Create InitialiseButton
             app.InitialiseButton = uibutton(app.SortinginitialiserUIFigure, 'push');

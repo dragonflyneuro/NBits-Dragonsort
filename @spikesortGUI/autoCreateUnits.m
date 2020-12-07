@@ -1,4 +1,4 @@
-function [c, t, numNewUnits] = autoCreateUnits(c, t, orphanWaves, y, sRate, orphansInBatch, orphanSpikes, cutoff, direction, fuzzyBool)
+function assignedUnit = autoCreateUnits(orphanWaves, y, thr, sRate, cutoff, direction, fuzzyBool)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calls template matching function for to generate a new unit and updates
 % Dragonsort structures
@@ -23,7 +23,6 @@ function [c, t, numNewUnits] = autoCreateUnits(c, t, orphanWaves, y, sRate, orph
 % t = Dragonsort unit construction structure
 % numNewUnits = number of new units created
 
-numNewUnits = 0;
 if direction == 1
     potentialSpikes = y > cutoff;
     percentLimit = 0.2;
@@ -31,9 +30,9 @@ else
     potentialSpikes = y < cutoff;
     percentLimit = 0;
 end
+
 if nnz(potentialSpikes) > length(potentialSpikes)*percentLimit
     orphanWaves = orphanWaves(potentialSpikes,:,:);
-    orphanSpikes = orphanSpikes(potentialSpikes);
     croppedWaves = orphanWaves(:,ceil(size(orphanWaves,2)/2) + (round(-0.3*sRate/1000):round(0.3*sRate/1000)),:);
     croppedWaves = reshape(croppedWaves, size(orphanWaves,1), []);
     
@@ -46,27 +45,13 @@ if nnz(potentialSpikes) > length(potentialSpikes)*percentLimit
     for ii = 1:length(uniqueClust)
         templateWaves = orphanWaves(clust == uniqueClust(ii),:,:);
         if size(templateWaves,1) > 10
-            [~,devIdx(ii,:)] = newTemplateMatch(orphanWaves, templateWaves, sRate, t.add2UnitThr(2), fuzzyBool);
+            [~,~,devIdx(ii,:)] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr, fuzzyBool);
         end
     end
     if ~all(isinf(devIdx))
         [devMins, devMinIdx] = min(devIdx,[],1);
-        assigned = devMins < (t.add2UnitThr(2)*6)^2;
+        assigned = devMins < thr^2;
         assignedUnit = assigned.*devMinIdx;
-        unitAssigned = unique(assignedUnit);
-        unitAssigned(unitAssigned == 0) = [];
-        if nnz(assignedUnit) ~= 0
-            for ii = unitAssigned
-                c.clusters(end+1)=string(max(str2double(c.clusters))+1);
-                c.("unit_"+c.clusters(end)) = orphanSpikes(assignedUnit == ii);
-                c.("waves_"+c.clusters(end)) = orphanWaves(assignedUnit == ii,:,:);
-                
-                t.orphanBool(orphansInBatch(assignedUnit == ii)) = 0;
-                t.spikeClust(orphansInBatch(assignedUnit == ii)) = str2double(c.clusters(end));
-                
-                numNewUnits = numNewUnits + 1;
-            end
-        end
     end
 end
 

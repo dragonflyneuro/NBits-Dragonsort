@@ -1,8 +1,11 @@
 function [] = undoredo(app,dir)
+
+maxHistory = 6;
+
 if app.counter == 1 && dir == -1
     return;
 end
-if app.counter == 4 && dir == 1
+if app.counter == maxHistory && dir == 1
     return;
 end
 

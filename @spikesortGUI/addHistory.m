@@ -1,5 +1,7 @@
 function [] = addHistory(app)
 
+maxHistory = 6;
+
 h.uA = app.unitArray.copy();
 h.m = app.m;
 h.t = app.t;
@@ -19,8 +21,8 @@ else
     app.historyStack = [h, app.historyStack(app.counter:end)];
 end
 
-if length(app.historyStack) > 4
-    app.historyStack = app.historyStack(1:4);
+if length(app.historyStack) > maxHistory
+    app.historyStack = app.historyStack(1:maxHistory);
 end
 app.counter = 1;
 

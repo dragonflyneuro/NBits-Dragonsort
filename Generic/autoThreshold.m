@@ -9,15 +9,15 @@ function thr = autoThreshold(thr, metric)
 % 
 % OUTPUT
 % thr = adjusted threshold
-
-u = lowpass(histcounts(metric,'BinWidth',2),0.5); % find histogram of data metrics
-udot = diff(u); % find slope of histogram at each bin
-risingSlope = find(diff(udot > 0.5) == 1); % find rising slopes
-if ~isempty(risingSlope)
-	risingSlope = risingSlope*2;
-	[A, I] = min(abs(thr - risingSlope)); % find closest rising slope to initial threshold
+binSize = min([0.05, peak2peak(metric)/20]);
+[h, bE] = histcounts(metric,'BinWidth',binSize);
+% histogram(metric,'BinWidth',binSize);
+bC = bE(1:end-1)+binSize/2;
+[~,peaks] = findpeaks(-h,'Threshold',length(metric)/500);
+if ~isempty(peaks)
+	[A, I] = min(abs(thr - bC(peaks))); % find closest rising slope to initial threshold
 	if abs(thr-A) < thr % do not allow threshold to change by too much
-		thr = risingSlope(I);
+		thr = bC(peaks(I));
 	end
 end
 

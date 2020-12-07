@@ -14,14 +14,15 @@ f = figure; set(f, 'Position',  [200, 200, 900, 700]);
 ax = gobjects(length(unitsWTemplates)*2,1);
 yTemp = zeros(length(unitsWTemplates)*2,2); % to align y axis limits later
 
-for ii=unitsWTemplates
+for ii = 1:length(unitsWTemplates)
+    unitNum = unitsWTemplates(ii);
     ax(2*ii-1) = subplott(sp,4,2*ii-1);
     ax(2*ii) = subplott(sp,4,2*ii);
-    ms = getMarker(size(app.cmap,1), ii);
-    iiCmap=app.cmap(rem(ii-1,25)+1,:);
+    ms = getMarker(size(app.cmap,1), unitNum);
+    iiCmap=app.cmap(rem(unitNum-1,25)+1,:);
     
     % plot random selection of up to 600 waveforms in unit
-    waves = app.unitArray(ii).waves(:,:,app.unitArray(ii).mainCh);
+    waves = app.unitArray(unitNum).waves(:,:,app.unitArray(unitNum).mainCh);
     if ~isempty(waves)
         rp = randperm(size(waves,1));
         if length(rp) > 600
@@ -33,7 +34,7 @@ for ii=unitsWTemplates
     end
     
     % plot all initialiser template waves for the unit
-    waves = app.unitArray(ii).loadedTemplateWaves(:,:,app.unitArray(ii).mainCh);
+    waves = app.unitArray(unitNum).loadedTemplateWaves(:,:,app.unitArray(unitNum).mainCh);
     if ~isempty(waves)
         p = line(ax(2*ii-1), -app.m.spikeWidth:app.m.spikeWidth, waves');
         set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
@@ -41,8 +42,8 @@ for ii=unitsWTemplates
     
     yTemp(2*ii,:) = ylim(ax(2*ii));
     yTemp(2*ii-1,:) = ylim(ax(2*ii-1));
-    title(ax(2*ii), 'Unit '+string(ii)+" "+ ms +...
-        " ("+length(app.unitArray(ii).spikeTimes)+")",'Color',iiCmap);
+    title(ax(2*ii), 'Unit '+string(unitNum)+" "+ ms +...
+        " ("+length(app.unitArray(unitNum).spikeTimes)+")",'Color',iiCmap);
     title(ax(2*ii-1), 'Template '+ string(ii));
 end
 

@@ -11,11 +11,16 @@
         GraphicalrefineButton           matlab.ui.control.Button
         LockoriginalButton              matlab.ui.control.StateButton
         ResetrefineButton               matlab.ui.control.Button
-        ToggleGainLossbytagsDropDownLabel  matlab.ui.control.Label
-        TagsDropDown                    matlab.ui.control.DropDown
         LossTagButton                   matlab.ui.control.Button
         GainTagButton                   matlab.ui.control.Button
         ShowTraceButton                 matlab.ui.control.Button
+        HistogramxlimEditFieldLabel     matlab.ui.control.Label
+        xlim1EditField                  matlab.ui.control.NumericEditField
+        xlim2EditField                  matlab.ui.control.NumericEditField
+        HistogramxlimEditFieldLabel_2   matlab.ui.control.Label
+        histBinEditField                matlab.ui.control.NumericEditField
+        TagsDropDown                    matlab.ui.control.DropDown
+        ToggleGainLossbytagsDropDownLabel  matlab.ui.control.Label
         TabGroup                        matlab.ui.container.TabGroup
         ScalingsTab                     matlab.ui.container.Tab
         GridLayout3                     matlab.ui.container.GridLayout
@@ -29,10 +34,7 @@
     properties (Access = public)
         CallingApp
         d = [];
-        f = [];
         p
-        iterations = 0
-        scaleBuffer
         w
     end
     
@@ -46,7 +48,6 @@
             app.p = input;
             
             temp = [app.p.unitArray.refineSettings]';
-            app.scaleBuffer = temp;
             col = unique([app.p.unitArray.tags, "Junk"]);
             allBool = [];
             for ii = 1:length(col)
@@ -71,8 +72,10 @@
             app.TagTable.ColumnEditable = false(1,size(app.p.tags,2));
             
             app.TagsDropDown.Items = [app.TagsDropDown.Items; app.TagTable.ColumnName];
-
-            app.MaxdeviationthresholdEditField.Value = app.p.t.add2UnitThr(1);
+            
+            app.d.thr = app.p.t.add2UnitThr(1);
+            
+            app.MaxdeviationthresholdEditField.Value = app.d.thr;
             
         end
 
@@ -84,19 +87,21 @@
                 [~, ~, batchIdx] = app.p.unitArray.getOrphanSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
                 app.w = app.p.rawSpikeWaves(batchIdx, :, :);
             end
-            if isempty(app.d)
+            if ~isfield(app.d,'devMatrix')
                 r = getBatchRange(app.CallingApp, app.p.currentBatch+app.p.templateBatches);
-                app.d = newDeviationRefine(app.p.unitArray, app.p.t, app.w, r, ...
+                app.d = newDeviationRefine(app.p.t, app.p.unitArray, app.w, r, ...
                     app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling, app.d);
             end
             
             [e, newass] = graphicScaling(app);
+            
             if e == 1
                 app.d.prevAssignment = app.d.spikeAssignmentUnit;
                 app.d.spikeAssignmentUnit = zeros(1,length(newass{3}));
                 for ii = 1:min(size(newass{3}))
                     app.d.spikeAssignmentUnit = app.d.spikeAssignmentUnit+ newass{3}(ii,:)*ii;
-                end            
+                end
+                app.ScalingTable.Data.Scaling = newass{2};
             end
             
             app.DoneButton.Enable = 'on';
@@ -105,15 +110,16 @@
         % Value changed function: MaxdeviationthresholdEditField
         function MaxdeviationthresholdEditFieldValueChanged(app, event)
             value = app.MaxdeviationthresholdEditField.Value;
-            app.p.t.add2UnitThr(1) = value;
+            app.d = [];
+            app.d.thr = value;
             
         end
 
         % Callback function: LockoriginalButton, ResetrefineButton
         function ResetrefineButtonPushed(app, event)
             app.d = [];
+            app.d.thr = app.p.t.add2UnitThr(1);
             app.ScalingTable.Data.Scaling = [app.p.unitArray.refineSettings]';
-            delete(app.f);
             
         end
 
@@ -137,6 +143,7 @@
                     app.ScalingTable.Data.LossLock(taggedUnits) = true;
                 end
             end
+            
         end
 
         % Button pushed function: GainTagButton
@@ -159,13 +166,13 @@
                     app.ScalingTable.Data.GainLock(taggedUnits) = true;
                 end
             end
+            
         end
 
         % Button pushed function: DoneButton
         function DoneButtonPushed(app, event)
             if ~isempty(app.d)
                 app.d.scaleArray = app.ScalingTable.Data.Scaling';
-                app.d.add2UnitThr(1) = app.p.t.add2UnitThr(1);
                 updateUnits(app.CallingApp, app.d, app.LockoriginalButton.Value);
             end
             switchButtons(app.CallingApp,1);
@@ -181,6 +188,15 @@
             switchButtons(app.CallingApp,3);
             close all
             delete(app)
+            
+        end
+
+        % Value changed function: xlim1EditField, xlim2EditField
+        function xlim1EditFieldValueChanged(app, event)
+            value = [app.xlim1EditField.Value app.xlim2EditField.Value];
+            value = sort(value);
+            app.xlim1EditField.Value = value(1);
+            app.xlim2EditField.Value = value(2);
             
         end
     end
@@ -208,7 +224,7 @@
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.GridLayout);
             app.GridLayout2.ColumnWidth = {'5x', '5x', '5x', '5x', '5x', '5x'};
-            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout2.ColumnSpacing = 0;
             app.GridLayout2.RowSpacing = 3;
             app.GridLayout2.Padding = [5 5 5 5];
@@ -219,7 +235,7 @@
             app.DoneButton = uibutton(app.GridLayout2, 'push');
             app.DoneButton.ButtonPushedFcn = createCallbackFcn(app, @DoneButtonPushed, true);
             app.DoneButton.Enable = 'off';
-            app.DoneButton.Layout.Row = [19 20];
+            app.DoneButton.Layout.Row = 22;
             app.DoneButton.Layout.Column = [1 6];
             app.DoneButton.Text = 'Done';
 
@@ -227,7 +243,7 @@
             app.MaxdeviationthresholdEditFieldLabel = uilabel(app.GridLayout2);
             app.MaxdeviationthresholdEditFieldLabel.HorizontalAlignment = 'center';
             app.MaxdeviationthresholdEditFieldLabel.FontWeight = 'bold';
-            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 16;
+            app.MaxdeviationthresholdEditFieldLabel.Layout.Row = 15;
             app.MaxdeviationthresholdEditFieldLabel.Layout.Column = [1 6];
             app.MaxdeviationthresholdEditFieldLabel.Text = 'Max deviation threshold';
 
@@ -236,7 +252,7 @@
             app.MaxdeviationthresholdEditField.Limits = [0 Inf];
             app.MaxdeviationthresholdEditField.ValueChangedFcn = createCallbackFcn(app, @MaxdeviationthresholdEditFieldValueChanged, true);
             app.MaxdeviationthresholdEditField.HorizontalAlignment = 'center';
-            app.MaxdeviationthresholdEditField.Layout.Row = 17;
+            app.MaxdeviationthresholdEditField.Layout.Row = 16;
             app.MaxdeviationthresholdEditField.Layout.Column = [1 6];
             app.MaxdeviationthresholdEditField.Value = 1;
 
@@ -245,7 +261,7 @@
             app.GraphicalrefineButton.ButtonPushedFcn = createCallbackFcn(app, @GraphicalrefineButtonPushed, true);
             app.GraphicalrefineButton.BackgroundColor = [0 1 0];
             app.GraphicalrefineButton.FontWeight = 'bold';
-            app.GraphicalrefineButton.Layout.Row = [6 9];
+            app.GraphicalrefineButton.Layout.Row = [5 7];
             app.GraphicalrefineButton.Layout.Column = [1 6];
             app.GraphicalrefineButton.Text = 'Graphical refine';
 
@@ -254,50 +270,88 @@
             app.LockoriginalButton.ValueChangedFcn = createCallbackFcn(app, @ResetrefineButtonPushed, true);
             app.LockoriginalButton.Text = {'Lock pre-refine'; 'spike assignments'; '(resets refine)'};
             app.LockoriginalButton.BackgroundColor = [0.9412 0.9412 0.9412];
-            app.LockoriginalButton.Layout.Row = [3 4];
+            app.LockoriginalButton.Layout.Row = [2 3];
             app.LockoriginalButton.Layout.Column = [1 6];
 
             % Create ResetrefineButton
             app.ResetrefineButton = uibutton(app.GridLayout2, 'push');
             app.ResetrefineButton.ButtonPushedFcn = createCallbackFcn(app, @ResetrefineButtonPushed, true);
-            app.ResetrefineButton.Layout.Row = [1 2];
+            app.ResetrefineButton.Layout.Row = 1;
             app.ResetrefineButton.Layout.Column = [1 6];
             app.ResetrefineButton.Text = 'Reset refine';
-
-            % Create ToggleGainLossbytagsDropDownLabel
-            app.ToggleGainLossbytagsDropDownLabel = uilabel(app.GridLayout2);
-            app.ToggleGainLossbytagsDropDownLabel.HorizontalAlignment = 'center';
-            app.ToggleGainLossbytagsDropDownLabel.FontWeight = 'bold';
-            app.ToggleGainLossbytagsDropDownLabel.Layout.Row = 12;
-            app.ToggleGainLossbytagsDropDownLabel.Layout.Column = [1 6];
-            app.ToggleGainLossbytagsDropDownLabel.Text = 'Toggle Gain/Loss by tags';
-
-            % Create TagsDropDown
-            app.TagsDropDown = uidropdown(app.GridLayout2);
-            app.TagsDropDown.Items = {'All'};
-            app.TagsDropDown.Layout.Row = 13;
-            app.TagsDropDown.Layout.Column = [1 6];
-            app.TagsDropDown.Value = 'All';
 
             % Create LossTagButton
             app.LossTagButton = uibutton(app.GridLayout2, 'push');
             app.LossTagButton.ButtonPushedFcn = createCallbackFcn(app, @LossTagButtonPushed, true);
-            app.LossTagButton.Layout.Row = 14;
+            app.LossTagButton.Layout.Row = 20;
             app.LossTagButton.Layout.Column = [1 3];
             app.LossTagButton.Text = 'Loss';
 
             % Create GainTagButton
             app.GainTagButton = uibutton(app.GridLayout2, 'push');
             app.GainTagButton.ButtonPushedFcn = createCallbackFcn(app, @GainTagButtonPushed, true);
-            app.GainTagButton.Layout.Row = 14;
+            app.GainTagButton.Layout.Row = 20;
             app.GainTagButton.Layout.Column = [4 6];
             app.GainTagButton.Text = 'Gain';
 
             % Create ShowTraceButton
             app.ShowTraceButton = uibutton(app.GridLayout2, 'push');
-            app.ShowTraceButton.Layout.Row = 10;
+            app.ShowTraceButton.Enable = 'off';
+            app.ShowTraceButton.Layout.Row = 8;
             app.ShowTraceButton.Layout.Column = [1 6];
             app.ShowTraceButton.Text = 'Show trace';
+
+            % Create HistogramxlimEditFieldLabel
+            app.HistogramxlimEditFieldLabel = uilabel(app.GridLayout2);
+            app.HistogramxlimEditFieldLabel.HorizontalAlignment = 'center';
+            app.HistogramxlimEditFieldLabel.FontWeight = 'bold';
+            app.HistogramxlimEditFieldLabel.Layout.Row = 10;
+            app.HistogramxlimEditFieldLabel.Layout.Column = [1 6];
+            app.HistogramxlimEditFieldLabel.Text = 'Histogram xlim';
+
+            % Create xlim1EditField
+            app.xlim1EditField = uieditfield(app.GridLayout2, 'numeric');
+            app.xlim1EditField.Limits = [0 Inf];
+            app.xlim1EditField.ValueChangedFcn = createCallbackFcn(app, @xlim1EditFieldValueChanged, true);
+            app.xlim1EditField.Layout.Row = 11;
+            app.xlim1EditField.Layout.Column = [1 3];
+
+            % Create xlim2EditField
+            app.xlim2EditField = uieditfield(app.GridLayout2, 'numeric');
+            app.xlim2EditField.Limits = [0 Inf];
+            app.xlim2EditField.ValueChangedFcn = createCallbackFcn(app, @xlim1EditFieldValueChanged, true);
+            app.xlim2EditField.Layout.Row = 11;
+            app.xlim2EditField.Layout.Column = [4 6];
+            app.xlim2EditField.Value = 2;
+
+            % Create HistogramxlimEditFieldLabel_2
+            app.HistogramxlimEditFieldLabel_2 = uilabel(app.GridLayout2);
+            app.HistogramxlimEditFieldLabel_2.HorizontalAlignment = 'center';
+            app.HistogramxlimEditFieldLabel_2.FontWeight = 'bold';
+            app.HistogramxlimEditFieldLabel_2.Layout.Row = 13;
+            app.HistogramxlimEditFieldLabel_2.Layout.Column = [1 3];
+            app.HistogramxlimEditFieldLabel_2.Text = 'Hist bin size';
+
+            % Create histBinEditField
+            app.histBinEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.histBinEditField.Layout.Row = 13;
+            app.histBinEditField.Layout.Column = [4 6];
+            app.histBinEditField.Value = 0.05;
+
+            % Create TagsDropDown
+            app.TagsDropDown = uidropdown(app.GridLayout2);
+            app.TagsDropDown.Items = {'All'};
+            app.TagsDropDown.Layout.Row = 19;
+            app.TagsDropDown.Layout.Column = [1 6];
+            app.TagsDropDown.Value = 'All';
+
+            % Create ToggleGainLossbytagsDropDownLabel
+            app.ToggleGainLossbytagsDropDownLabel = uilabel(app.GridLayout2);
+            app.ToggleGainLossbytagsDropDownLabel.HorizontalAlignment = 'center';
+            app.ToggleGainLossbytagsDropDownLabel.FontWeight = 'bold';
+            app.ToggleGainLossbytagsDropDownLabel.Layout.Row = 18;
+            app.ToggleGainLossbytagsDropDownLabel.Layout.Column = [1 6];
+            app.ToggleGainLossbytagsDropDownLabel.Text = 'Toggle Gain/Loss by tags';
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);

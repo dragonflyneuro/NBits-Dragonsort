@@ -9,19 +9,14 @@ bl = app.t.batchLengths;
 
 x = double(app.t.yscale*app.fid(:,sum(bl(1:c-1))+1:sum(bl(1:c)))); % little endian open
 if strcmpi(app.m.filterSpec.firstBandMode, 'stop')
-    app.m.filterSpec.filter = fir1(app.m.filterSpec.order,...
+    filterVec = fir1(app.m.filterSpec.order,...
         app.m.filterSpec.cutoffs./(app.m.sRateHz/2),'DC-0');
 else
-    app.m.filterSpec.filter = fir1(app.m.filterSpec.order,...
+    filterVec = fir1(app.m.filterSpec.order,...
         app.m.filterSpec.cutoffs./(app.m.sRateHz/2),'DC-1');
 end
-% end
-d = 1;
-app.xi = [];
-for ii=app.m.ech % filter each electrode channel in turns
-    app.xi(d,:) = splitconv(x(ii,:),app.m.filterSpec.filter);
-    d = d+1;
-end
+
+app.xi = splitconv(x(app.m.ech,:),filterVec);
 yOffset = prctile(app.xi,50,2); %yoffset = mean(xi,2);
 app.xi = app.xi - yOffset(1:size(app.xi,1),:); % remove DC offset
 
@@ -38,20 +33,26 @@ end
 r = getBatchRange(app);
 oldSpikeBool = r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2);
 if length(offsetSpikes) ~= sum(oldSpikeBool)
-    if sum(oldSpikeBool) ~= 0
-        for ii = 1:length(app.unitArray)
-            [sTimes, ~, ~, unitIdx] = getAssignedSpikes(app.unitArray(ii));
-            deletedSpikes =  ~ismember(sTimes, offsetSpikes);
-            app.unitArray = app.unitArray.spikeRemover(ii,unitIdx(deletedSpikes));
+    if r(2) < app.t.rawSpikeSample(1)
+        app.t.rawSpikeSample = [offsetSpikes, app.t.rawSpikeSample];
+    elseif r(1) > app.t.rawSpikeSample(end)
+        app.t.rawSpikeSample = [app.t.rawSpikeSample, offsetSpikes];
+    else
+        if sum(oldSpikeBool) ~= 0
+            for ii = 1:length(app.unitArray)
+                [sTimes, ~, unitIdx] = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
+                deletedSpikes =  ~ismember(sTimes, offsetSpikes);
+                app.unitArray = app.unitArray.spikeRemover(ii,unitIdx(deletedSpikes));
+            end
         end
+        app.t.rawSpikeSample = [app.t.rawSpikeSample(1:find(oldSpikeBool,1,'first')-1), offsetSpikes, ...
+            app.t.rawSpikeSample(find(oldSpikeBool,1,'last')+1:end)];
     end
-    app.t.rawSpikeSample = [app.t.rawSpikeSample(1:find(oldSpikeBool,1,'first')), offsetSpikes, ...
-        app.t.rawSpikeSample(find(oldSpikeBool,1,'last')+1:end)];
 end
 
 newWaves = zeros(size(app.xi,1),app.m.spikeWidth*2+1,length(detectedSpikes));
 for ii=1:length(detectedSpikes)
-    newWaves(:,:,ii) = app.xi(:, detectedSpikes(ii)-app.m.spikeWidth:detectedSpikes(ii)+app.m.spikeWidth);
+    newWaves(:,:,ii) = app.xi(:, detectedSpikes(ii)+(-app.m.spikeWidth:app.m.spikeWidth));
 end
 app.rawSpikeWaves = permute(newWaves, [3 2 1]);
 

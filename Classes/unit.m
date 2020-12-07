@@ -2,7 +2,6 @@ classdef unit < handle
     properties
         waves {mustBeNumeric} = [];
         spikeTimes {mustBeInteger} = [];
-        spikeIndex {mustBeInteger} = [];
         tags = string.empty();
         mainCh {mustBeInteger} = 1;
         refineSettings {mustBeNumeric} = 1;
@@ -14,30 +13,29 @@ classdef unit < handle
     
     methods
         function obj = unit(varargin)                      
-            if nargin > 9
-                obj.refineSettings = varargin{10};
-            end
-
             if nargin > 8
-                obj.tags = varargin{9};
+                obj.refineSettings = varargin{9};
             end
 
-            if nargin > 4
-                obj.loadedTemplateMapping.originFile = varargin{5};
-                obj.loadedTemplateMapping.harvestLocation = varargin{6};
-                obj.loadedTemplateMapping.originUnit = varargin{7};
-                obj.loadedTemplateWaves = varargin{8};
+            if nargin > 7
+                obj.tags = varargin{8};
             end
 
             if nargin > 3
-                obj.mainCh = varargin{4};
+                obj.loadedTemplateMapping.originFile = varargin{7};
+                obj.loadedTemplateMapping.harvestLocation = varargin{6};
+                obj.loadedTemplateMapping.originUnit = varargin{5};
+                obj.loadedTemplateWaves = varargin{4};
+            end
+
+            if nargin > 2
+                obj.mainCh = varargin{3};
             end
 
             % initialise assigned waves
-            if nargin > 2
+            if nargin > 1
                 obj.spikeTimes = varargin{1};
                 obj.waves = varargin{2};
-                obj.spikeIndex = varargin{3};
             end
         end
         
@@ -53,26 +51,25 @@ classdef unit < handle
         end
         
         % 1 unit only
-        function [sTimes, sWaves, inSortingIdx, inUnitIdx] = getAssignedSpikes(obj, range)
+        function [sTimes, sWaves, inUnitIdx] = getAssignedSpikes(obj, range)
             bool = range(1) < obj.spikeTimes & obj.spikeTimes <= range(2);
         
             inUnitIdx = find(bool);
             sTimes = obj.spikeTimes(inUnitIdx);
             sWaves = obj.waves(inUnitIdx,:,:);
-            inSortingIdx = obj.spikeIndex(inUnitIdx);
         end
         
         function [orphanSpikes, inSortingIdx, inRangeIdx] = getOrphanSpikes(obj, allTimes, range)          
-            cumIdx = [];
+            allT = [];
             
             for ii = 1:length(obj)
-                [~, ~, idx] = getAssignedSpikes(obj(ii), range);
-                cumIdx = [cumIdx, idx];
+                [t, ~, ~] = getAssignedSpikes(obj(ii), range);
+                allT = [allT, t];
             end
             inSortingIdx = find(range(1) < allTimes & allTimes <= range(2));
             inRangeIdx = 1:length(inSortingIdx);
             
-            assigned = ismember(inSortingIdx,cumIdx);
+            assigned = ismember(allTimes(inSortingIdx),allT);
             inSortingIdx(assigned) = [];
             inRangeIdx(assigned) = [];
             orphanSpikes = allTimes(inSortingIdx); % unassigned spike sample from beginning of batch
@@ -86,28 +83,25 @@ classdef unit < handle
             
             obj(n).spikeTimes(I) = [];
             obj(n).waves(I,:,:) = [];
-            obj(n).spikeIndex(I) = [];
         end
         
-        function obj = spikeAdder(obj,n,a,b,c)
+        function obj = spikeAdder(obj,n,a,b)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
             n = n(1);
-            if length(a) == size(b,1) && length(c) == size(b,1)
+            if length(a) == size(b,1)
                 obj(n).spikeTimes = [obj(n).spikeTimes, a];
                 obj(n).waves = [obj(n).waves; b];
-                obj(n).spikeIndex = [obj(n).spikeIndex, c];
                 obj = obj.unitSorter();
             end
         end
         
-        function obj = refinedSpikeAdder(obj,n,a,b,c)
+        function obj = refinedSpikeAdder(obj,n,a,b)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
             n = n(1);
             obj(n).spikeTimes = [obj(n).spikeTimes, a];
             obj(n).waves = cat(1,obj(n).waves, b);
-            obj(n).spikeIndex = [obj(n).spikeIndex, c];
         end
         
         function obj = unitSplitter(obj,n,I)
@@ -116,15 +110,15 @@ classdef unit < handle
                 return;
             end
             
-            newUnit = unit(obj(n).spikeTimes(I),obj(n).waves(I,:,:),obj(n).spikeIndex(I),obj(n).mainCh);
+            newObj = unit(obj(n).spikeTimes(I),obj(n).waves(I,:,:),obj(n).mainCh);
             
             obj(n).spikeTimes(I) = [];
             obj(n).waves(I,:,:) = [];
-            obj(n).spikeIndex(I) = [];
             
-            newUnit = newUnit.tagToggler("Junk");
+            newObj.loadedTemplateWaves = obj(n).loadedTemplateWaves;
+            newObj.loadedTemplateMapping = obj(n).loadedTemplateMapping;
             
-            obj = [obj newUnit];
+            obj = [obj newObj];
         end
         
         function obj = unitMerger(obj,n,I)
@@ -138,12 +132,10 @@ classdef unit < handle
             [obj(n(2)).spikeTimes, order] = sort(mergedUnit);
             mergedWaves = cat(1,obj(n(1)).waves(I,:,:),obj(n(2)).waves);
             obj(n(2)).waves = mergedWaves(order,:,:);
-            obj(n(2)).spikeIndex = [obj(n(2)).spikeIndex, obj(n(1)).spikeIndex(I)];
             obj(n(2)).refineSettings = 1;
             
             obj(n(1)).spikeTimes(I) = [];
             obj(n(1)).waves(I,:,:) = [];
-            obj(n(1)).spikeIndex(I) = [];
             
             obj(n(2)) = obj(n(2)).tagToggler("Junk",0);
             
@@ -159,7 +151,7 @@ classdef unit < handle
             
             flag = false(size(obj));
             for ii = 1:length(obj)
-                if isempty(obj(ii).spikeTimes)
+                if isempty(obj(ii).spikeTimes) && isempty(obj(ii).loadedTemplateWaves)
                     flag(ii) = true;
                 end
             end
@@ -168,7 +160,11 @@ classdef unit < handle
             % find order of peak amplitude
             minMean = zeros(1,length(obj));
             for ii = 1:length(obj)
-                waveAmp = min(mean(obj(ii).waves(:,:,obj(ii).mainCh),1));
+                if isempty(obj(ii).spikeTimes)
+                    waveAmp = min(mean(obj(ii).loadedTemplateWaves(:,:,obj(ii).mainCh),1));
+                else
+                    waveAmp = min(mean(obj(ii).waves(:,:,obj(ii).mainCh),1));
+                end
                 minMean(ii) = waveAmp;
             end
             [~, unitOrder] = sort(minMean);
@@ -180,7 +176,6 @@ classdef unit < handle
             for ii = 1:length(obj)
                 [obj(ii).spikeTimes, order, ~] = unique(obj(ii).spikeTimes);
                 obj(ii).waves = obj(ii).waves(order,:,:);
-                obj(ii).spikeIndex = sort(obj(ii).spikeIndex);
             end
         end
         
@@ -203,7 +198,7 @@ classdef unit < handle
         function obj = tagToggler(obj,str,varargin)
             [b, i] = obj.tagcmpi(str);
             if nargin > 2
-                if varargin == 1
+                if varargin{1} == 1
                     for ii = find(~b)
                         obj(ii).tags(end+1) = str;
                     end

@@ -39,4 +39,6 @@ app.AutomergeButton.UserData = {@unitMerger, "merge"};
 % sorting ops
 app.AutosortButton.UserData = 0;
 app.AutosortbatchButton.UserData = 1;
+app.AutocreateunitsButton.UserData = 0;
+app.AutocreatejunkunitsButton.UserData = 1;
 end

@@ -50,12 +50,13 @@ for ii=unitNames
     figs.spikeAx(ii) = subplott(sp,numFigsX,floor((ii-1)/numFigsX)*numFigsX+ii);
     iiCmap=cmap(rem(ii-1,25)+1,:);
     
-    devBool = app.d.devMatrix(:,ii) < app.p.t.add2UnitThr(1)^2;
+    devBool = app.d.devMatrix(:,ii) < figs.f.UserData{2}(ii)*app.d.thr(1)^2;
     devBoolUnit = devBool & (I == ii);
     numAssignedToUnit = nnz(devBoolUnit);
     
     % plot all lines but make it invisible
-    figs.spikeP{ii} = plot(figs.spikeAx(ii),app.w(:,:,app.p.m.mainCh)','Color',iiCmap,'Visible','off');
+    figs.spikeP{ii} = line(figs.spikeAx(ii),1:size(app.w,2),app.w(:,:,app.p.m.mainCh)',...
+        'Visible','off'); %'Color',iiCmap
     [figs.spikeP{ii}(devBoolUnit).Visible] = deal('on');
     figs.f.UserData{3}(ii,:) = devBoolUnit;
     
@@ -69,16 +70,18 @@ for ii=unitNames
     unitVal=ii;
     figs.sptitle(ii) = title(figs.spikeAx(ii),"Unit "+ unitVal +...
         " - " + string(numAssignedToUnit),'Color',iiCmap);
-    ylabel(figs.spikeAx(ii),"Amplitude (uV)");
+    
+    xlim(figs.spikeAx(ii),[1,size(app.w,2)]);
     ylim(figs.spikeAx(ii),yl);
     
     % get total number of spikes assigned
     numAssignedTotal = numAssignedTotal + numAssignedToUnit;
 end
+ylabel(figs.spikeAx(1),"Amplitude (uV)");
 
 % big figure title with updating spike assignment tally
 figs.title = sgtitle(figs.f,"Drag the red bar on the histograms to assign spikes to units" + ...
-    " - Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)) + "ENTER to accept, close/ESC to quit");
+    " - Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)) + "   ENTER to accept, close/ESC to quit");
 
 % make deviation histogram subplots
 for ii=unitNames
@@ -86,7 +89,7 @@ for ii=unitNames
     disableDefaultInteractivity(figs.histosAx(ii));
     
     devScaled = app.d.devMatrix(:,ii);
-    figs.histos(ii) = histogram(figs.histosAx(ii), devScaled, 'Linestyle','none','BinWidth',0.05);
+    figs.histos(ii) = histogram(figs.histosAx(ii), devScaled, 'Linestyle','none','BinWidth',app.histBinEditField.Value);
     hold(figs.histosAx(ii),'on');
     
     xlim(xlim(figs.histosAx(ii)));
@@ -94,8 +97,12 @@ for ii=unitNames
     
     axMax = ylim(figs.histosAx(ii));
     axMax = axMax(2);
-    figs.userLine(ii) = plot(figs.histosAx(ii),[app.p.t.add2UnitThr(1)^2/figs.f.UserData{2}(ii),...
-        app.p.t.add2UnitThr(1)^2/figs.f.UserData{2}(ii)], [0 axMax],'r'); % default scaling line
+%     figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2/figs.f.UserData{2}(ii),...
+%         app.d.thr^2/figs.f.UserData{2}(ii)], [1 axMax],'r'); % default scaling line
+    figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2*figs.f.UserData{2}(ii),...
+        app.d.thr^2*figs.f.UserData{2}(ii)], [1 axMax],'r'); % default scaling line
+    set(figs.histosAx(ii), 'YScale', 'log')
+    xlim(figs.histosAx(ii),[app.xlim1EditField.Value app.xlim2EditField.Value]);
     figs.histosAx(ii).UserData = ii; % used for getting axes clicked
     figs.histos(ii).UserData = ii; % used for getting axes clicked
     
@@ -104,10 +111,9 @@ for ii=unitNames
     figs.histosAx(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
     figs.histos(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
     
-    ylabel(figs.histosAx(ii),"Frequency");
     xlabel(figs.histosAx(ii),"Disimillarity");
 end
-
+ylabel(figs.histosAx(1),"Frequency");
 [pressedEnter, figData] = getFigData(figs.f);
 
 end
@@ -132,12 +138,12 @@ end
 
 %%
 function [] = buttonHeldHistos(~,~,h,app)
-updateFigures(h,app);
+updateFigures(h,app,0);
 end
 
 %%
 function [] = buttonUpHistos(~,~,h,app,cmap)
-updateFigures(h,app);
+updateFigures(h,app,1);
 
 numAssignedTotal = 0;
 
@@ -152,13 +158,12 @@ end
 
 h.title = sgtitle(h.f,"Drag the red bar on the histograms to assign spikes to units" + ...
     " - Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)));
-app.ScalingTable.Data.Scaling = h.f.UserData{2};
 h.f.WindowButtonMotionFcn = [];
 h.f.WindowButtonUpFcn = [];
 end
 
 %%
-function h = updateFigures(h,app)
+function h = updateFigures(h,app,mode)
 axNum = get(gca,'UserData');
 ax = h.histosAx(axNum);
 lAllowed = app.ScalingTable.Data.LossLock;
@@ -171,16 +176,19 @@ mousePoint = mousePoint(1,1);
 if mousePoint <= 0
     mousePoint = eps;
 end
+h.f.UserData{2}(axNum) = mousePoint/app.d.thr(1)^2;
 
-scaler = app.p.t.add2UnitThr(1)^2/mousePoint;
+% scaler = app.p.t.add2UnitThr(1)^2*mousePoint;
+% devScaled = h.f.UserData{1};
+% devScaled(:,axNum) = app.d.devMatrix(:,axNum).*scaler;
 devScaled = h.f.UserData{1};
-devScaled(:,axNum) = app.d.devMatrix(:,axNum).*scaler;
 for ii = 1:size(devScaled,1)
     if ~any(h.f.UserData{3}(:,ii)) || lAllowed(h.f.UserData{3}(:,ii))
+        h.f.UserData{3}(:,ii) = false;
         [~, idx] = sort(devScaled(ii,:));
         for jj = idx
-            if devScaled(ii,jj) < app.p.t.add2UnitThr(1)^2 && gAllowed(jj)
-                h.f.UserData{3}(:,ii) = false;
+%             if devScaled(ii,jj) < app.p.t.add2UnitThr(1)^2 && gAllowed(jj)
+            if devScaled(ii,jj) < h.f.UserData{2}(jj)*app.d.thr(1)^2 && gAllowed(jj)
                 h.f.UserData{3}(jj,ii) = true;
                 break;
             end
@@ -188,9 +196,15 @@ for ii = 1:size(devScaled,1)
     end
 end
 
-h.f.UserData{1} = devScaled;
-h.f.UserData{2}(axNum) = scaler;
-for ii = 1:length(h.spikeP)
+% h.f.UserData{1} = devScaled;
+% h.f.UserData{2}(axNum) = scaler;
+
+if mode == 0
+    range = axNum;
+else
+    range = 1:length(h.spikeP);
+end
+for ii = range
     [h.spikeP{ii}(h.f.UserData{3}(ii,:)).Visible] = deal('on');
     [h.spikeP{ii}(~h.f.UserData{3}(ii,:)).Visible] = deal('off');
 end

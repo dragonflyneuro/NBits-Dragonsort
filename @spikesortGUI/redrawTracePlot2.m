@@ -15,9 +15,11 @@ for ii = 1:4
 end
 ht.UserData = []; % Used for storing selected orphans
 
-[orphanSpikes, orphansIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+r = getBatchRange(app);
+numSpikes = nnz(r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2));
+[orphanSpikes, orphansIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
 app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
-    string(app.t.numSpikesInBatch(c)-length(orphansIdx)) + "/" + app.t.numSpikesInBatch(c);
+    string(numSpikes-length(orphansIdx)) + "/" + numSpikes;
 
 % main data line
 app.pRaw = plotBig(ht, app.msConvert*(1:size(app.xi,2)), app.xi(app.m.mainCh,:),'Color','b');
@@ -91,7 +93,7 @@ end
 % draw markers on data line for unit spikes
 d = 1;
 for ii = 1:length(app.unitArray)
-    unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
+    unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(r);
     tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
     if ~isempty(tempUnit)
         [ms, msSize] = getMarker(size(app.cmap,1), ii);
@@ -127,7 +129,7 @@ function boxClick(~,evt,app,h)
 if isempty(app.pUnassigned)
     return;
 end
-if app.interactingFlag(1)
+if app.interactingFlag(1) ~= 0
     return;
 end
 % get clicked coordinates
@@ -171,7 +173,7 @@ end
 
 % allow selection of orphans in Trace
 function clickedUnassigned(~,evt,app,h)
-if app.interactingFlag(1)
+if app.interactingFlag(1) ~= 0
     return;
 end
 u = evt.IntersectionPoint;
@@ -200,7 +202,7 @@ function clickedAssigned(src,evt,app,hl)
 if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData))
     return;
 end
-if app.interactingFlag(1)
+if app.interactingFlag(1) ~= 0
     return;
 end
 

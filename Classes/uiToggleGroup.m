@@ -28,7 +28,13 @@ classdef uiToggleGroup < handle
                 obj.bH(ii).Value = false;
                 obj.bH(ii).ValueChangedFcn = @obj.buttonPushed;
             end
-            obj.bH(1).Value = true;
+            
+            if nargin > 2
+                obj.bH(varargin{2}).Value = true;
+            else
+                obj.bH(1).Value = true;
+            end
+            
         end
         
         function ud = getUserData(obj)

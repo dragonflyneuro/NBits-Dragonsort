@@ -1,0 +1,15 @@
+# ninja log v5
+71	721	6286822782006578	build/win64/rt_nonfinite.obj	3c50aa37368c5635
+724	859	6286822783383382	build/win64/cpp_mexapi_version.obj	ad30e024740958a9
+862	1041	6286822785232788	build/win64/_coder_splitconv_info.obj	f1de03e417409aca
+0	2176	6286822796502289	build/win64/splitconv_data.obj	ea500efe570935f0
+87	2190	6286822796612255	build/win64/splitconv_terminate.obj	2c466b6d728b6810
+103	2214	6286822796792192	build/win64/_coder_splitconv_mex.obj	bfc79f360cd2f9fa
+80	2233	6286822796842177	build/win64/splitconv_initialize.obj	c5038599c73a76dc
+95	2452	6286822799101447	build/win64/splitconv.obj	2c800a7d4ac77711
+1043	2717	6286822801660622	build/win64/tconv.obj	1d83319082be202e
+2177	2844	6286822803240123	build/win64/anyNonFinite.obj	11da20c72cbadad3
+2215	2850	6286822803320092	build/win64/eml_int_forloop_overflow_check.obj	2c91deb2c7181ce9
+2191	2859	6286822803400065	build/win64/indexShapeCheck.obj	535e19f883d8e2d5
+2235	2916	6286822803969875	build/win64/_coder_splitconv_api.obj	a11a11ac6cc7ec80
+2917	3592	6286822809567498	splitconv_mex.mexw64	a9754bde75b01f5b
