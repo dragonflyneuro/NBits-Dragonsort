@@ -33,7 +33,7 @@ end
 r = getBatchRange(app);
 oldSpikeBool = r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2);
 if length(offsetSpikes) ~= sum(oldSpikeBool)
-    if r(2) < app.t.rawSpikeSample(1)
+    if isempty(app.t.rawSpikeSample) || r(2) < app.t.rawSpikeSample(1)
         app.t.rawSpikeSample = [offsetSpikes, app.t.rawSpikeSample];
     elseif r(1) > app.t.rawSpikeSample(end)
         app.t.rawSpikeSample = [app.t.rawSpikeSample, offsetSpikes];

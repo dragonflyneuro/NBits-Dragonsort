@@ -125,7 +125,7 @@
             app.CallingApp = mainapp;
             app.InitialiseButton.Enable = 'off';
             
-            app.toggles = uiToggleGroup([app.LowpassButton,app.HighpassButton,app.BandpassButton,app.NotchButton],1:5,2);
+            app.toggles = uiToggleGroup([app.NoneButton,app.LowpassButton,app.HighpassButton,app.BandpassButton,app.NotchButton],1:5,4);
             
             xlabel(app.UIAxes,[]);
             ylabel(app.UIAxes,[]);
@@ -279,7 +279,6 @@
             else
                 app.CutoffsEditField.Value = parseToArray("");
             end
-            updateFig(app)
             
         end
 
@@ -447,7 +446,7 @@
             app.NewtemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.NewtemplateEditField.Layout.Row = 12;
             app.NewtemplateEditField.Layout.Column = 4;
-            app.NewtemplateEditField.Value = 0.7;
+            app.NewtemplateEditField.Value = 0.3;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2);
@@ -460,7 +459,7 @@
             app.AddtotemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.AddtotemplateEditField.Layout.Row = 13;
             app.AddtotemplateEditField.Layout.Column = 4;
-            app.AddtotemplateEditField.Value = 0.7;
+            app.AddtotemplateEditField.Value = 0.3;
 
             % Create SuffixtoputonsaveddataEditFieldLabel
             app.SuffixtoputonsaveddataEditFieldLabel = uilabel(app.GridLayout2);
@@ -618,7 +617,7 @@
             app.CutoffsEditField.ValueChangedFcn = createCallbackFcn(app, @CutoffsEditFieldValueChanged, true);
             app.CutoffsEditField.Layout.Row = 6;
             app.CutoffsEditField.Layout.Column = [3 4];
-            app.CutoffsEditField.Value = '[300]';
+            app.CutoffsEditField.Value = '[300,15000]';
 
             % Create CustomLabel
             app.CustomLabel = uilabel(app.GridLayout);

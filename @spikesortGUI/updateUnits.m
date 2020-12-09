@@ -1,5 +1,6 @@
 function [] = updateUnits(app, d, opt)
-
+[num,newAssignments]=max(d.spikeAssignmentUnit,[],2);
+newAssignments(num == 0) = 0;
 if ~opt
     for ii = 1:length(app.unitArray)
         [~, ~, idx] = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
@@ -10,8 +11,8 @@ end
 sWaves = app.rawSpikeWaves(batchIdx,:,:);
 for ii = 1:length(app.unitArray)
     app.unitArray(ii).refineSettings = d.scaleArray(ii);
-    app.unitArray = app.unitArray.refinedSpikeAdder(ii,sTimes(d.spikeAssignmentUnit == ii),...
-        sWaves(d.spikeAssignmentUnit == ii,:,:));
+    app.unitArray = app.unitArray.refinedSpikeAdder(ii,sTimes(newAssignments == ii),...
+        sWaves(newAssignments == ii,:,:));
 end
 app.unitArray = app.unitArray.unitSorter();
 app.t.add2UnitThr(1) = d.thr;

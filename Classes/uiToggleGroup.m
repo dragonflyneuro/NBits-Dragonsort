@@ -10,7 +10,7 @@ classdef uiToggleGroup < handle
             else
                 ud = [];
             end
-            if ~isempty(ud) && length(h) ~= length(ud)
+            if isempty(ud) || length(h) ~= length(ud)
                 return
             end
             

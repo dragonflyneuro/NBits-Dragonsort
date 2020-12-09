@@ -1,4 +1,4 @@
-function d = newDeviationRefine(t, uA, orphanWaves, range, numTemplates, sRate, scaleArray, d)
+function [devMatrix, tempWavesSet, spikeAssignment] = newDeviationRefine(t, uA, orphanWaves, range, numTemplates, sRate, scalings, d)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calculates the deviation indices of unassigned waves to the currently
 % present units in Dragonsort. Then scales the deviation indices up/down
@@ -19,31 +19,18 @@ function d = newDeviationRefine(t, uA, orphanWaves, range, numTemplates, sRate, 
 % d = Dragonsort refine structure
 
 thr = t.add2UnitThr(1);
-
-if isfield(d, 'devMatrix')
-    devMatrix = d.devMatrix;
-    prevAssignment = d.spikeAssignmentUnit; %keep the very last spike assignment for reference
-else
-    [devMatrix, d.tempWavesSet] = newGetDevMatrix(t, uA, orphanWaves, range, numTemplates, sRate, 0);
-    prevAssignment = zeros(size(orphanWaves,1),1);
-end
-
-spikeAssignmentUnit=zeros(size(orphanWaves,1),1); %reinitialize the spike_clusters
+[devMatrix, tempWavesSet] = newGetDevMatrix(t, uA, orphanWaves, range, numTemplates, sRate, 0);
+spikeAssignment = false(size(orphanWaves,1),length(uA)); %reinitialize the spike_clusters
 %% determine the template deviation cutoff
-
-for ii=1:length(uA)
-    devScaled(:,ii)=devMatrix(:,ii)*scaleArray(ii); %scale the deviation matrix
+for ii = 1:length(uA)
+    devScaled(:,ii) = devMatrix(:,ii)/scalings(ii);
 end
-[reassigned, ~] = find(devScaled < thr^2);
-tempDev = devScaled(reassigned,:); %gather all the spikes that can be distributed
-[~,redisClustNum] = min(tempDev,[],2); %make sure we go for the minimum deviation
-
-if ~isempty(reassigned)
-    spikeAssignmentUnit(reassigned)=redisClustNum; %distribute the spike
+[~,minimumDevIdx] = min(devScaled,[],2); %make sure we go for the minimum deviation
+candidateBool = devScaled < thr^2;
+for ii = 1:size(candidateBool,1)
+    if candidateBool(ii,minimumDevIdx(ii))
+        spikeAssignment(ii,minimumDevIdx(ii)) = true;
+    end
 end
-
-d.prevAssignment = prevAssignment;
-d.spikeAssignmentUnit = spikeAssignmentUnit;
-d.devMatrix = devMatrix;
 
 end

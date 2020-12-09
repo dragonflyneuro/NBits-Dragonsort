@@ -333,7 +333,6 @@
             app.basicModes = uiToggleGroup([app.SelectedButton, app.PlottedButton, app.BatchButton],...
                 ["selected","plotted","batch"]);
             
-            
         end
 
         % Menu selected function: InitialiseMenu
@@ -610,9 +609,10 @@
             app.updateDropdown();
             app.LeftUnitDropDown.Value = string(length(app.unitArray));
             app.LTitle.Value ="";
-            app.redrawUnitPlots2(app.figureHandles);
             
+            app.redrawUnitPlots2(app.figureHandles);
             app.StatusLabel.Value = "Ready";
+            app.addHistory();
             
         end
 
@@ -620,8 +620,8 @@
         % AutocreateunitsButton
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
-            
-            [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+            range = getBatchRange(app);
+            [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
             orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
             
             if isempty(orphanSpikes)
@@ -643,9 +643,8 @@
             end
             
             % generate units
-            y = app.xi(app.m.mainCh,orphanSpikes);
-            ass = autoCreateUnits(orphanWaves, y, app.t.add2UnitThr(2), ...
-                app.m.sRateHz, str2double(answer), d, app.FuzzyButton.Value);
+            y = app.xi(app.m.mainCh,orphanSpikes-range(1));
+            ass = autoCreateUnits(orphanWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, str2double(answer), d, app.FuzzyButton.Value);
             
             for ii = 1:length(ass)
                 I = ass == ii;
@@ -835,8 +834,6 @@
                 orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
                 
                 % assign spikes to units, if within deviation threshold
-                app.m.sRateHz, app.t.add2UnitThr(2), app.FuzzyButton.Value
-                
                 templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
                 r = getBatchRange(app, app.currentBatch+templateBatches);
                 
@@ -867,13 +864,16 @@
             % stop user from interacting with main GUI while refining
             app.switchButtons(0);
             app.switchButtons(2);
-
+        
             % input variables to refineGUI
+            r = getBatchRange(app);
+            
             packet.xi = app.xi;
             packet.m = app.m;
             packet.unitArray = app.unitArray;
             packet.t = app.t;
             packet.rawSpikeWaves = app.rawSpikeWaves;
+            packet.rawSpikeWavesTimes = app.t.rawSpikeSample(r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2));
             packet.currentBatch = app.currentBatch;
             packet.yL = [app.yLimLowField.Value, app.yLimHighField.Value];
             
@@ -1260,9 +1260,6 @@
                     'Icon','warning','DefaultOption',2);
                 if strcmpi(answer, "CANCEL")
                     return;
-                else
-                    app.t = rmfield(app.t, "importedEventFileName");
-                    app.t = rmfield(app.t, "importedEventBounds");
                 end
             end
             
@@ -1280,13 +1277,12 @@
             
             [app.t.importedEventBounds, app.StatusLabel.Value] = importEventData([fP, fN]);
             app.VieweventmarkersButton.Enable = 1;
-            app.VieweventmarkersButton.Value = 0;
+            app.VieweventmarkersButton.Value = 1;
             for ii = 1:length(app.pEvent)
                 delete(app.pEvent(ii));
             end
             
-            app.StatusLabel.Value = "Ready";
-            app.addHistory();
+            standardUpdate(app);
         end
 
         % Value changed function: VieweventmarkersButton
@@ -2308,6 +2304,7 @@
             % Create ImportspikeshapeweightingdataButton
             app.ImportspikeshapeweightingdataButton = uibutton(app.GridLayout5, 'push');
             app.ImportspikeshapeweightingdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeButtonPushed, true);
+            app.ImportspikeshapeweightingdataButton.Enable = 'off';
             app.ImportspikeshapeweightingdataButton.Layout.Row = 4;
             app.ImportspikeshapeweightingdataButton.Layout.Column = [1 2];
             app.ImportspikeshapeweightingdataButton.Text = {'Import spike shape'; 'weighting data'};

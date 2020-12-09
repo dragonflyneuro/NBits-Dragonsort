@@ -22,10 +22,10 @@ classdef unit < handle
             end
 
             if nargin > 3
-                obj.loadedTemplateMapping.originFile = varargin{7};
-                obj.loadedTemplateMapping.harvestLocation = varargin{6};
-                obj.loadedTemplateMapping.originUnit = varargin{5};
-                obj.loadedTemplateWaves = varargin{4};
+                obj.loadedTemplateMapping.originFile = varargin{4};
+                obj.loadedTemplateMapping.harvestLocation = varargin{5};
+                obj.loadedTemplateMapping.originUnit = varargin{6};
+                obj.loadedTemplateWaves = varargin{7};
             end
 
             if nargin > 2

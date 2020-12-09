@@ -17,92 +17,144 @@ function [pressedEnter, figData] = graphicScaling(app)
 % OUTPUT
 % f = figure handle of refinePlot
 
+subplott = @(m,n,p) subtightplot (m, n, p, [0.02 0.015], [0.06 0.03], [0.025 0.025]);
+
 % make figure window and set size
 figs.f = figure;
 set(figs.f, 'MenuBar', 'none');
 set(figs.f, 'ToolBar', 'none');
-figs.f.UserData{1} = app.d.devMatrix;
-figs.f.UserData{2} = app.ScalingTable.Data.Scaling;
-figs.f.UserData{3} = false(size(app.d.devMatrix'));
+figs.f.UserData{1} = app.ScalingTable.Data.Scaling;
+figs.f.UserData{2} = app.d.spikeAssignmentUnit;
 
-width = 1600;
-height = 900;
+width = 1850;
+height = 1000;
 set(figs.f, 'Position',  [(1920-width)/2, (1080-height)/2, width, height]);
-yl = [min(app.w(:,:,app.p.m.mainCh),[],'all')-10, max(app.w(:,:,app.p.m.mainCh),[],'all')+10];
 
 % get colourmaps and set up subplot formatting
 unitNames = 1:length(app.p.unitArray);
-numFigsX = 6;
+numCols = 6;
 
 cmap = distinguishable_colors(28);
 cmap = cmap([2:3, 5:18, 20:end],:);
-sp = ceil(length(unitNames)*2/numFigsX)+1;
-subplott = @(m,n,userLine) subtightplot (m, n, userLine, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
-
-numAssignedTotal = 0;
+sizeMulti = 5;
+numRows = ceil(2*length(unitNames)/numCols)*sizeMulti+1;
+if app.ShowtraceButton.Value == 1
+    numRows = numRows+1;
+end
 
 % get initial wave to unit assignments
-[~,I] = min(app.d.devMatrix,[],2);
+numAssignedTotal = 0;
+yl = [0, 0];
 
+% TRACE
+if app.ShowtraceButton.Value == 1
+    figs.trace = subplott(numRows,numCols,[(numRows-2)*numCols+(floor(numCols/2)+1:numCols),...
+        (numRows-1)*numCols+(floor(numCols/2)+1:numCols)]);
+    line(figs.trace,1:size(app.p.xi,2),app.p.xi(app.p.m.mainCh,:));
+    range = getBatchRange(app.CallingApp);
+    orphanTimes = app.wTimes-range(1);
+    line(figs.trace, orphanTimes, app.p.xi(app.p.m.mainCh,orphanTimes),...
+        'Color', 'k', 'Marker', '.', 'LineStyle', 'none', 'MarkerSize',3);
+    
+    if app.LockoriginalButton.Value ~= 0
+        for ii = unitNames
+            iiCmap = cmap(rem(ii-1,25)+1,:);
+            [ms, msSize] = getMarker(size(cmap,1), ii);
+            unitSpikesInBatch = app.p.unitArray(ii).getAssignedSpikes(range);
+            tempUnit = unitSpikesInBatch - range(1);
+            line(figs.trace, tempUnit, app.p.xi(app.p.m.mainCh,tempUnit), ...
+                'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize/2, 'Color', iiCmap);
+        end
+    end
+    yticks(figs.trace,[]);
+    xticks(figs.trace,[]);
+    title(figs.trace, "Drag the red bar on the histograms to assign spikes to units");
+    figs.assignedOnTrace = gobjects(size(unitNames));
+end
 
 % make waves suplots
-for ii=unitNames
-    figs.spikeAx(ii) = subplott(sp,numFigsX,floor((ii-1)/numFigsX)*numFigsX+ii);
-    iiCmap=cmap(rem(ii-1,25)+1,:);
-    
-    devBool = app.d.devMatrix(:,ii) < figs.f.UserData{2}(ii)*app.d.thr(1)^2;
-    devBoolUnit = devBool & (I == ii);
-    numAssignedToUnit = nnz(devBoolUnit);
+for ii = unitNames
+    iiCmap = cmap(rem(ii-1,25)+1,:);
+    loc = 1+rem(ii-1,numCols/2)+sizeMulti*numCols*floor(2*(ii-1)/numCols);
+    figs.spikeAx(ii) = subplott(numRows,numCols,[loc, loc+numCols*(sizeMulti-1)]);
     
     % plot all lines but make it invisible
     figs.spikeP{ii} = line(figs.spikeAx(ii),1:size(app.w,2),app.w(:,:,app.p.m.mainCh)',...
-        'Visible','off'); %'Color',iiCmap
-    [figs.spikeP{ii}(devBoolUnit).Visible] = deal('on');
-    figs.f.UserData{3}(ii,:) = devBoolUnit;
+        'Visible','off');%,'Color',[iiCmap, 0.5]
+    [figs.spikeP{ii}(figs.f.UserData{2}(:,ii)).Visible] = deal('on');
     
     hold(figs.spikeAx(ii),'on');
     
     % plot mean wave
     templateWave = mean(app.d.tempWavesSet{ii}(:,:,app.p.m.mainCh),1);
     plot(figs.spikeAx(ii),templateWave,'Color',[0.2 0.2 0.2],'LineWidth',1);
+    yl(1) = min([yl(1), min(templateWave)-100]);
+    yl(2) = max([yl(2), max(templateWave)+100]);
     
     % titling, axes labeling and limit setting
-    unitVal=ii;
-    figs.sptitle(ii) = title(figs.spikeAx(ii),"Unit "+ unitVal +...
-        " - " + string(numAssignedToUnit),'Color',iiCmap);
-    
     xlim(figs.spikeAx(ii),[1,size(app.w,2)]);
+    xticks(figs.spikeAx(ii),[]);
+    if rem(ii,numCols/2) ~= 1
+        yticks(figs.spikeAx(ii),[]);
+    end
+    figs.sptitle(ii) = title(figs.spikeAx(ii),"Unit "+ ii +...
+        " - " + string(sum(figs.f.UserData{2}(:,ii))),'Color',iiCmap);
+    
+    if app.ShowtraceButton.Value == 1
+        [ms, msSize] = getMarker(size(cmap,1), ii);
+        wT = app.wTimes(figs.f.UserData{2}(:,ii)) - range(1);
+        if ~isempty(wT)
+            figs.assignedOnTrace(ii) = line(figs.trace, wT, app.p.xi(app.p.m.mainCh,wT), ...
+                        'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize/2, 'Color', iiCmap);
+        end
+    end
+            
+    % get total number of spikes assigned
+    numAssignedTotal = numAssignedTotal + sum(figs.f.UserData{2}(:,ii));
+end
+if ~isinf(app.p.yL(1))
+    yl(1) = app.p.yL(1);
+end
+if ~isinf(app.p.yL(2))
+    yl(2) = app.p.yL(2);
+end
+if app.ShowtraceButton.Value == 1
+    ylim(figs.trace,yl);
+end
+
+% HISTOGRAM
+xMax = 0;
+for ii = unitNames
+    iiCmap = cmap(rem(ii-1,25)+1,:);
     ylim(figs.spikeAx(ii),yl);
     
-    % get total number of spikes assigned
-    numAssignedTotal = numAssignedTotal + numAssignedToUnit;
-end
-ylabel(figs.spikeAx(1),"Amplitude (uV)");
-
-% big figure title with updating spike assignment tally
-figs.title = sgtitle(figs.f,"Drag the red bar on the histograms to assign spikes to units" + ...
-    " - Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)) + "   ENTER to accept, close/ESC to quit");
-
-% make deviation histogram subplots
-for ii=unitNames
-    figs.histosAx(ii) = subplott(sp,numFigsX,floor((ii-1)/numFigsX)*numFigsX+ii+numFigsX);
+    loc = 1+rem(ii-1,numCols/2)+numCols/2+sizeMulti*numCols*floor(2*(ii-1)/numCols);
+    figs.histosAx(ii) = subplott(numRows,numCols,[loc, loc+numCols*(sizeMulti-1)]);
     disableDefaultInteractivity(figs.histosAx(ii));
     
-    devScaled = app.d.devMatrix(:,ii);
-    figs.histos(ii) = histogram(figs.histosAx(ii), devScaled, 'Linestyle','none','BinWidth',app.histBinEditField.Value);
+    if app.AutoButton.Value == 1
+        binSize = min([0.01, 20/size(app.d.devMatrix,2)]);
+    else
+        binSize = app.histBinEditField.Value;
+    end
+    figs.histos(ii) = histogram(figs.histosAx(ii), app.d.devMatrix(:,ii), 'Linestyle','none','BinWidth',binSize);
     hold(figs.histosAx(ii),'on');
     
-    xlim(xlim(figs.histosAx(ii)));
-    ylim(ylim(figs.histosAx(ii)));
+    xlim(figs.histosAx(ii),xlim(figs.histosAx(ii)));
+    xMaxTemp = xlim(figs.histosAx(ii));
+    xMax = max([xMaxTemp, xMax]);
     
-    axMax = ylim(figs.histosAx(ii));
-    axMax = axMax(2);
-%     figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2/figs.f.UserData{2}(ii),...
-%         app.d.thr^2/figs.f.UserData{2}(ii)], [1 axMax],'r'); % default scaling line
-    figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2*figs.f.UserData{2}(ii),...
-        app.d.thr^2*figs.f.UserData{2}(ii)], [1 axMax],'r'); % default scaling line
+    ylim(figs.histosAx(ii),ylim(figs.histosAx(ii)));
+    yMax = ylim(figs.histosAx(ii));
+    yMax = yMax(2);
+    
+    figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2*figs.f.UserData{1}(ii),...
+        app.d.thr^2*figs.f.UserData{1}(ii)], [1 yMax],'r'); % default scaling line
     set(figs.histosAx(ii), 'YScale', 'log')
-    xlim(figs.histosAx(ii),[app.xlim1EditField.Value app.xlim2EditField.Value]);
+    xlim(figs.histosAx(ii),[0 2]);
+    xticks(figs.histosAx(ii),[]);
+    title(figs.histosAx(ii),"Unit "+ ii, 'Color',iiCmap);
+    
     figs.histosAx(ii).UserData = ii; % used for getting axes clicked
     figs.histos(ii).UserData = ii; % used for getting axes clicked
     
@@ -110,12 +162,38 @@ for ii=unitNames
     figs.userLine(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
     figs.histosAx(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
     figs.histos(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
-    
-    xlabel(figs.histosAx(ii),"Disimillarity");
 end
-ylabel(figs.histosAx(1),"Frequency");
-[pressedEnter, figData] = getFigData(figs.f);
 
+% SLIDERS
+if app.ShowtraceButton.Value == 1
+    figs.histSlider = subplott(numRows,numCols,(numRows-1)*numCols+(1:floor(numCols/2)));
+    figs.spikeSlider = subplott(numRows,numCols,(numRows-2)*numCols+(1:floor(numCols/2)));
+    titleT = "Disimilarity histogram view range";
+    labelT = [];
+else
+    figs.histSlider = subplott(numRows,numCols,(numRows-1)*numCols+(floor(numCols/2)+1:numCols));
+    figs.spikeSlider = subplott(numRows,numCols,(numRows-1)*numCols+(1:floor(numCols/2)));
+    labelT = "Disimilarity histogram view range";
+    titleT = "Drag the red bar on the histograms to assign spikes to units";
+end
+
+makeROISlider(figs.histSlider,labelT,titleT,...
+    [0, min([10,xMax])], 0:0.5:xMax, [0, 2],...
+    @(x)setProp(figs.histosAx,@xlim,x));
+
+figs.title = makeROISlider(figs.spikeSlider,"Spike amplitude view range",...
+    "Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)) + "  ENTER to accept, close/ESC to quit",...
+    [200*floor(yl(1)/200),200*ceil(yl(2)/200)], 200*floor(yl(1)/200):200:200*ceil(yl(2)/200), yl,...
+    @(x)setProp(figs.spikeAx,@ylim,x));
+
+[pressedEnter, figData] = getFigData(figs.f);
+end
+
+%%
+function [] = setProp(h,func,val)
+for ii = 1:length(h)
+    func(h(ii),val);
+end
 end
 
 %%
@@ -146,20 +224,31 @@ function [] = buttonUpHistos(~,~,h,app,cmap)
 updateFigures(h,app,1);
 
 numAssignedTotal = 0;
-
 for ii = 1:length(h.spikeAx)
-    iiCmap=cmap(rem(ii-1,25)+1,:);
-    numAssignedToUnit = nnz(h.f.UserData{3}(ii,:));
-    numAssignedTotal = numAssignedTotal + numAssignedToUnit;
+    iiCmap = cmap(rem(ii-1,25)+1,:);
+    numAssignedTotal = numAssignedTotal + sum(h.f.UserData{2}(:,ii));
     
     h.sptitle(ii) = title(h.spikeAx(ii),"Unit " + ii +...
-        " - " + string(numAssignedToUnit),'Color',iiCmap);
+        " - " + string(sum(h.f.UserData{2}(:,ii))),'Color',iiCmap);
+    
+    if app.ShowtraceButton.Value == 1
+        [ms, msSize] = getMarker(size(cmap,1), ii);
+        range = getBatchRange(app.CallingApp);
+        wT = app.wTimes(h.f.UserData{2}(:,ii)) - range(1);
+        delete(h.assignedOnTrace(ii));
+        if ~isempty(wT)
+            h.assignedOnTrace(ii) = line(h.trace, wT, app.p.xi(app.p.m.mainCh,wT), ...
+                        'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize/2, 'Color', iiCmap);
+        end
+    end
+
 end
 
-h.title = sgtitle(h.f,"Drag the red bar on the histograms to assign spikes to units" + ...
-    " - Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)));
+h.title.String = " - Assigned " + string(numAssignedTotal) + "/" +...
+    string(size(app.w,1)) + "  ENTER to accept, close/ESC to quit";
 h.f.WindowButtonMotionFcn = [];
 h.f.WindowButtonUpFcn = [];
+
 end
 
 %%
@@ -176,28 +265,21 @@ mousePoint = mousePoint(1,1);
 if mousePoint <= 0
     mousePoint = eps;
 end
-h.f.UserData{2}(axNum) = mousePoint/app.d.thr(1)^2;
+h.f.UserData{1}(axNum) = mousePoint/app.d.thr(1)^2;
 
-% scaler = app.p.t.add2UnitThr(1)^2*mousePoint;
-% devScaled = h.f.UserData{1};
-% devScaled(:,axNum) = app.d.devMatrix(:,axNum).*scaler;
-devScaled = h.f.UserData{1};
-for ii = 1:size(devScaled,1)
-    if ~any(h.f.UserData{3}(:,ii)) || lAllowed(h.f.UserData{3}(:,ii))
-        h.f.UserData{3}(:,ii) = false;
-        [~, idx] = sort(devScaled(ii,:));
+devM = app.d.devMatrix;
+for ii = 1:size(devM,1)
+    if ~any(h.f.UserData{2}(ii,:)) || lAllowed(h.f.UserData{2}(ii,:))
+        h.f.UserData{2}(ii,:) = false;
+        [~, idx] = sort(devM(ii,:));
         for jj = idx
-%             if devScaled(ii,jj) < app.p.t.add2UnitThr(1)^2 && gAllowed(jj)
-            if devScaled(ii,jj) < h.f.UserData{2}(jj)*app.d.thr(1)^2 && gAllowed(jj)
-                h.f.UserData{3}(jj,ii) = true;
+            if devM(ii,jj) < h.f.UserData{1}(jj)*app.d.thr(1)^2 && gAllowed(jj)
+                h.f.UserData{2}(ii,jj) = true;
                 break;
             end
         end
     end
 end
-
-% h.f.UserData{1} = devScaled;
-% h.f.UserData{2}(axNum) = scaler;
 
 if mode == 0
     range = axNum;
@@ -205,8 +287,8 @@ else
     range = 1:length(h.spikeP);
 end
 for ii = range
-    [h.spikeP{ii}(h.f.UserData{3}(ii,:)).Visible] = deal('on');
-    [h.spikeP{ii}(~h.f.UserData{3}(ii,:)).Visible] = deal('off');
+    [h.spikeP{ii}(h.f.UserData{2}(:,ii)).Visible] = deal('on');
+    [h.spikeP{ii}(~h.f.UserData{2}(:,ii)).Visible] = deal('off');
 end
 
 h.userLine(axNum).XData = [mousePoint,mousePoint];
