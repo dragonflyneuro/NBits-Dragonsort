@@ -1,4 +1,4 @@
-function [devMatrix, templateWavesSet, thr] = newGetDevMatrix(t, uA, orphanWaves, range, numTemplates, sRate, fuzzyBool)
+function [devMatrix, templateWavesSet, thr] = newGetDevMatrix(thr, uA, orphanWaves, range, numTemplates, sRate, fuzzyBool)
 % Daniel Ko (dsk13@ic.ac.uk), Huai-Ti Lin [Feb 2020]
 % Finds deviation index matrix of orphan waves with respect to a set of
 % unit templates.
@@ -25,7 +25,7 @@ templateWavesSet = cell(1,length(uA));
 devMatrix = nan(size(orphanWaves,1),length(uA));
 
 templateP2p = zeros(1,length(uA));
-thr = ones(1,length(uA))*t.add2UnitThr(1)^2;
+thr = ones(1,length(uA))*thr^2;
 
 for ii = 1:length(uA)
     % generate template from unit

@@ -148,8 +148,8 @@ for ii = unitNames
     yMax = ylim(figs.histosAx(ii));
     yMax = yMax(2);
     
-    figs.userLine(ii) = plot(figs.histosAx(ii),[app.d.thr^2*figs.f.UserData{1}(ii),...
-        app.d.thr^2*figs.f.UserData{1}(ii)], [1 yMax],'r'); % default scaling line
+    figs.userLine(ii) = plot(figs.histosAx(ii),[app.thr^2*figs.f.UserData{1}(ii),...
+        app.thr^2*figs.f.UserData{1}(ii)], [1 yMax],'r'); % default scaling line
     set(figs.histosAx(ii), 'YScale', 'log')
     xlim(figs.histosAx(ii),[0 2]);
     xticks(figs.histosAx(ii),[]);
@@ -265,7 +265,7 @@ mousePoint = mousePoint(1,1);
 if mousePoint <= 0
     mousePoint = eps;
 end
-h.f.UserData{1}(axNum) = mousePoint/app.d.thr(1)^2;
+h.f.UserData{1}(axNum) = mousePoint/app.thr^2;
 
 devM = app.d.devMatrix;
 for ii = 1:size(devM,1)
@@ -273,7 +273,7 @@ for ii = 1:size(devM,1)
         h.f.UserData{2}(ii,:) = false;
         [~, idx] = sort(devM(ii,:));
         for jj = idx
-            if devM(ii,jj) < h.f.UserData{1}(jj)*app.d.thr(1)^2 && gAllowed(jj)
+            if devM(ii,jj) < h.f.UserData{1}(jj)*app.thr^2 && gAllowed(jj)
                 h.f.UserData{2}(ii,jj) = true;
                 break;
             end

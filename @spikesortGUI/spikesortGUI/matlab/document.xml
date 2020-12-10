@@ -617,30 +617,44 @@
             
             % ask user for amplitude cutoff point for spikes used in unit generation
             if event.Source.UserData == 0
-                prompt = 'Create k units from spikes with peak amplitude MORE -VE than (uV):';
+                prompt = {'Create k units from spikes with peak amplitude MORE -VE than (uV):',...
+                    'k (expected units + a couple)'};
                 d = 0;
             else
-                prompt = 'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):';
+                prompt = {'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):',...
+                    'k (expected units + a couple)'};
                 d = 1;
             end
             answer = inputdlg(prompt, 'Create units', [1 35]);
+            if answer{2} < 0
+                answer{2} = 3;
+            end
             if isempty(answer)
                 return;
             end
             
             % generate units
             y = app.xi(app.m.mainCh,orphanSpikes-range(1));
-            ass = autoCreateUnits(orphanWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, str2double(answer), d, app.FuzzyButton.Value);
+            [ass, candidates] = autoCreateUnits(orphanWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
+                str2double(answer{1}), str2double(answer{2}), d, app.FuzzyButton.Value);
             
-            for ii = 1:length(ass)
+            if isempty(ass)
+                return;
+            end
+            
+            uAss = unique(ass);
+            uAss(uAss == 0) = [];
+            for ii = uAss
                 I = ass == ii;
-                tempU = unit(orphanSpikes(I), orphanWaves(I,:,:));
+                tempU = unit(orphanSpikes(candidates(I)), orphanWaves(candidates(I),:,:));
                 if event.Source.UserData == 1
                     tempU.tags = "Junk";
                 end
                 app.unitArray = [app.unitArray, tempU];
             end
             
+            app.updateDropdown();
+            app.LeftUnitDropDown.Value = string(str2double(app.LeftUnitDropDown.Value)+1);
             standardUpdate(app);
             
         end
@@ -827,7 +841,7 @@
                 templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
                 r = getBatchRange(app, app.currentBatch+templateBatches);
                 
-                [devMatrix, ~, thr] = newGetDevMatrix(app.t, app.unitArray, orphanWaves, r, ...
+                [devMatrix, ~, thr] = newGetDevMatrix(app.t.add2UnitThr(1), app.unitArray, orphanWaves, r, ...
                     app.m.sRateHz, app.SpikesusedEditField.Value, app.FuzzyButton.Value);
                 
                 [devMins, devMinIdx] = min(devMatrix,[],2);
@@ -1307,6 +1321,15 @@
                 delete(app.refinePop)
                 delete(app.tagPop)
                 delete(app)
+            end
+            
+        end
+
+        % Value changed function: OldField
+        function OldFieldValueChanged(app, event)
+            value = app.OldField.Value;
+            for ii = 1:length(app.unitArray)
+                app.unitArray(ii).refineSettings = app.OldField.PreviousValue*app.unitArray(ii).refineSettings/value;
             end
             
         end
@@ -2056,6 +2079,7 @@
             % Create OldField
             app.OldField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.OldField.Limits = [0 Inf];
+            app.OldField.ValueChangedFcn = createCallbackFcn(app, @OldFieldValueChanged, true);
             app.OldField.Layout.Row = 2;
             app.OldField.Layout.Column = 2;
             app.OldField.Value = 1;

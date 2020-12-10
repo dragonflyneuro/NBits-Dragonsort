@@ -1,4 +1,4 @@
-function [devMatrix, tempWavesSet, spikeAssignment] = newDeviationRefine(t, uA, orphanWaves, range, numTemplates, sRate, scalings, d)
+function [devMatrix, tempWavesSet, spikeAssignment] = newDeviationRefine(thr, uA, orphanWaves, range, numTemplates, sRate, scalings)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calculates the deviation indices of unassigned waves to the currently
 % present units in Dragonsort. Then scales the deviation indices up/down
@@ -18,8 +18,7 @@ function [devMatrix, tempWavesSet, spikeAssignment] = newDeviationRefine(t, uA, 
 % OUTPUT
 % d = Dragonsort refine structure
 
-thr = t.add2UnitThr(1);
-[devMatrix, tempWavesSet] = newGetDevMatrix(t, uA, orphanWaves, range, numTemplates, sRate, 0);
+[devMatrix, tempWavesSet] = newGetDevMatrix(thr, uA, orphanWaves, range, numTemplates, sRate, 0);
 spikeAssignment = false(size(orphanWaves,1),length(uA)); %reinitialize the spike_clusters
 %% determine the template deviation cutoff
 for ii = 1:length(uA)

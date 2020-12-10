@@ -15,7 +15,6 @@ for ii = 1:length(app.unitArray)
         sWaves(newAssignments == ii,:,:));
 end
 app.unitArray = app.unitArray.unitSorter();
-app.t.add2UnitThr(1) = d.thr;
 
 standardUpdate(app)
 figure(app.UIBase);

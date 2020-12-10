@@ -35,6 +35,25 @@
         wTimes
         batchIdx
         maxUnits = 12;
+        thr
+    end
+    
+    methods (Access = private)
+        
+        function [] = getDevMatrix(app)
+            if app.LockoriginalButton.Value == 0
+                app.w = app.p.rawSpikeWaves;
+                app.wTimes = app.p.rawSpikeWavesTimes;
+            else
+                [~, ~, app.batchIdx] = app.p.unitArray.getOrphanSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
+                app.w = app.p.rawSpikeWaves(app.batchIdx, :, :);
+                app.wTimes = app.p.rawSpikeWavesTimes(app.batchIdx);
+            end
+            r = getBatchRange(app.CallingApp, app.p.currentBatch+app.p.templateBatches);
+            [app.d.devMatrix, app.d.tempWavesSet, app.d.spikeAssignmentUnit] = newDeviationRefine(app.thr, ...
+                app.p.unitArray, app.w, r, app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling);
+            app.d.prevAssignment = app.d.spikeAssignmentUnit;
+        end
     end
     
 
@@ -45,6 +64,7 @@
         function startupFcn(app, mainapp, input)
             app.CallingApp = mainapp;
             app.p = input;
+            app.thr = app.p.t.add2UnitThr(1);
             
             temp = [app.p.unitArray.refineSettings]';
             col = unique([app.p.unitArray.tags, "Junk"]);
@@ -76,26 +96,12 @@
             
             app.TagsDropDown.Items = [app.TagsDropDown.Items; app.TagTable.ColumnName];
             
-            app.d.thr = app.p.t.add2UnitThr(1);
+            app.getDevMatrix();
             
         end
 
         % Button pushed function: GraphicalrefineButton
         function GraphicalrefineButtonPushed(app, event)
-            if app.LockoriginalButton.Value == 0
-                app.w = app.p.rawSpikeWaves;
-                app.wTimes = app.p.rawSpikeWavesTimes;
-            else
-                [~, ~, app.batchIdx] = app.p.unitArray.getOrphanSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
-                app.w = app.p.rawSpikeWaves(app.batchIdx, :, :);
-                app.wTimes = app.p.rawSpikeWavesTimes(app.batchIdx);
-            end
-            if ~isfield(app.d,'devMatrix')
-                r = getBatchRange(app.CallingApp, app.p.currentBatch+app.p.templateBatches);
-                [app.d.devMatrix, app.d.tempWavesSet, app.d.spikeAssignmentUnit] = newDeviationRefine(app.p.t, ...
-                    app.p.unitArray, app.w, r, app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling, app.d);
-                app.d.prevAssignment = app.d.spikeAssignmentUnit;
-            end
             
             close all
             [e, newass] = graphicScaling(app);
@@ -111,8 +117,7 @@
 
         % Callback function: LockoriginalButton, ResetrefineButton
         function ResetrefineButtonPushed(app, event)
-            app.d = [];
-            app.d.thr = app.p.t.add2UnitThr(1);
+            app.getDevMatrix();
             app.ScalingTable.Data.Scaling = [app.p.unitArray.refineSettings]';
             
         end
@@ -205,12 +210,42 @@
             
         end
 
-        % Display data changed function: ScalingTable
-        function ScalingTableDisplayDataChanged(app, event)
-            numOn = sum(app.ScalingTable.Data.ShowLock);
-            if numOn > app.maxUnits
-                app.ScalingTable.Data.ShowLock(find(app.ScalingTable.Data.ShowLock,numOn-app.maxUnits,'first')) = false;
+        % Cell edit callback: ScalingTable
+        function ScalingTableCellEdit(app, event)
+            indices = event.Indices;
+            
+            if indices(2) == 4
+                numOn = sum(app.ScalingTable.Data.ShowLock);
+                if numOn > app.maxUnits
+                    current = find(app.ScalingTable.Data.ShowLock);
+                    if indices(1) > current(1)
+                        app.ScalingTable.Data.ShowLock(current(1:numOn-app.maxUnits)) = false;
+                    else
+                        app.ScalingTable.Data.ShowLock(current(app.maxUnits+1:end)) = false;
+                    end
+                end
+            elseif indices(2) == 1
+                lAllowed = app.ScalingTable.Data.LossLock;
+                lAllowed(indices(1)) = true;
+                gAllowed = app.ScalingTable.Data.GainLock;
+                gAllowed(indices(1)) = true;
+                app.d.prevAssignment = app.d.spikeAssignmentUnit;
+                devM = app.d.devMatrix;
+                
+                for ii = 1:size(devM,1)
+                    if ~any(app.d.spikeAssignmentUnit(ii,:)) || lAllowed(app.d.spikeAssignmentUnit(ii,:))
+                        app.d.spikeAssignmentUnit(ii,:) = false;
+                        [~, idx] = sort(devM(ii,:));
+                        for jj = idx
+                            if devM(ii,jj) < app.ScalingTable.Data.Scaling(jj)*app.thr^2 && gAllowed(jj)
+                                app.d.spikeAssignmentUnit(ii,jj) = true;
+                                break;
+                            end
+                        end
+                    end
+                end
             end
+            
         end
     end
 
@@ -358,7 +393,7 @@
             app.ScalingTable.ColumnWidth = {'auto', 50, 50, 50};
             app.ScalingTable.RowName = {'Unit'};
             app.ScalingTable.ColumnEditable = [true true true true];
-            app.ScalingTable.DisplayDataChangedFcn = createCallbackFcn(app, @ScalingTableDisplayDataChanged, true);
+            app.ScalingTable.CellEditCallback = createCallbackFcn(app, @ScalingTableCellEdit, true);
             app.ScalingTable.Layout.Row = 1;
             app.ScalingTable.Layout.Column = 1;
 
