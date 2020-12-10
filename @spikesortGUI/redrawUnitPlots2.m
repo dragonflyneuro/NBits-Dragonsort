@@ -10,7 +10,7 @@ if nargin > 2
         for ii = 1:4
 %             cla(app.spL(ii));
         end
-        set(h(1),'UserData', []); % reset selected spikes in left unit
+        set(h(1),'UserData', {[],[]}); % reset selected spikes in left unit
         set(h(1),'ButtonDownFcn',[]);
     else
         delete(app.pR); delete(app.pTR);
@@ -21,7 +21,7 @@ if nargin > 2
 else
     updateFigs = 1:2;
     delete(app.lSelection); delete(app.pL); delete(app.pR); delete(app.pTL); delete(app.pTR);
-    set(h(1),'UserData', []); % reset selected spikes in left unit
+    set(h(1),'UserData', {[],[]}); % reset selected spikes in left unit
     set(h(1),'ButtonDownFcn',[]);
     for ii = 1:4
 %         cla(app.spL(ii)); cla(app.spR(ii));

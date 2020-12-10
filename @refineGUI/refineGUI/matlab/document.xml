@@ -34,6 +34,7 @@
         w
         wTimes
         batchIdx
+        maxUnits = 12;
     end
     
 
@@ -60,7 +61,11 @@
             Scaling = temp;
             GainLock = true(size(temp));
             LossLock = true(size(temp));
-            app.ScalingTable.Data = table(Scaling,GainLock,LossLock);
+            ShowLock = true(size(temp));
+            if length(temp) > app.maxUnits
+                ShowLock(app.maxUnits+1:end) = false;
+            end
+            app.ScalingTable.Data = table(Scaling,GainLock,LossLock,ShowLock);
             app.ScalingTable.RowName = unitNames;
             app.ScalingTable.ColumnEditable = true;
             
@@ -199,6 +204,14 @@
             end
             
         end
+
+        % Display data changed function: ScalingTable
+        function ScalingTableDisplayDataChanged(app, event)
+            numOn = sum(app.ScalingTable.Data.ShowLock);
+            if numOn > app.maxUnits
+                app.ScalingTable.Data.ShowLock(find(app.ScalingTable.Data.ShowLock,numOn-app.maxUnits,'first')) = false;
+            end
+        end
     end
 
     % Component initialization
@@ -209,7 +222,7 @@
 
             % Create SortingrefinerUIFigure and hide until all components are created
             app.SortingrefinerUIFigure = uifigure('Visible', 'off');
-            app.SortingrefinerUIFigure.Position = [100 100 381 450];
+            app.SortingrefinerUIFigure.Position = [100 100 412 450];
             app.SortingrefinerUIFigure.Name = 'Sorting refiner';
             app.SortingrefinerUIFigure.CloseRequestFcn = createCallbackFcn(app, @SortingrefinerUIFigureCloseRequest, true);
 
@@ -341,10 +354,11 @@
 
             % Create ScalingTable
             app.ScalingTable = uitable(app.GridLayout3);
-            app.ScalingTable.ColumnName = {'Scaling'; 'Gain'; 'Loss'};
-            app.ScalingTable.ColumnWidth = {'auto', 50, 50};
+            app.ScalingTable.ColumnName = {'Scaling'; 'Gain'; 'Loss'; 'Show'};
+            app.ScalingTable.ColumnWidth = {'auto', 50, 50, 50};
             app.ScalingTable.RowName = {'Unit'};
-            app.ScalingTable.ColumnEditable = [true true true];
+            app.ScalingTable.ColumnEditable = [true true true true];
+            app.ScalingTable.DisplayDataChangedFcn = createCallbackFcn(app, @ScalingTableDisplayDataChanged, true);
             app.ScalingTable.Layout.Row = 1;
             app.ScalingTable.Layout.Column = 1;
 

@@ -74,6 +74,7 @@ app.VieweventmarkersButton.Value = 0;
 %    read and plot data
 app.readFilter2(app.currentBatch)
 switchButtons(app,3)
+[app.colourButtons.Enable] = deal('on');
 
 updateDropdown(app);
 app.LeftUnitDropDown.Value = "1";

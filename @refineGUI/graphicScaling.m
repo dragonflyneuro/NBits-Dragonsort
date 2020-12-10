@@ -31,7 +31,7 @@ height = 1000;
 set(figs.f, 'Position',  [(1920-width)/2, (1080-height)/2, width, height]);
 
 % get colourmaps and set up subplot formatting
-unitNames = 1:length(app.p.unitArray);
+unitNames = find(app.ScalingTable.Data.ShowLock)';
 numCols = 6;
 
 cmap = distinguishable_colors(28);
@@ -44,7 +44,7 @@ end
 
 % get initial wave to unit assignments
 numAssignedTotal = 0;
-yl = [0, 0];
+yl = [-500, 200];
 
 % TRACE
 if app.ShowtraceButton.Value == 1
@@ -179,19 +179,19 @@ end
 
 makeROISlider(figs.histSlider,labelT,titleT,...
     [0, min([10,xMax])], 0:0.5:xMax, [0, 2],...
-    @(x)setProp(figs.histosAx,@xlim,x));
+    @(x)setProp(figs.histosAx,@xlim,unitNames,x));
 
 figs.title = makeROISlider(figs.spikeSlider,"Spike amplitude view range",...
     "Assigned " + string(numAssignedTotal) + "/" + string(size(app.w,1)) + "  ENTER to accept, close/ESC to quit",...
     [200*floor(yl(1)/200),200*ceil(yl(2)/200)], 200*floor(yl(1)/200):200:200*ceil(yl(2)/200), yl,...
-    @(x)setProp(figs.spikeAx,@ylim,x));
+    @(x)setProp(figs.spikeAx,@ylim,unitNames,x));
 
 [pressedEnter, figData] = getFigData(figs.f);
 end
 
 %%
-function [] = setProp(h,func,val)
-for ii = 1:length(h)
+function [] = setProp(h,func,range,val)
+for ii = range
     func(h(ii),val);
 end
 end
@@ -224,7 +224,7 @@ function [] = buttonUpHistos(~,~,h,app,cmap)
 updateFigures(h,app,1);
 
 numAssignedTotal = 0;
-for ii = 1:length(h.spikeAx)
+for ii = find(app.ScalingTable.Data.ShowLock)'
     iiCmap = cmap(rem(ii-1,25)+1,:);
     numAssignedTotal = numAssignedTotal + sum(h.f.UserData{2}(:,ii));
     
@@ -255,9 +255,9 @@ end
 function h = updateFigures(h,app,mode)
 axNum = get(gca,'UserData');
 ax = h.histosAx(axNum);
-lAllowed = app.ScalingTable.Data.LossLock;
+lAllowed = app.ScalingTable.Data.LossLock & app.ScalingTable.Data.ShowLock;
 lAllowed(axNum) = true;
-gAllowed = app.ScalingTable.Data.GainLock;
+gAllowed = app.ScalingTable.Data.GainLock & app.ScalingTable.Data.ShowLock;
 gAllowed(axNum) = true;
 
 mousePoint = ax.CurrentPoint;
@@ -284,7 +284,7 @@ end
 if mode == 0
     range = axNum;
 else
-    range = 1:length(h.spikeP);
+    range = find(app.ScalingTable.Data.ShowLock)';
 end
 for ii = range
     [h.spikeP{ii}(h.f.UserData{2}(:,ii)).Visible] = deal('on');
