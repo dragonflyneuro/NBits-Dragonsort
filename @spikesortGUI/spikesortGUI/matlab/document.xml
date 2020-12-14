@@ -1327,10 +1327,18 @@
 
         % Value changed function: OldField
         function OldFieldValueChanged(app, event)
-            value = app.OldField.Value;
+            value = event.Value;
             for ii = 1:length(app.unitArray)
-                app.unitArray(ii).refineSettings = app.OldField.PreviousValue*app.unitArray(ii).refineSettings/value;
+                app.unitArray(ii).refineSettings = event.PreviousValue*app.unitArray(ii).refineSettings/value;
             end
+            app.t.add2UnitThr(1) = value;
+            
+        end
+
+        % Value changed function: NewField
+        function NewFieldValueChanged(app, event)
+            value = app.NewField.Value;
+            app.t.add2UnitThr(2) = value;
             
         end
     end
@@ -2087,6 +2095,7 @@
             % Create NewField
             app.NewField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.NewField.Limits = [0 Inf];
+            app.NewField.ValueChangedFcn = createCallbackFcn(app, @NewFieldValueChanged, true);
             app.NewField.Layout.Row = 3;
             app.NewField.Layout.Column = 2;
             app.NewField.Value = 1;

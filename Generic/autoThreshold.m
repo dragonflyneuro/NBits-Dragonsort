@@ -9,7 +9,7 @@ function thr = autoThreshold(thr, metric)
 % 
 % OUTPUT
 % thr = adjusted threshold
-binSize = min([0.05, peak2peak(metric)/20]);
+binSize = min([0.03, peak2peak(metric)/20]);
 [h, bE] = histcounts(metric,'BinWidth',binSize);
 % histogram(metric,'BinWidth',binSize);
 bC = bE(1:end-1)+binSize/2;
