@@ -96,10 +96,19 @@ classdef unit < handle
             e = [];
         end
         
-        function [obj, e] = spikeRemover(obj,n,I)
+        function [obj, e] = spikeRemover(obj,n,I,varargin)
             n = n(1);
+            if nargin > 3
+                force = varargin{1};
+            else
+                force = 0;
+            end
+            
             if isempty(I)
                 e = "No spikes selected for operation";
+                return;
+            elseif length(I) == length(obj(n).spikeTimes) && ~force
+                e = "All spikes in unit selected, no changes will be made";
                 return;
             end
             
@@ -108,12 +117,18 @@ classdef unit < handle
             e = [];
         end
 
-        function [obj, e] = unitSplitter(obj,n,I)
+        function [obj, e] = unitSplitter(obj,n,I, varargin)
             n = n(1);
+            if nargin > 3
+                force = varargin{1};
+            else
+                force = 0;
+            end
+            
             if isempty(I)
                 e = "No spikes selected for operation";
                 return;
-            elseif length(I) == length(obj(n).spikeTimes)
+            elseif length(I) == length(obj(n).spikeTimes) && ~force
                 e = "All spikes in unit selected, no changes will be made";
                 return;
             end

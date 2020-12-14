@@ -15,8 +15,10 @@ else
     filterVec = fir1(app.m.filterSpec.order,...
         app.m.filterSpec.cutoffs./(app.m.sRateHz/2),'DC-1');
 end
-
-app.xi = splitconv(x(app.m.ech,:),filterVec);
+app.xi = zeros(size(x));
+for ii = 1:length(app.m.ech)
+    app.xi(ii,:) = splitconv(x(app.m.ech(ii),:),filterVec);
+end
 yOffset = prctile(app.xi,50,2); %yoffset = mean(xi,2);
 app.xi = app.xi - yOffset(1:size(app.xi,1),:); % remove DC offset
 

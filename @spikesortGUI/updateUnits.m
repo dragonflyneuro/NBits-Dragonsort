@@ -4,10 +4,10 @@ newAssignments(num == 0) = 0;
 if ~opt
     for ii = 1:length(app.unitArray)
         [~, ~, idx] = app.unitArray(ii).getAssignedSpikes(getBatchRange(app));
-        app.unitArray = app.unitArray.spikeRemover(ii,idx);
+        app.unitArray = app.unitArray.spikeRemover(ii,idx, 1);
     end
 end
-[sTimes,~,batchIdx]=app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+[sTimes,~,batchIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
 sWaves = app.rawSpikeWaves(batchIdx,:,:);
 for ii = 1:length(app.unitArray)
     app.unitArray(ii).refineSettings = d.scaleArray(ii);
