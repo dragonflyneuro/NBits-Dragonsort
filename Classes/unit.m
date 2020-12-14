@@ -101,9 +101,6 @@ classdef unit < handle
             if isempty(I)
                 e = "No spikes selected for operation";
                 return;
-            elseif length(I) == length(obj(n).spikeTimes)
-                e = "All spikes in unit selected, no changes will be made";
-                return;
             end
             
             obj(n).spikeTimes(I) = [];

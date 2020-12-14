@@ -11,7 +11,7 @@ croppedWaves = reshape(croppedWaves, length(idx), []);
 % perform PCA and cluster waves
 PC = pca(croppedWaves);
 PCwaves = croppedWaves*PC(:,1:3);
-clust = kmeans(PCwaves,app.AutosplitField.Value);
+clust = kmeans(PCwaves',app.AutosplitField.Value);
 numClust = length(unique(clust));
 
 % plot waveforms, separated into subplots for different
