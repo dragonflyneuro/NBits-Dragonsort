@@ -626,11 +626,12 @@
                 d = 1;
             end
             answer = inputdlg(prompt, 'Create units', [1 35]);
-            if answer{2} < 0
-                answer{2} = 3;
-            end
+            
             if isempty(answer)
                 return;
+            end
+            if answer{2} < 0
+                answer{2} = 3;
             end
             
             % generate units
@@ -813,16 +814,15 @@
             end
             
             if event.Source.UserData == 0
-                if app.currentBatch < round(app.uptoField.Value)
+                if app.currentBatch > round(app.uptoField.Value)
                     app.StatusLabel.Value = "End batch is before current batch!";
                     return;
                 end
                 if app.uptoField.Value > length(app.t.batchLengths)
-                    batches = app.currentBatch+1:length(app.t.batchLengths);
+                    batches = app.currentBatch:length(app.t.batchLengths);
                 end
-                app.StatusLabel.Value = "Autosorting up to batch"+round(app.uptoField.Value);
+                app.StatusLabel.Value = "Autosorting up to batchn "+round(app.uptoField.Value);
                 drawnow
-                
             else
                 batches = app.currentBatch;
                 app.StatusLabel.Value = "Re-sorting batch...";

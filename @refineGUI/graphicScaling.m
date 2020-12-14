@@ -94,9 +94,9 @@ for ii = unitNames
     % titling, axes labeling and limit setting
     xlim(figs.spikeAx(ii),[1,size(app.w,2)]);
     xticks(figs.spikeAx(ii),[]);
-    if rem(ii,numCols/2) ~= 1
-        yticks(figs.spikeAx(ii),[]);
-    end
+%     if rem(ii,numCols/2) ~= 1
+%         yticks(figs.spikeAx(ii),[]);
+%     end
     figs.sptitle(ii) = title(figs.spikeAx(ii),"Unit "+ ii +...
         " - " + string(sum(figs.f.UserData{2}(:,ii))),'Color',iiCmap);
     
@@ -111,6 +111,7 @@ for ii = unitNames
             
     % get total number of spikes assigned
     numAssignedTotal = numAssignedTotal + sum(figs.f.UserData{2}(:,ii));
+    grid(figs.spikeAx(ii),'on');
 end
 if ~isinf(app.p.yL(1))
     yl(1) = app.p.yL(1);

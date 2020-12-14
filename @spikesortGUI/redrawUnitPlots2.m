@@ -57,12 +57,19 @@ for ii = updateFigs
             last3Batches(jj) = nnz(app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app,c+[-jj,-jj+1])));
         end
         
+        if ~isempty(app.unitArray(u(ii)).name)
+            nameText = "'"+app.unitArray(u(ii)).name+"'";
+        else
+            nameText = "";
+        end
+        
         if strcmpi("Junk",app.unitArray(u(ii)).tags)
             junkText = "  JUNK UNIT";
         else
             junkText = "";
         end
-        t(ii).Value = string(length(app.unitArray(u(ii)).spikeTimes)) +...
+        
+        t(ii).Value = nameText + string(length(app.unitArray(u(ii)).spikeTimes)) +...
             " spikes total, " + last3Batches(2) + "/" + last3Batches(2) +...
             "/" + last3Batches(1) + " spikes -2/-1/0 batches ago" + junkText;
         

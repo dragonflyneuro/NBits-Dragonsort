@@ -1,5 +1,6 @@
 classdef unit < handle
     properties
+        name = string.empty();
         waves {mustBeNumeric} = [];
         spikeTimes {mustBeInteger} = [];
         tags = string.empty();
