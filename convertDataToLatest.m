@@ -178,7 +178,7 @@ while fileNotFound ~= 0
             return;
         end
     else
-        if numel(fm.Data)*2 == newData.m.fileSizeBytes
+        if size(fm.Data,1)*size(fm.Data,2)*2 == newData.m.fileSizeBytes
             fileNotFound = 0;
         else
             fileNotFound = -1;

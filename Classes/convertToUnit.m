@@ -118,7 +118,7 @@ if ~isempty(newS)
                 uA(ii).tags = "Junk";
             end
             if isfield(newS,"tags")
-                uA(ii).tags = string(newS.tags.Properties.RowNames(newS.tags.("unit_"+ii)));
+                uA(ii).tags = string(newS.tags.Properties.RowNames(newS.tags.("unit_"+newS.clusters(ii))));
             end
             %%%%%%%%%%%%%%%%%%%%%%%%%
         end
