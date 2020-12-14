@@ -23,6 +23,8 @@ function [assignedUnit, potentialSpikes] = autoCreateUnits(orphanWaves, y, thr, 
 % t = Dragonsort unit construction structure
 % numNewUnits = number of new units created
 d = 1;
+assignedUnit = [];
+    
 if direction == 1
     potentialSpikes = y > cutoff;
     percentLimit = 0.2;
@@ -32,8 +34,6 @@ else
 end
 
 if nnz(potentialSpikes) <= length(potentialSpikes)*percentLimit
-    assignedUnit = [];
-    potentialSpikes = [];
     return;
 end
 
