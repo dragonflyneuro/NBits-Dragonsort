@@ -790,7 +790,7 @@
             truncClust = truncClust(2:end);
             unitSpikesInBatchBool = false(size(app.unitArray(value).spikeTimes));
             unitSpikesInBatchBool(I) = true;
-            for ii = truncClust'
+            for ii = truncClust
                 thisBatchIdx = find(unitSpikesInBatchBool);
                 app.unitArray = app.unitArray.unitSplitter(value, thisBatchIdx(clust==ii));
                 unitSpikesInBatchBool(thisBatchIdx(clust==ii)) = [];
