@@ -30,9 +30,12 @@ for ii = 1:numClust
     yTemp(ii,:) = ylim(ax(ii));
     
     if ii == 1
-        title(ax(ii),"Unit " + string(n), 'Color', app.cmap(rem(n-1,25)+1,:));
+        title(ax(ii),"Unit " + string(n) + " " + ...
+             sum(clust==ii) + " spikes", 'Color', app.cmap(rem(n-1,25)+1,:));
     else
-        title(ax(ii),"New unit " + string(ii));
+        uN = length(app.unitArray)+ii;
+        title(ax(ii),"New unit " + string(uN) + " " + ...
+            sum(clust==ii) + " spikes", 'Color', app.cmap(rem(uN-1,25)+1,:));
     end
 end
 
