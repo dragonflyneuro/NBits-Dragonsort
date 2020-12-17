@@ -282,7 +282,7 @@
                 return;
             end
             mode = varargin{1};
-            current = [app.LeftUnitDropDown.Value, app.RightUnitDropDown.Value];
+            current = [string(app.LeftUnitDropDown.Value), string(app.RightUnitDropDown.Value)];
             if any(strcmpi(mode, ["add", "remove"]))
                 return;
             elseif strcmpi(mode, "split")

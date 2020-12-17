@@ -240,7 +240,6 @@
             app.initt.batchSize = app.SplitlengthEditField.Value;
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
             
-            app.InitialiseButton.Enable = "off";
             updateVars2(app.CallingApp, app.initm, app.initt, []);
             switchButtons(app.CallingApp,1);
             
@@ -446,7 +445,7 @@
             app.NewtemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.NewtemplateEditField.Layout.Row = 12;
             app.NewtemplateEditField.Layout.Column = 4;
-            app.NewtemplateEditField.Value = 0.3;
+            app.NewtemplateEditField.Value = 0.7;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2);
@@ -459,7 +458,7 @@
             app.AddtotemplateEditField = uieditfield(app.GridLayout2, 'numeric');
             app.AddtotemplateEditField.Layout.Row = 13;
             app.AddtotemplateEditField.Layout.Column = 4;
-            app.AddtotemplateEditField.Value = 0.3;
+            app.AddtotemplateEditField.Value = 0.8;
 
             % Create SuffixtoputonsaveddataEditFieldLabel
             app.SuffixtoputonsaveddataEditFieldLabel = uilabel(app.GridLayout2);
