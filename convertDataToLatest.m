@@ -27,7 +27,7 @@ end
 for ii=1:length(pn)
     if ~isdir(ii)
         [~, ~, fExt] = fileparts(pn{ii});
-        if ~strcmpi(fExt,'.mat')
+        if ~strcmpi(fExt,'.mat') || contains(fExt,'_ds3')
             continue
         end
         
