@@ -5,8 +5,9 @@ u = app.unitArray(n);
 if isempty(idx)
     idx = 1:size(u.waves,1);
 end
-croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
-croppedWaves = reshape(croppedWaves, length(idx), []);
+% croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
+% croppedWaves = reshape(croppedWaves, length(idx), []);
+croppedWaves = u.waves(idx,:);
 
 % perform PCA and cluster waves
 PC = pca(croppedWaves);
@@ -22,20 +23,21 @@ ax = gobjects(numClust,1);
 yTemp = zeros(numClust,2);
 
 for ii = 1:numClust
-    ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
-    axis square;
-    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
-    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(clust==ii,:,app.m.mainCh)');
-    %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
-    yTemp(ii,:) = ylim(ax(ii));
-    
-    if ii == 1
-        title(ax(ii),"Unit " + string(n) + " " + ...
-             sum(clust==ii) + " spikes", 'Color', app.cmap(rem(n-1,25)+1,:));
-    else
-        uN = length(app.unitArray)+ii;
-        title(ax(ii),"New unit " + string(uN) + " " + ...
-            sum(clust==ii) + " spikes", 'Color', app.cmap(rem(uN-1,25)+1,:));
+    if sum(clust==ii) ~= 0
+        ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
+        line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
+        line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(clust==ii,:,app.m.mainCh)');
+        %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
+        yTemp(ii,:) = ylim(ax(ii));
+
+        if ii == 1
+            title(ax(ii),"Unit " + string(n) + " " + ...
+                 sum(clust==ii) + " spikes", 'Color', app.cmap(rem(n-1,25)+1,:));
+        else
+            uN = length(app.unitArray)+ii;
+            title(ax(ii),"New unit " + string(uN) + " " + ...
+                sum(clust==ii) + " spikes", 'Color', app.cmap(rem(uN-1,25)+1,:));
+        end
     end
 end
 
@@ -51,7 +53,7 @@ end
 
 for ii = 1:numClust
     ylim(ax(ii), yTemp);
-    axis(ax,'square');
+    axis(ax(ii),'square');
 end
 sgtitle("Template splitting: ENTER to accept, close/ESC to reject")
 

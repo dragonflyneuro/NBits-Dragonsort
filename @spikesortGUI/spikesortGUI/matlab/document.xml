@@ -133,6 +133,9 @@
         SpikestotalLabel              matlab.ui.control.Label
         AdvancedTab                   matlab.ui.container.Tab
         GridLayout4                   matlab.ui.container.GridLayout
+        GridLayout7                   matlab.ui.container.GridLayout
+        OldField_2                    matlab.ui.control.NumericEditField
+        SpikeWidthLabel               matlab.ui.control.Label
         GridLayout5                   matlab.ui.container.GridLayout
         ShowloadedtemplatesButton     matlab.ui.control.Button
         ImportspikeshapeweightingdataButton  matlab.ui.control.Button
@@ -767,8 +770,7 @@
         function AutosplitButtonPushed(app, event)
             % perform PCA on the left unit to find clusters of similar spikes
             % to make units of. Asks user if they want to keep the new
-            % assignment of spikes or not. Only works on spikes from this
-            % batch - out-of-batch spikes will remain in left unit
+            % assignment of spikes or not.
             
             value = str2double(app.LeftUnitDropDown.Value);
             if isempty(app.unitArray(value).spikeTimes)
@@ -800,16 +802,62 @@
             
             truncClust = unique(clust);
             truncClust = truncClust(2:end);
-            unitSpikesInBatchBool = false(size(app.unitArray(value).spikeTimes));
-            unitSpikesInBatchBool(I) = true;
+            unitSpikesBool = false(size(app.unitArray(value).spikeTimes));
+            unitSpikesBool(I) = true;
             for ii = truncClust
-                thisBatchIdx = find(unitSpikesInBatchBool);
-                app.unitArray = app.unitArray.unitSplitter(value, thisBatchIdx(clust==ii));
-                unitSpikesInBatchBool(thisBatchIdx(clust==ii)) = [];
+                unitSpikesIdx = find(unitSpikesBool);
+                app.unitArray = app.unitArray.unitSplitter(value, unitSpikesIdx(clust==ii));
+                unitSpikesBool(unitSpikesIdx(clust==ii)) = [];
                 clust(clust == ii) = [];
-                app.updateDropdown("remove");
+            end
+            app.updateDropdown("remove");
+            standardUpdate(app);
+            
+        end
+
+        % Button pushed function: AutomergeButton
+        function AutomergeButtonPushed(app, event)
+            % perform PCA on the spikes of left unit to find other similar units. 
+            % Asks user if they want to keep the new assignment of spikes or not.
+            
+            value = str2double(app.LeftUnitDropDown.Value);
+            if isempty(app.unitArray(value).spikeTimes)
+                app.StatusLabel.Value = "Left unit is empty!";
+                return;
+            end
+
+            mode = app.basicModes.getUserData();
+            if strcmpi(mode, "batch")
+                [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
+            elseif strcmpi(mode, "plotted")
+                I = app.plottedWavesIdx;
+            elseif strcmpi(mode, "selected")
+                I = app.figureHandles(2).UserData{1}; % selected spike index along plotted spikes
             end
             
+            if isempty(I)
+                I = 1:length(app.unitArray(value).spikeTimes);
+            end
+            
+            app.StatusLabel.Value = "Automerging left unit into other units...";
+            drawnow
+            
+            % PCA split unit and check if user confirmed
+            [clust, yn] = app.unitAutoMerger(value, I);
+            if ~yn
+                return;
+            end
+            
+            truncClust = unique(clust);
+            unitSpikesBool = false(size(app.unitArray(value).spikeTimes));
+            unitSpikesBool(I) = true;
+            for ii = truncClust
+                unitSpikesIdx = find(unitSpikesBool);
+                app.unitArray = app.unitArray.unitMerger([value,ii], unitSpikesIdx(clust==ii));
+                unitSpikesBool(unitSpikesIdx(clust==ii)) = [];
+                clust(clust == ii) = [];
+            end
+            app.updateDropdown("remove");
             standardUpdate(app);
             
         end
@@ -1814,11 +1862,11 @@
 
             % Create AutomergeButton
             app.AutomergeButton = uibutton(app.ManualGrid, 'push');
+            app.AutomergeButton.ButtonPushedFcn = createCallbackFcn(app, @AutomergeButtonPushed, true);
             app.AutomergeButton.BackgroundColor = [0.8784 0.8784 0.1137];
-            app.AutomergeButton.Enable = 'off';
             app.AutomergeButton.Layout.Row = 9;
             app.AutomergeButton.Layout.Column = 1;
-            app.AutomergeButton.Text = 'Automerge (BETA)';
+            app.AutomergeButton.Text = 'Automerge';
 
             % Create OperationTargetPanel
             app.OperationTargetPanel = uipanel(app.ManualGrid);
@@ -2350,6 +2398,29 @@
             app.ShowloadedtemplatesButton.Layout.Row = 5;
             app.ShowloadedtemplatesButton.Layout.Column = [1 2];
             app.ShowloadedtemplatesButton.Text = 'Show loaded templates';
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.GridLayout4);
+            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x'};
+            app.GridLayout7.ColumnSpacing = 5;
+            app.GridLayout7.RowSpacing = 5;
+            app.GridLayout7.Padding = [3 3 3 3];
+            app.GridLayout7.Layout.Row = 1;
+            app.GridLayout7.Layout.Column = 2;
+
+            % Create SpikeWidthLabel
+            app.SpikeWidthLabel = uilabel(app.GridLayout7);
+            app.SpikeWidthLabel.HorizontalAlignment = 'right';
+            app.SpikeWidthLabel.Layout.Row = 1;
+            app.SpikeWidthLabel.Layout.Column = 1;
+            app.SpikeWidthLabel.Text = 'Spike Width';
+
+            % Create OldField_2
+            app.OldField_2 = uieditfield(app.GridLayout7, 'numeric');
+            app.OldField_2.Limits = [0 Inf];
+            app.OldField_2.Layout.Row = 1;
+            app.OldField_2.Layout.Column = 2;
+            app.OldField_2.Value = 1;
 
             % Create TracePanel
             app.TracePanel = uipanel(app.GridMain);
