@@ -41,113 +41,116 @@
         OthersMenu                    matlab.ui.container.Menu
         HelpMenu                      matlab.ui.container.Menu
         GridMain                      matlab.ui.container.GridLayout
-        StatusLabel                   matlab.ui.control.EditField
-        LGrid                         matlab.ui.container.GridLayout
-        LeftUnitDropDown              matlab.ui.control.DropDown
-        LPanel                        matlab.ui.container.Panel
-        LTitle                        matlab.ui.control.EditField
-        RGrid                         matlab.ui.container.GridLayout
-        RightUnitDropDown             matlab.ui.control.DropDown
-        RPanel                        matlab.ui.container.Panel
-        RTitle                        matlab.ui.control.EditField
+        ColourGrid                    matlab.ui.container.GridLayout
+        TTitle                        matlab.ui.control.EditField
+        TracePanel                    matlab.ui.container.Panel
         ControlTabs                   matlab.ui.container.TabGroup
         GeneralTab                    matlab.ui.container.Tab
         GridLayout2                   matlab.ui.container.GridLayout
-        DatascrubGrid                 matlab.ui.container.GridLayout
-        ScrubdataLabel                matlab.ui.control.Label
-        PreviousbatchButton           matlab.ui.control.Button
-        NextbatchButton               matlab.ui.control.Button
-        AutosortButton                matlab.ui.control.Button
-        uptoField                     matlab.ui.control.NumericEditField
-        AutosortbatchButton           matlab.ui.control.Button
-        RefinebatchButton             matlab.ui.control.Button
-        GotobatchButton               matlab.ui.control.Button
-        GotobatchField                matlab.ui.control.NumericEditField
-        ManualGrid                    matlab.ui.container.GridLayout
-        ManipulationLabel             matlab.ui.control.Label
-        DeleteunitButton              matlab.ui.control.Button
-        AddspikeButton                matlab.ui.control.Button
-        RemovespikeButton             matlab.ui.control.Button
-        SplitButton                   matlab.ui.control.Button
-        NewunitButton                 matlab.ui.control.Button
-        ForceaddButton                matlab.ui.control.Button
-        MergeButton                   matlab.ui.control.Button
-        AutosplitButton               matlab.ui.control.Button
-        AutomergeButton               matlab.ui.control.Button
-        ModesPanel                    matlab.ui.container.Panel
-        GridLayout6                   matlab.ui.container.GridLayout
-        SelectedButton                matlab.ui.control.StateButton
-        PlottedButton                 matlab.ui.control.StateButton
-        BatchButton                   matlab.ui.control.StateButton
-        AutosplitField                matlab.ui.control.NumericEditField
-        AutosplitintoLabel            matlab.ui.control.Label
         AutoGrid                      matlab.ui.container.GridLayout
-        NeatcoolthingsthoLabel        matlab.ui.control.Label
-        AutocreatejunkunitsButton     matlab.ui.control.Button
-        AutocreateunitsButton         matlab.ui.control.Button
-        UnitscrubButton               matlab.ui.control.Button
-        ShowallButton                 matlab.ui.control.Button
-        UnitfreqButton                matlab.ui.control.Button
         CleanupButton                 matlab.ui.control.Button
+        UnitfreqButton                matlab.ui.control.Button
+        ShowallButton                 matlab.ui.control.Button
+        UnitscrubButton               matlab.ui.control.Button
+        AutocreateunitsButton         matlab.ui.control.Button
+        AutocreatejunkunitsButton     matlab.ui.control.Button
+        NeatcoolthingsthoLabel        matlab.ui.control.Label
+        ManualGrid                    matlab.ui.container.GridLayout
+        OperationTargetPanel          matlab.ui.container.Panel
+        GridLayout6                   matlab.ui.container.GridLayout
+        AutosplitintoLabel            matlab.ui.control.Label
+        AutosplitField                matlab.ui.control.NumericEditField
+        BatchButton                   matlab.ui.control.StateButton
+        PlottedButton                 matlab.ui.control.StateButton
+        SelectedButton                matlab.ui.control.StateButton
+        AutomergeButton               matlab.ui.control.Button
+        AutosplitButton               matlab.ui.control.Button
+        MergeButton                   matlab.ui.control.Button
+        ForceaddButton                matlab.ui.control.Button
+        NewunitButton                 matlab.ui.control.Button
+        SplitButton                   matlab.ui.control.Button
+        RemovespikeButton             matlab.ui.control.Button
+        AddspikeButton                matlab.ui.control.Button
+        DeleteunitButton              matlab.ui.control.Button
+        ManipulationLabel             matlab.ui.control.Label
+        DatascrubGrid                 matlab.ui.container.GridLayout
+        GotobatchField                matlab.ui.control.NumericEditField
+        GotobatchButton               matlab.ui.control.Button
+        RefinebatchButton             matlab.ui.control.Button
+        AutosortbatchButton           matlab.ui.control.Button
+        uptoField                     matlab.ui.control.NumericEditField
+        AutosortButton                matlab.ui.control.Button
+        NextbatchButton               matlab.ui.control.Button
+        PreviousbatchButton           matlab.ui.control.Button
+        ScrubdataLabel                matlab.ui.control.Label
         ParametersDataTab             matlab.ui.container.Tab
         GridLayout                    matlab.ui.container.GridLayout
-        ViewingGrid                   matlab.ui.container.GridLayout
-        SpikestotalLabel              matlab.ui.control.Label
-        SpikeshownField               matlab.ui.control.NumericEditField
-        PastbatchesLabel              matlab.ui.control.Label
-        PastbatchesField              matlab.ui.control.NumericEditField
-        DataviewingLabel              matlab.ui.control.Label
-        FuturebatchesLabel            matlab.ui.control.Label
-        FuturebatchesField            matlab.ui.control.NumericEditField
-        PlotallchButton               matlab.ui.control.StateButton
-        YlimitLabel                   matlab.ui.control.Label
-        yLimLowField                  matlab.ui.control.NumericEditField
-        BatchSizesamplesLabel         matlab.ui.control.Label
-        BatchsizeEditField            matlab.ui.control.NumericEditField
-        MainchannelSpinnerLabel       matlab.ui.control.Label
-        MainchannelSpinner            matlab.ui.control.Spinner
-        yLimHighField                 matlab.ui.control.NumericEditField
-        ThresholdsGrid                matlab.ui.container.GridLayout
-        ThresholdsLabel               matlab.ui.control.Label
-        ExistingunitsLabel            matlab.ui.control.Label
-        OldField                      matlab.ui.control.NumericEditField
-        NewField                      matlab.ui.control.NumericEditField
-        UnitinitialisationLabel       matlab.ui.control.Label
-        SpikedetectionEditFieldLabel  matlab.ui.control.Label
-        DetectThr1EditField           matlab.ui.control.NumericEditField
-        FuzzyButton                   matlab.ui.control.StateButton
-        DetectThr2EditField           matlab.ui.control.NumericEditField
-        InfoGrid                      matlab.ui.container.GridLayout
-        BinaryEditField               matlab.ui.control.EditField
-        BinaryEditFieldLabel          matlab.ui.control.Label
-        SavenameEditFieldLabel        matlab.ui.control.Label
-        SavenameEditField             matlab.ui.control.EditField
-        BinarynamecopyButton          matlab.ui.control.Button
-        SavenamecopyButton            matlab.ui.control.Button
-        TemplategenerateionGrid       matlab.ui.container.GridLayout
-        FuturebatchesLabel_2          matlab.ui.control.Label
-        FuturebatchesTField           matlab.ui.control.NumericEditField
-        SpikestotalEditFieldLabel     matlab.ui.control.Label
-        SpikesusedEditField           matlab.ui.control.NumericEditField
-        PastbatchesLabel_2            matlab.ui.control.Label
-        PastbatchesTField             matlab.ui.control.NumericEditField
-        TemplategenerationLabel       matlab.ui.control.Label
         GridLayout3                   matlab.ui.container.GridLayout
-        TagLabel                      matlab.ui.control.Label
-        ToggletagButton               matlab.ui.control.Button
-        TagDropDown                   matlab.ui.control.DropDown
         TagmanagementButton           matlab.ui.control.Button
+        TagDropDown                   matlab.ui.control.DropDown
+        ToggletagButton               matlab.ui.control.Button
+        TagLabel                      matlab.ui.control.Label
+        TemplategenerateionGrid       matlab.ui.container.GridLayout
+        TemplategenerationLabel       matlab.ui.control.Label
+        PastbatchesTField             matlab.ui.control.NumericEditField
+        PastbatchesLabel_2            matlab.ui.control.Label
+        SpikesusedEditField           matlab.ui.control.NumericEditField
+        SpikestotalEditFieldLabel     matlab.ui.control.Label
+        FuturebatchesTField           matlab.ui.control.NumericEditField
+        FuturebatchesLabel_2          matlab.ui.control.Label
+        InfoGrid                      matlab.ui.container.GridLayout
+        SavenamecopyButton            matlab.ui.control.Button
+        BinarynamecopyButton          matlab.ui.control.Button
+        SavenameEditField             matlab.ui.control.EditField
+        SavenameEditFieldLabel        matlab.ui.control.Label
+        BinaryEditFieldLabel          matlab.ui.control.Label
+        BinaryEditField               matlab.ui.control.EditField
+        ThresholdsGrid                matlab.ui.container.GridLayout
+        DetectThr2EditField           matlab.ui.control.NumericEditField
+        FuzzyButton                   matlab.ui.control.StateButton
+        DetectThr1EditField           matlab.ui.control.NumericEditField
+        SpikedetectionEditFieldLabel  matlab.ui.control.Label
+        UnitinitialisationLabel       matlab.ui.control.Label
+        NewField                      matlab.ui.control.NumericEditField
+        OldField                      matlab.ui.control.NumericEditField
+        ExistingunitsLabel            matlab.ui.control.Label
+        ThresholdsLabel               matlab.ui.control.Label
+        ViewingGrid                   matlab.ui.container.GridLayout
+        yLimHighField                 matlab.ui.control.NumericEditField
+        MainchannelSpinner            matlab.ui.control.Spinner
+        MainchannelSpinnerLabel       matlab.ui.control.Label
+        BatchsizeEditField            matlab.ui.control.NumericEditField
+        BatchSizesamplesLabel         matlab.ui.control.Label
+        yLimLowField                  matlab.ui.control.NumericEditField
+        YlimitLabel                   matlab.ui.control.Label
+        PlotallchButton               matlab.ui.control.StateButton
+        FuturebatchesField            matlab.ui.control.NumericEditField
+        FuturebatchesLabel            matlab.ui.control.Label
+        DataviewingLabel              matlab.ui.control.Label
+        PastbatchesField              matlab.ui.control.NumericEditField
+        PastbatchesLabel              matlab.ui.control.Label
+        SpikeshownField               matlab.ui.control.NumericEditField
+        SpikestotalLabel              matlab.ui.control.Label
         AdvancedTab                   matlab.ui.container.Tab
         GridLayout4                   matlab.ui.container.GridLayout
+        GridLayout7                   matlab.ui.container.GridLayout
+        OldField_2                    matlab.ui.control.NumericEditField
+        SpikeWidthLabel               matlab.ui.control.Label
         GridLayout5                   matlab.ui.container.GridLayout
-        ManualartifactremoverButton   matlab.ui.control.StateButton
-        ImporteventmarkerdataButton   matlab.ui.control.Button
-        VieweventmarkersButton        matlab.ui.control.StateButton
-        ImportspikeshapeweightingdataButton  matlab.ui.control.Button
         ShowloadedtemplatesButton     matlab.ui.control.Button
-        TracePanel                    matlab.ui.container.Panel
-        TTitle                        matlab.ui.control.EditField
-        ColourGrid                    matlab.ui.container.GridLayout
+        ImportspikeshapeweightingdataButton  matlab.ui.control.Button
+        VieweventmarkersButton        matlab.ui.control.StateButton
+        ImporteventmarkerdataButton   matlab.ui.control.Button
+        ManualartifactremoverButton   matlab.ui.control.StateButton
+        RGrid                         matlab.ui.container.GridLayout
+        RTitle                        matlab.ui.control.EditField
+        RPanel                        matlab.ui.container.Panel
+        RightUnitDropDown             matlab.ui.control.DropDown
+        LGrid                         matlab.ui.container.GridLayout
+        LTitle                        matlab.ui.control.EditField
+        LPanel                        matlab.ui.container.Panel
+        LeftUnitDropDown              matlab.ui.control.DropDown
+        StatusLabel                   matlab.ui.control.EditField
     end
 
     
@@ -286,13 +289,23 @@
             if any(strcmpi(mode, ["add", "remove"]))
                 return;
             elseif strcmpi(mode, "split")
-                app.RightUnitDropDown.Value = app.RightUnitDropDown.Value(end);
+                app.RightUnitDropDown.Value = app.RightUnitDropDown.Items(end);
             elseif strcmpi(mode, "merge")
-                if current(1) > current(2)
-                    app.LeftUnitDropDown.Value = current(2);
-                elseif current(1) < current(2)
-                    app.LeftUnitDropDown.Value = string(str2double(current(2))-1);
+                c = app.currentBatch;
+                bl = app.t.batchLengths;
+            
+                plotBatch = c + [-round(app.PastbatchesField.Value), min([round(app.FuturebatchesField.Value), length(bl)-c])];
+                if isempty(app.unitArray(str2double(current(1))).getAssignedSpikes(getBatchRange(app,plotBatch)))
+                    if current(1) > current(2)
+                        app.LeftUnitDropDown.Value = current(2);
+                        if str2double(current(2)) > 1
+                            app.RightUnitDropDown.Value = string(str2double(current(2))-1);
+                        end
+                    elseif current(1) < current(2)
+                        app.LeftUnitDropDown.Value = string(str2double(current(2))-1);
+                    end
                 end
+                
                 app.RightUnitDropDown.Value = app.RightUnitDropDown.Value(1);
             end
         end
@@ -365,12 +378,12 @@
             app.switchButtons(1)
             
             [fN, fP] = uigetfile([app.loadPath '*.mat'],'Pick *.mat file to load');
-            cd(fP);
-            figure(app.UIBase);
             if fN < 1
                 app.StatusLabel.Value = "Could not load file!";
                 return;
             end
+            cd(fP);
+            figure(app.UIBase);
             
             % check if the loaded file has m, s and t
             inFile = whos('-file',[fP fN]);
@@ -391,6 +404,7 @@
             end
             
             app.loadPath = fP;
+            app.savePath = fP;
             
         end
 
@@ -756,8 +770,7 @@
         function AutosplitButtonPushed(app, event)
             % perform PCA on the left unit to find clusters of similar spikes
             % to make units of. Asks user if they want to keep the new
-            % assignment of spikes or not. Only works on spikes from this
-            % batch - out-of-batch spikes will remain in left unit
+            % assignment of spikes or not.
             
             value = str2double(app.LeftUnitDropDown.Value);
             if isempty(app.unitArray(value).spikeTimes)
@@ -789,16 +802,62 @@
             
             truncClust = unique(clust);
             truncClust = truncClust(2:end);
-            unitSpikesInBatchBool = false(size(app.unitArray(value).spikeTimes));
-            unitSpikesInBatchBool(I) = true;
+            unitSpikesBool = false(size(app.unitArray(value).spikeTimes));
+            unitSpikesBool(I) = true;
             for ii = truncClust
-                thisBatchIdx = find(unitSpikesInBatchBool);
-                app.unitArray = app.unitArray.unitSplitter(value, thisBatchIdx(clust==ii));
-                unitSpikesInBatchBool(thisBatchIdx(clust==ii)) = [];
+                unitSpikesIdx = find(unitSpikesBool);
+                app.unitArray = app.unitArray.unitSplitter(value, unitSpikesIdx(clust==ii));
+                unitSpikesBool(unitSpikesIdx(clust==ii)) = [];
                 clust(clust == ii) = [];
-                app.updateDropdown("remove");
+            end
+            app.updateDropdown("remove");
+            standardUpdate(app);
+            
+        end
+
+        % Button pushed function: AutomergeButton
+        function AutomergeButtonPushed(app, event)
+            % perform PCA on the spikes of left unit to find other similar units. 
+            % Asks user if they want to keep the new assignment of spikes or not.
+            
+            value = str2double(app.LeftUnitDropDown.Value);
+            if isempty(app.unitArray(value).spikeTimes)
+                app.StatusLabel.Value = "Left unit is empty!";
+                return;
+            end
+
+            mode = app.basicModes.getUserData();
+            if strcmpi(mode, "batch")
+                [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
+            elseif strcmpi(mode, "plotted")
+                I = app.plottedWavesIdx;
+            elseif strcmpi(mode, "selected")
+                I = app.figureHandles(2).UserData{1}; % selected spike index along plotted spikes
             end
             
+            if isempty(I)
+                I = 1:length(app.unitArray(value).spikeTimes);
+            end
+            
+            app.StatusLabel.Value = "Automerging left unit into other units...";
+            drawnow
+            
+            % PCA split unit and check if user confirmed
+            [clust, yn] = app.unitAutoMerger(value, I);
+            if ~yn
+                return;
+            end
+            
+            truncClust = unique(clust);
+            unitSpikesBool = false(size(app.unitArray(value).spikeTimes));
+            unitSpikesBool(I) = true;
+            for ii = truncClust
+                unitSpikesIdx = find(unitSpikesBool);
+                app.unitArray = app.unitArray.unitMerger([value,ii], unitSpikesIdx(clust==ii));
+                unitSpikesBool(unitSpikesIdx(clust==ii)) = [];
+                clust(clust == ii) = [];
+            end
+            app.updateDropdown("remove");
             standardUpdate(app);
             
         end
@@ -1692,7 +1751,7 @@
             app.AutosortbatchButton.BackgroundColor = [0.9882 0.6431 0.1569];
             app.AutosortbatchButton.Layout.Row = 5;
             app.AutosortbatchButton.Layout.Column = [1 2];
-            app.AutosortbatchButton.Text = {'Autosort batch'; '(actually works now)'};
+            app.AutosortbatchButton.Text = 'Autosort batch';
 
             % Create RefinebatchButton
             app.RefinebatchButton = uibutton(app.DatascrubGrid, 'push');
@@ -1803,21 +1862,21 @@
 
             % Create AutomergeButton
             app.AutomergeButton = uibutton(app.ManualGrid, 'push');
+            app.AutomergeButton.ButtonPushedFcn = createCallbackFcn(app, @AutomergeButtonPushed, true);
             app.AutomergeButton.BackgroundColor = [0.8784 0.8784 0.1137];
-            app.AutomergeButton.Enable = 'off';
             app.AutomergeButton.Layout.Row = 9;
             app.AutomergeButton.Layout.Column = 1;
-            app.AutomergeButton.Text = 'Automerge (BETA)';
+            app.AutomergeButton.Text = 'Automerge';
 
-            % Create ModesPanel
-            app.ModesPanel = uipanel(app.ManualGrid);
-            app.ModesPanel.TitlePosition = 'centertop';
-            app.ModesPanel.Title = 'Modes';
-            app.ModesPanel.Layout.Row = [5 9];
-            app.ModesPanel.Layout.Column = 2;
+            % Create OperationTargetPanel
+            app.OperationTargetPanel = uipanel(app.ManualGrid);
+            app.OperationTargetPanel.TitlePosition = 'centertop';
+            app.OperationTargetPanel.Title = 'Operation Target';
+            app.OperationTargetPanel.Layout.Row = [5 9];
+            app.OperationTargetPanel.Layout.Column = 2;
 
             % Create GridLayout6
-            app.GridLayout6 = uigridlayout(app.ModesPanel);
+            app.GridLayout6 = uigridlayout(app.OperationTargetPanel);
             app.GridLayout6.ColumnWidth = {'1x', '0.3x'};
             app.GridLayout6.RowHeight = {'1x', '1x', '1x', '1x'};
             app.GridLayout6.ColumnSpacing = 2;
@@ -2339,6 +2398,29 @@
             app.ShowloadedtemplatesButton.Layout.Row = 5;
             app.ShowloadedtemplatesButton.Layout.Column = [1 2];
             app.ShowloadedtemplatesButton.Text = 'Show loaded templates';
+
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.GridLayout4);
+            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x'};
+            app.GridLayout7.ColumnSpacing = 5;
+            app.GridLayout7.RowSpacing = 5;
+            app.GridLayout7.Padding = [3 3 3 3];
+            app.GridLayout7.Layout.Row = 1;
+            app.GridLayout7.Layout.Column = 2;
+
+            % Create SpikeWidthLabel
+            app.SpikeWidthLabel = uilabel(app.GridLayout7);
+            app.SpikeWidthLabel.HorizontalAlignment = 'right';
+            app.SpikeWidthLabel.Layout.Row = 1;
+            app.SpikeWidthLabel.Layout.Column = 1;
+            app.SpikeWidthLabel.Text = 'Spike Width';
+
+            % Create OldField_2
+            app.OldField_2 = uieditfield(app.GridLayout7, 'numeric');
+            app.OldField_2.Limits = [0 Inf];
+            app.OldField_2.Layout.Row = 1;
+            app.OldField_2.Layout.Column = 2;
+            app.OldField_2.Value = 1;
 
             % Create TracePanel
             app.TracePanel = uipanel(app.GridMain);

@@ -53,12 +53,14 @@ for ii = updateFigs
         
         %    find how many spikes there were in the last 3 batches
         last3Batches = [0,0,0];
-        for jj = min([c,3]):-1:1
-            last3Batches(jj) = nnz(app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app,c+[-jj,-jj+1])));
+        for jj = 0:2
+            if c-jj > 0
+                last3Batches(jj+1) = nnz(app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app,[c-jj,c-jj])));
+            end
         end
         
         if ~isempty(app.unitArray(u(ii)).name)
-            nameText = "'"+app.unitArray(u(ii)).name+"'";
+            nameText = """"+app.unitArray(u(ii)).name+""" ";
         else
             nameText = "";
         end
@@ -70,7 +72,7 @@ for ii = updateFigs
         end
         
         t(ii).Value = nameText + string(length(app.unitArray(u(ii)).spikeTimes)) +...
-            " spikes total, " + last3Batches(2) + "/" + last3Batches(2) +...
+            " spikes total, " + last3Batches(3) + "/" + last3Batches(2) +...
             "/" + last3Batches(1) + " spikes -2/-1/0 batches ago" + junkText;
         
         q = 1;

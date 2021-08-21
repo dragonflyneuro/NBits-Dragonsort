@@ -180,7 +180,6 @@
                     app.snippet = [];
                     app.initm.fN = fN;
                     app.initm.fP = fP;
-                    app.CallingApp.loadPath = fP;
                 else
                     fclose(fid);
                     app.FileLabel.Text = "Could not open file!";
@@ -206,6 +205,9 @@
         function OKButtonPushed(app, event)
             switchButtons(app.CallingApp,0);
             
+            app.CallingApp.loadPath = app.initm.fP;
+            app.CallingApp.savePath = app.initm.fP;
+                    
             app.initm.dbytes = app.BytespersampleEditField.Value;
             app.initm.nChans = app.nchEditField.Value;
             if ~isempty(app.echEditField.Value)
