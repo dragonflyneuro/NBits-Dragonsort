@@ -1,5 +1,7 @@
 function [output, statusStr] = importEventData(fN)
-
+%imports a mat file with:
+% case 1: 1D vector denoting event times in samples
+% case 2: 1D vector denoting event times in samples
 output = [];
 input = load(fN);
 vars = fieldnames(input);

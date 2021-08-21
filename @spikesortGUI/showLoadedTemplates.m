@@ -1,8 +1,6 @@
 function [] = showLoadedTemplates(app)
 % set up subplot function
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
-app.StatusLabel.Value = "Plotting units with their templates...";
-drawnow
 
 for ii = 1:length(app.unitArray)
     unitsWTemplates(ii) = ~isempty(app.unitArray(ii).loadedTemplateWaves);
@@ -66,5 +64,4 @@ for ii = 1:length(ax)
 end
 sgtitle('Units with their loaded templates - max 600 random spikes plotted');
 
-app.StatusLabel.Value = "Ready";
 end
