@@ -12,9 +12,6 @@ app.RedoMenu.Accelerator = 'y';
 app.NextbatchMenu.Accelerator = 'p';
 app.PreviousbatchMenu.Accelerator = 'o';
 
-%advanced
-app.LoadtemplatesMenu.Accelerator = 'k';
-
 %figures
 app.TZoomMenu.Accelerator = 'q';
 app.TResetMenu.Accelerator = 'w';

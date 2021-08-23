@@ -4,19 +4,6 @@
     properties (Access = public)
         SortingrefinerUIFigure  matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
-        GridLayout2             matlab.ui.container.GridLayout
-        DoneButton              matlab.ui.control.Button
-        GraphicalrefineButton   matlab.ui.control.Button
-        LockoriginalButton      matlab.ui.control.StateButton
-        ResetrefineButton       matlab.ui.control.Button
-        LossTagButton           matlab.ui.control.Button
-        GainTagButton           matlab.ui.control.Button
-        HistogramxlimLabel      matlab.ui.control.Label
-        histBinEditField        matlab.ui.control.NumericEditField
-        TagsDropDown            matlab.ui.control.DropDown
-        ToggleGainLossbytagsDropDownLabel  matlab.ui.control.Label
-        AutoButton              matlab.ui.control.StateButton
-        ShowtraceButton         matlab.ui.control.StateButton
         TabGroup                matlab.ui.container.TabGroup
         ScalingsTab             matlab.ui.container.Tab
         GridLayout3             matlab.ui.container.GridLayout
@@ -24,6 +11,19 @@
         TagsTab                 matlab.ui.container.Tab
         GridLayout6             matlab.ui.container.GridLayout
         TagTable                matlab.ui.control.Table
+        GridLayout2             matlab.ui.container.GridLayout
+        ShowtraceButton         matlab.ui.control.StateButton
+        AutoButton              matlab.ui.control.StateButton
+        ToggleGainLossbytagsDropDownLabel  matlab.ui.control.Label
+        TagsDropDown            matlab.ui.control.DropDown
+        histBinEditField        matlab.ui.control.NumericEditField
+        HistogramxlimLabel      matlab.ui.control.Label
+        GainTagButton           matlab.ui.control.Button
+        LossTagButton           matlab.ui.control.Button
+        ResetrefineButton       matlab.ui.control.Button
+        LockoriginalButton      matlab.ui.control.StateButton
+        GraphicalrefineButton   matlab.ui.control.Button
+        DoneButton              matlab.ui.control.Button
     end
 
     
@@ -51,7 +51,8 @@
             end
             r = getBatchRange(app.CallingApp, app.p.currentBatch+app.p.templateBatches);
             [app.d.devMatrix, app.d.tempWavesSet, app.d.spikeAssignmentUnit] = newDeviationRefine(app.thr, ...
-                app.p.unitArray, app.w, r, app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling);
+                app.p.unitArray, app.w, r, app.p.numTemplates, app.p.m.sRateHz, app.ScalingTable.Data.Scaling,...
+                app.p.t.templateCropFactor,app.p.t.deviationSampleWeights);
             app.d.prevAssignment = app.d.spikeAssignmentUnit;
         end
     end

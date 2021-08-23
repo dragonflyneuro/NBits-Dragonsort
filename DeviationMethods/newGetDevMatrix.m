@@ -1,4 +1,4 @@
-function [devMatrix, templateWavesSet, thr] = newGetDevMatrix(thr, uA, orphanWaves, range, numTemplates, sRate, fuzzyBool)
+function [devMatrix, templateWavesSet, thr] = newGetDevMatrix(thr, uA, orphanWaves, range, numTemplates, sRate, fuzzyBool, cropFactor, sampleW)
 % Daniel Ko (dsk13@ic.ac.uk), Huai-Ti Lin [Feb 2020]
 % Finds deviation index matrix of orphan waves with respect to a set of
 % unit templates.
@@ -44,7 +44,7 @@ for ii = 1:length(uA)
     
     % find deviation and normalise
     if ~isempty(templateWaves)
-        [~,templateMean,deviation] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr(ii), 0);
+        [~,templateMean,deviation] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr(ii), 0, cropFactor, sampleW);
         templateP2p(ii) = max(peak2peak(templateMean,2));
         devMatrix(:,ii) = deviation/templateP2p(ii); %log deviation normalized to template p2p amplitude
     else

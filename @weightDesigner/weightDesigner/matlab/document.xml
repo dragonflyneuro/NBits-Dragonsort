@@ -2,42 +2,42 @@
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                    matlab.ui.Figure
+        DragonsortWeightDesignerUIFigure  matlab.ui.Figure
         GridLayout                  matlab.ui.container.GridLayout
-        SaveweightsButton           matlab.ui.control.Button
-        LoadweightsButton           matlab.ui.control.Button
-        ResetButton                 matlab.ui.control.Button
-        SampleLengthEditFieldLabel  matlab.ui.control.Label
-        SampleLengthEditField       matlab.ui.control.NumericEditField
-        LoadspikeButton             matlab.ui.control.Button
-        Panel                       matlab.ui.container.Panel
-        Panel_2                     matlab.ui.container.Panel
+        UndoredoButton              matlab.ui.control.Button
         Panel_3                     matlab.ui.container.Panel
         GridLayout2                 matlab.ui.container.GridLayout
-        FitgaussianButton           matlab.ui.control.Button
-        FitboxcarButton             matlab.ui.control.Button
-        MeanLabel                   matlab.ui.control.Label
-        MeanEditField               matlab.ui.control.NumericEditField
-        STDhalfwidthLabel           matlab.ui.control.Label
-        STDEditField                matlab.ui.control.NumericEditField
-        LayeringmodeButton          matlab.ui.control.StateButton
         AutogenerationLabel         matlab.ui.control.Label
-        UndoredoButton              matlab.ui.control.Button
+        LayeringmodeButton          matlab.ui.control.StateButton
+        STDEditField                matlab.ui.control.NumericEditField
+        STDhalfwidthLabel           matlab.ui.control.Label
+        MeanEditField               matlab.ui.control.NumericEditField
+        MeanLabel                   matlab.ui.control.Label
+        FitboxcarButton             matlab.ui.control.Button
+        FitgaussianButton           matlab.ui.control.Button
+        Panel_2                     matlab.ui.container.Panel
+        Panel                       matlab.ui.container.Panel
+        LoadspikeButton             matlab.ui.control.Button
+        SampleLengthEditField       matlab.ui.control.NumericEditField
+        SampleLengthEditFieldLabel  matlab.ui.control.Label
+        ResetButton                 matlab.ui.control.Button
+        LoadweightsButton           matlab.ui.control.Button
+        SaveweightsButton           matlab.ui.control.Button
     end
 
-    
+
     properties (Access = private)
         axW % Description
         axS
         p
         last
     end
-    
+
     methods (Access = private)
-        
+
         function [] = plotW(app, in)
             app.last = get(app.p,'ydata');
-            
+
             wings = ceil(app.SampleLengthEditField.Value/2) - 1;
             if in == 0
                 app.p = plot(app.axW, -wings:wings,...
@@ -47,17 +47,17 @@
                 app.p = plot(app.axW, -wings:wings,...
                     in,'-o','MarkerSize',2,'buttondownfcn',{@Mouse_Callback,'down',app});
             end
-            
+
             xlim(app.axW, [-wings, wings]);
             xlim(app.axS, [-wings, wings]);
             ylim(app.axW, [0, 1]);
             grid(app.axW,'on');
-            
+
             ylabel(app.axW, "Weight (higher the more important)");
             xlabel(app.axW, "Sample number (spike peak at 0)");
             ylabel(app.axS, "Amplitude");
             xlabel(app.axS, "Sample number (spike peak at 0)");
-            
+
             function Mouse_Callback(hObj,~,action,app)
                 persistent curobj xdata ydata ind
                 pos = get(app.axW,'CurrentPoint');
@@ -67,7 +67,7 @@
                         xdata = get(hObj,'xdata');
                         ydata = get(hObj,'ydata');
                         [~,ind] = min(sum((xdata-pos(1)).^2+(ydata-pos(3)).^2,1));
-                        set(app.UIFigure,...
+                        set(app.DragonsortWeightDesignerUIFigure,...
                             'WindowButtonMotionFcn',  {@Mouse_Callback,'move',app},...
                             'WindowButtonUpFcn',      {@Mouse_Callback,'up',app});
                         app.last = get(curobj,'ydata');
@@ -81,31 +81,35 @@
                         end
                         set(curobj,'ydata',ydata)
                     case 'up'
-                        set(app.UIFigure,...
+                        set(app.DragonsortWeightDesignerUIFigure,...
                             'WindowButtonMotionFcn',  '',...
                             'WindowButtonUpFcn',      '');
                 end
             end
         end
-        
+
         function y = gauss(~,x,mu,sigma)
             y=exp(-((x-mu)/sigma).^2);
         end
-        
+
         function y = box(~,x,mu,hw)
             y = x >= mu-hw & x <= mu+hw;
         end
     end
-    
+
 
     % Callbacks that handle component events
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app)
+        function startupFcn(app, varargin)
             app.axW = axes('Parent',app.Panel);
             app.axS = axes('Parent',app.Panel_2);
-            app.plotW(0);
+            if nargin > 1
+                app.plotW(varargin{1});
+            else
+                app.plotW(0);
+            end
         end
 
         % Value changed function: SampleLengthEditField
@@ -120,12 +124,12 @@
         % Button pushed function: SaveweightsButton
         function SaveweightsButtonPushed(app, event)
             sP = uigetdir('Select save path');
-            
-            figure(app.UIFigure);
+
+            figure(app.DragonsortWeightDesignerUIFigure);
             if sP == 0
                 return;
             end
-            
+
             spikeWeights = get(app.p,'ydata');
             save(sP+string(filesep)+"weights_"+datestr(now,'yymmddHHMM')+".mat", "spikeWeights");
         end
@@ -133,14 +137,14 @@
         % Button pushed function: LoadweightsButton
         function LoadweightsButtonPushed(app, event)
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load');
-            figure(app.UIFigure);
+            figure(app.DragonsortWeightDesignerUIFigure);
             if fN < 1
                 return;
             end
-            
+
             input = load([fP fN]);
             vars = fieldnames(input);
-            
+
             if length(vars) < 0 || length(vars) > 1
                 return;
             end
@@ -150,7 +154,7 @@
             if min(input.(vars{1})) < 0 || max(input.(vars{1})) > 1
                 return;
             end
-            
+
             app.SampleLengthEditField.Value = max(size(input.(vars{1})));
             app.plotW(input.(vars{1}));
         end
@@ -164,26 +168,26 @@
         % Button pushed function: LoadspikeButton
         function LoadspikeButtonPushed(app, event)
             value = app.SampleLengthEditField.Value;
-            
+
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load');
-            figure(app.UIFigure);
+            figure(app.DragonsortWeightDesignerUIFigure);
             if fN < 1
                 return;
             end
-            
+
             input = load([fP fN]);
             vars = fieldnames(input);
-            
+
             if length(vars) < 0 || length(vars) > 1
                 return;
             end
             if min(size(input.(vars{1}))) > 1
                 return;
             end
-            
+
             wings = ceil(length(input.(vars{1}))/2) - 1;
             plot(app.axS,-wings:wings,input.(vars{1}));
-            
+
             wings = floor(value/2);
             xlim(app.axS, [-wings wings]);
         end
@@ -222,13 +226,13 @@
         % Create UIFigure and components
         function createComponents(app)
 
-            % Create UIFigure and hide until all components are created
-            app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 903 606];
-            app.UIFigure.Name = 'MATLAB App';
+            % Create DragonsortWeightDesignerUIFigure and hide until all components are created
+            app.DragonsortWeightDesignerUIFigure = uifigure('Visible', 'off');
+            app.DragonsortWeightDesignerUIFigure.Position = [100 100 903 606];
+            app.DragonsortWeightDesignerUIFigure.Name = 'Dragonsort Weight Designer';
 
             % Create GridLayout
-            app.GridLayout = uigridlayout(app.UIFigure);
+            app.GridLayout = uigridlayout(app.DragonsortWeightDesignerUIFigure);
             app.GridLayout.ColumnWidth = {'0.4x', '0.4x', '3x'};
             app.GridLayout.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
 
@@ -363,7 +367,7 @@
             app.UndoredoButton.Text = 'Undo/redo';
 
             % Show the figure after all components are created
-            app.UIFigure.Visible = 'on';
+            app.DragonsortWeightDesignerUIFigure.Visible = 'on';
         end
     end
 
@@ -371,16 +375,16 @@
     methods (Access = public)
 
         % Construct app
-        function app = weightDesigner
+        function app = weightDesigner(varargin)
 
             % Create UIFigure and components
             createComponents(app)
 
             % Register the app with App Designer
-            registerApp(app, app.UIFigure)
+            registerApp(app, app.DragonsortWeightDesignerUIFigure)
 
             % Execute the startup function
-            runStartupFcn(app, @startupFcn)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
 
             if nargout == 0
                 clear app
@@ -391,7 +395,7 @@
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            delete(app.UIFigure)
+            delete(app.DragonsortWeightDesignerUIFigure)
         end
     end
 end]]></w:t></w:r></w:p></w:body></w:document>

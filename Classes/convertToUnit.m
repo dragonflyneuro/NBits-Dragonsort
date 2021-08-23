@@ -133,6 +133,12 @@ end
 if isfield(t,'numSpikesInBatch')
     t = rmfield(t,'numSpikesInBatch');
 end
+if ~isfield(t, 'deviationSampleWeights')
+    t.deviationSampleWeights = [];
+end
+if ~isfield(t, 'templateCropFactor')
+    t.templateCropFactor = 0.75;
+end
 %%%LEGACY CHECKS%%%
 
 %    derived data

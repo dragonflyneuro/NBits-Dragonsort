@@ -1,4 +1,4 @@
-function [] = showLoadedTemplates(app)
+function [] = showImportedTemplates(app)
 % set up subplot function
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
@@ -62,6 +62,6 @@ for ii = 1:length(ax)
     yticks(ax(ii), 200*floor(yTemp(1)/200):200:200*ceil(yTemp(2)/200));
     set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
 end
-sgtitle('Units with their loaded templates - max 600 random spikes plotted');
+sgtitle('Units with their imported templates - max 600 random spikes plotted');
 
 end

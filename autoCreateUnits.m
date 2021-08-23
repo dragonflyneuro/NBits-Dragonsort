@@ -1,4 +1,4 @@
-function [assignedUnit, potentialSpikes] = autoCreateUnits(orphanWaves, y, thr, sRate, cutoff, k, direction, fuzzyBool)
+function [assignedUnit, potentialSpikes] = autoCreateUnits(orphanWaves, y, thr, sRate, cutoff, k, direction, fuzzyBool, cropFactor, sampleW)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calls template matching function for to generate a new unit and updates
 % Dragonsort structures
@@ -52,7 +52,7 @@ devIdx = inf(length(uniqueClust),size(orphanWaves,1));
 for ii = 1:length(uniqueClust)
     templateWaves = orphanWaves(clust == uniqueClust(ii),:,:);
     if size(templateWaves,1) > 30
-        [~,~,devIdx(d,:)] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr, 0);
+        [~,~,devIdx(d,:)] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr, 0, cropFactor, sampleW);
         d = d+1;
     end
 end
