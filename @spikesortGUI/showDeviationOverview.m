@@ -10,7 +10,7 @@ uniformLength = 0.4; % the width of uniform gain in ms. Used when weighing sampl
 bias = 0.1; % sample weighting function centreing bias
 
 for ii = 1:length(selection)
-    uLen = length(u(selection(ii).spikeTimes));
+    uLen = length(u(selection(ii)).spikeTimes));
     waves = u(selection(ii)).waves(:,:,u(selection(ii)).mainCh);
     waves = permute(waves, [3 2 1]);
     if ~isempty(waves)

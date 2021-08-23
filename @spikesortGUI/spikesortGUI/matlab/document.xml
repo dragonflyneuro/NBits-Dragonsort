@@ -48,9 +48,10 @@
         GeneralTab                    matlab.ui.container.Tab
         GridLayout2                   matlab.ui.container.GridLayout
         AutoGrid                      matlab.ui.container.GridLayout
+        OverviewDropDown              matlab.ui.control.DropDown
         CleanupButton                 matlab.ui.control.Button
         UnitfreqButton                matlab.ui.control.Button
-        ShowallButton                 matlab.ui.control.Button
+        OverviewButton                matlab.ui.control.Button
         UnitscrubButton               matlab.ui.control.Button
         AutocreateunitsButton         matlab.ui.control.Button
         AutocreatejunkunitsButton     matlab.ui.control.Button
@@ -948,8 +949,8 @@
             
         end
 
-        % Button pushed function: ShowallButton
-        function ShowallButtonButtonPushed(app, event)
+        % Button pushed function: OverviewButton
+        function OverviewButtonButtonPushed(app, event)
             % plot all units' spikes in a popout figure with their 3D PCA components
             % for easy visualisation. Can choose to not plot junk units
             
@@ -958,7 +959,7 @@
             
             if any(junks)
                 msg = 'Plot which units?';
-                msgTitle = 'Show unit overview';
+                msgTitle = 'Show Overview';
                 answer = uiconfirm(app.UIBase,msg,msgTitle,...
                     'Options',{'All','Exclude junk','Cancel'},...
                     'DefaultOption',1,'CancelOption',3);
@@ -978,7 +979,15 @@
             app.StatusLabel.Value = "Plotting unit overview...";
             drawnow
             
-            showAllUnits(app,app.unitArray,unitsToPlot);
+            if strcmp(app.OverviewDropDown.Value,'Spike')
+                showSpikeOverview(app ,app.unitArray, unitsToPlot);
+            elseif strcmp(app.OverviewDropDown.Value,'PCA')
+                showPCAOverview(app, app.unitArray, unitsToPlot)
+            elseif strcmp(app.OverviewDropDown.Value,'LDA')
+                showLDAOverview(app, app.unitArray, unitsToPlot)
+            else
+                showDeviationOverview(app, app.unitArray, unitsToPlot)
+            end
             
             app.StatusLabel.Value = "Ready";
             
@@ -1921,7 +1930,7 @@
             % Create AutoGrid
             app.AutoGrid = uigridlayout(app.GridLayout2);
             app.AutoGrid.ColumnWidth = {'1x', '1x', '1x'};
-            app.AutoGrid.RowHeight = {20, '1x', '1x'};
+            app.AutoGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
             app.AutoGrid.ColumnSpacing = 2;
             app.AutoGrid.RowSpacing = 2;
             app.AutoGrid.Padding = [0 0 0 0];
@@ -1940,7 +1949,7 @@
             app.AutocreatejunkunitsButton = uibutton(app.AutoGrid, 'push');
             app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
             app.AutocreatejunkunitsButton.BackgroundColor = [0.7176 0.2745 1];
-            app.AutocreatejunkunitsButton.Layout.Row = 3;
+            app.AutocreatejunkunitsButton.Layout.Row = [4 5];
             app.AutocreatejunkunitsButton.Layout.Column = 1;
             app.AutocreatejunkunitsButton.Text = 'Autocreate junk units';
 
@@ -1948,7 +1957,7 @@
             app.AutocreateunitsButton = uibutton(app.AutoGrid, 'push');
             app.AutocreateunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
             app.AutocreateunitsButton.BackgroundColor = [0.7176 0.2745 1];
-            app.AutocreateunitsButton.Layout.Row = 2;
+            app.AutocreateunitsButton.Layout.Row = [2 3];
             app.AutocreateunitsButton.Layout.Column = 1;
             app.AutocreateunitsButton.Text = 'Autocreate units';
 
@@ -1956,23 +1965,23 @@
             app.UnitscrubButton = uibutton(app.AutoGrid, 'push');
             app.UnitscrubButton.ButtonPushedFcn = createCallbackFcn(app, @UnitscrubButtonPushed, true);
             app.UnitscrubButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.UnitscrubButton.Layout.Row = 3;
+            app.UnitscrubButton.Layout.Row = [4 5];
             app.UnitscrubButton.Layout.Column = 2;
             app.UnitscrubButton.Text = 'Scrub through unit';
 
-            % Create ShowallButton
-            app.ShowallButton = uibutton(app.AutoGrid, 'push');
-            app.ShowallButton.ButtonPushedFcn = createCallbackFcn(app, @ShowallButtonButtonPushed, true);
-            app.ShowallButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.ShowallButton.Layout.Row = 2;
-            app.ShowallButton.Layout.Column = 3;
-            app.ShowallButton.Text = 'Show unit overview';
+            % Create OverviewButton
+            app.OverviewButton = uibutton(app.AutoGrid, 'push');
+            app.OverviewButton.ButtonPushedFcn = createCallbackFcn(app, @OverviewButtonButtonPushed, true);
+            app.OverviewButton.BackgroundColor = [0.4667 0.6745 0.1882];
+            app.OverviewButton.Layout.Row = 2;
+            app.OverviewButton.Layout.Column = 3;
+            app.OverviewButton.Text = 'Sorting overview';
 
             % Create UnitfreqButton
             app.UnitfreqButton = uibutton(app.AutoGrid, 'push');
             app.UnitfreqButton.ButtonPushedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
             app.UnitfreqButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.UnitfreqButton.Layout.Row = 3;
+            app.UnitfreqButton.Layout.Row = [4 5];
             app.UnitfreqButton.Layout.Column = 3;
             app.UnitfreqButton.Text = 'Unit freq time series';
 
@@ -1980,9 +1989,16 @@
             app.CleanupButton = uibutton(app.AutoGrid, 'push');
             app.CleanupButton.ButtonPushedFcn = createCallbackFcn(app, @CleanupButtonPushed, true);
             app.CleanupButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.CleanupButton.Layout.Row = 2;
+            app.CleanupButton.Layout.Row = [2 3];
             app.CleanupButton.Layout.Column = 2;
             app.CleanupButton.Text = 'Nice-fy unit numbers';
+
+            % Create OverviewDropDown
+            app.OverviewDropDown = uidropdown(app.AutoGrid);
+            app.OverviewDropDown.Items = {'Spike', 'PCA', 'LDA', 'Deviation'};
+            app.OverviewDropDown.Layout.Row = 3;
+            app.OverviewDropDown.Layout.Column = 3;
+            app.OverviewDropDown.Value = 'Spike';
 
             % Create ParametersDataTab
             app.ParametersDataTab = uitab(app.ControlTabs);

@@ -2,14 +2,14 @@
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure            matlab.ui.Figure
+        TagManagerUIFigure  matlab.ui.Figure
         GridLayout          matlab.ui.container.GridLayout
-        UITable             matlab.ui.control.Table
-        TagmanagementLabel  matlab.ui.control.Label
-        ConfirmButton       matlab.ui.control.Button
-        CancelButton        matlab.ui.control.Button
-        AddtagButton        matlab.ui.control.Button
         RemovetagButton     matlab.ui.control.Button
+        AddtagButton        matlab.ui.control.Button
+        CancelButton        matlab.ui.control.Button
+        ConfirmButton       matlab.ui.control.Button
+        TagmanagementLabel  matlab.ui.control.Label
+        UITable             matlab.ui.control.Table
     end
 
     
@@ -65,7 +65,7 @@
             app.RemovetagButton.Enable = 1;
         end
 
-        % Callback function: CancelButton, UIFigure
+        % Callback function: CancelButton, TagManagerUIFigure
         function UIFigureCloseRequest(app, event)
             switchButtons(app.CallingApp,1);
             switchButtons(app.CallingApp,3);
@@ -110,14 +110,14 @@
         % Create UIFigure and components
         function createComponents(app)
 
-            % Create UIFigure and hide until all components are created
-            app.UIFigure = uifigure('Visible', 'off');
-            app.UIFigure.Position = [100 100 640 480];
-            app.UIFigure.Name = 'MATLAB App';
-            app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @UIFigureCloseRequest, true);
+            % Create TagManagerUIFigure and hide until all components are created
+            app.TagManagerUIFigure = uifigure('Visible', 'off');
+            app.TagManagerUIFigure.Position = [100 100 640 480];
+            app.TagManagerUIFigure.Name = 'Tag Manager';
+            app.TagManagerUIFigure.CloseRequestFcn = createCallbackFcn(app, @UIFigureCloseRequest, true);
 
             % Create GridLayout
-            app.GridLayout = uigridlayout(app.UIFigure);
+            app.GridLayout = uigridlayout(app.TagManagerUIFigure);
             app.GridLayout.ColumnWidth = {'1x', '1x', '1x', '1x'};
             app.GridLayout.RowHeight = {20, '1x', 20};
 
@@ -166,7 +166,7 @@
             app.RemovetagButton.Text = 'Remove tag';
 
             % Show the figure after all components are created
-            app.UIFigure.Visible = 'on';
+            app.TagManagerUIFigure.Visible = 'on';
         end
     end
 
@@ -180,7 +180,7 @@
             createComponents(app)
 
             % Register the app with App Designer
-            registerApp(app, app.UIFigure)
+            registerApp(app, app.TagManagerUIFigure)
 
             % Execute the startup function
             runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
@@ -194,7 +194,7 @@
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            delete(app.UIFigure)
+            delete(app.TagManagerUIFigure)
         end
     end
 end]]></w:t></w:r></w:p></w:body></w:document>
