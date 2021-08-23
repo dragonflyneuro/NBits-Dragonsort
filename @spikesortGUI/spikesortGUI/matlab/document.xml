@@ -135,7 +135,7 @@
         AdvancedTab                   matlab.ui.container.Tab
         GridLayout4                   matlab.ui.container.GridLayout
         GridLayout7                   matlab.ui.container.GridLayout
-        OldField_2                    matlab.ui.control.NumericEditField
+        SpikewidthEditField           matlab.ui.control.NumericEditField
         SpikeWidthLabel               matlab.ui.control.Label
         GridLayout5                   matlab.ui.container.GridLayout
         ShowloadedtemplatesButton     matlab.ui.control.Button
@@ -1186,9 +1186,16 @@
             % change viewing batch size
             
             value = app.BatchsizeEditField.Value;
+            
+            if value < app.SpikewidthEditField.Value*2 + 1
+                app.StatusLabel.Value = "Batch size cannot be smaller than twice the spike width!...";
+                app.BatchsizeEditField.Value = app.t.batchSize;
+                return
+            end
+            
             app.t.batchSize = value;
             bl = app.t.batchLengths;
-
+            
             app.StatusLabel.Value = "Changing batch size...";
             drawnow
             
@@ -1408,6 +1415,31 @@
             value = app.NewField.Value;
             app.t.add2UnitThr(2) = value;
             
+        end
+
+        % Value changed function: SpikewidthEditField
+        function SpikewidthEditFieldValueChanged(app, event)
+            value = app.SpikewidthEditField.Value;
+            if app.BatchsizeEditField.Value < value*2 + 1
+                app.StatusLabel.Value = "Batch size cannot be smaller than twice the spike width!...";
+                app.SpikewidthEditField.Value = app.m.spikeWidth;
+                return
+            end
+            
+            answer = uiconfirm(app.UIBase,"Changing spike width may result will result in the"+...
+                " update of the entire sorting and may result in"+...
+                " spike deletion & changes in sorting dynamics. Continue?","Warning",...
+                'Icon','warning','DefaultOption',2);
+            if strcmpi(answer, "CANCEL")
+                return;
+            end
+            
+            app.StatusLabel.Value = "Updating spike widths...";
+            
+            app.m.spikeWidth = value;
+            app.updateSpikeWidth();
+            
+            standardUpdate(app);
         end
     end
 
@@ -2077,7 +2109,7 @@
 
             % Create PlotallchButton
             app.PlotallchButton = uibutton(app.ViewingGrid, 'state');
-            app.PlotallchButton.Text = 'Plot AllCh';
+            app.PlotallchButton.Text = 'Plot multiple channels';
             app.PlotallchButton.BackgroundColor = [0 1 0];
             app.PlotallchButton.Layout.Row = 9;
             app.PlotallchButton.Layout.Column = [1 2];
@@ -2431,12 +2463,13 @@
             app.SpikeWidthLabel.Layout.Column = 1;
             app.SpikeWidthLabel.Text = 'Spike Width';
 
-            % Create OldField_2
-            app.OldField_2 = uieditfield(app.GridLayout7, 'numeric');
-            app.OldField_2.Limits = [0 Inf];
-            app.OldField_2.Layout.Row = 1;
-            app.OldField_2.Layout.Column = 2;
-            app.OldField_2.Value = 1;
+            % Create SpikewidthEditField
+            app.SpikewidthEditField = uieditfield(app.GridLayout7, 'numeric');
+            app.SpikewidthEditField.Limits = [0 Inf];
+            app.SpikewidthEditField.ValueChangedFcn = createCallbackFcn(app, @SpikewidthEditFieldValueChanged, true);
+            app.SpikewidthEditField.Layout.Row = 1;
+            app.SpikewidthEditField.Layout.Column = 2;
+            app.SpikewidthEditField.Value = 1;
 
             % Create TracePanel
             app.TracePanel = uipanel(app.GridMain);

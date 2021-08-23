@@ -63,6 +63,7 @@ app.OldField.Value = app.t.add2UnitThr(1);
 app.NewField.Value = app.t.add2UnitThr(2);
 app.DetectThr1EditField.Value = app.t.detectThr(1);
 app.DetectThr2EditField.Value = app.t.detectThr(2);
+app.SpikewidthEditField.Value = app.m.spikeWidth;
 app.BinaryEditField.Value = app.m.fN;
 app.SavenameEditField.Value ="sorting_" + erase(app.m.fN,'.bin') + suffix;
 app.LeftUnitDropDown.Items = "1";

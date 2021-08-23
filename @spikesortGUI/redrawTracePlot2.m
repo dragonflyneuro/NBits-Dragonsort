@@ -68,8 +68,10 @@ if app.VieweventmarkersButton.Value == 1
 end
 
 ht.Children = flipud(ht.Children);
+if c ~= 1
+    orphanSpikes = orphanSpikes - sum(bl(1:c-1)) + app.m.spikeWidth;
+end
 
-orphanSpikes = orphanSpikes - sum(bl(1:c-1));
 % draw markers on data line for orphans
 if ~isempty(orphanSpikes)
     x(1,:) = orphanSpikes*app.msConvert;
@@ -94,7 +96,12 @@ end
 d = 1;
 for ii = 1:length(app.unitArray)
     unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(r);
-    tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
+    if c ~= 1
+        tempUnit = unitSpikesInBatch - sum(bl(1:c-1)) + app.m.spikeWidth;
+    else
+        tempUnit = unitSpikesInBatch;
+    end
+    
     if ~isempty(tempUnit)
         [ms, msSize] = getMarker(size(app.cmap,1), ii);
         

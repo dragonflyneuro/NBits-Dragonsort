@@ -88,7 +88,11 @@ for ii = updateFigs
     if ~isempty(tempWaves)
         %userdata{2} is for getting selected spikes in trace
         [unitSpikesInBatch,~,unitSpikesInBatchIdx] = app.unitArray(u(ii)).getAssignedSpikes(getBatchRange(app));
-        tempUnit = unitSpikesInBatch - sum(bl(1:c-1));
+        if c ~= 1
+            tempUnit = unitSpikesInBatch - sum(bl(1:c-1)) + app.m.spikeWidth;
+        else
+            tempUnit = unitSpikesInBatch;
+        end
         %      If the unit size is over the number to be plotted
         if size(tempWaves,1) > round(app.SpikeshownField.Value)
             tempWaves = tempWaves(end-round(app.SpikeshownField.Value)+1:end,:,:);
