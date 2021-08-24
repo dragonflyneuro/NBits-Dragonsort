@@ -42,8 +42,8 @@ app.saveLast();
 tU = app.unitArray(n).spikeTimes;
 I = round(sld.Value)+1:length(tU);
 app.unitArray = app.unitArray.unitSplitter(n,I);
-app.redrawTracePlot(app.figureHandles(1));
-app.redrawUnitPlots(app.figureHandles(2), app.figureHandles(3));
+app.redrawTracePlot();
+app.redrawUnitPlots(1);
 close(h)
 end
 
@@ -58,7 +58,7 @@ else
     I = 1:round(sld.Value)+1;
 end
 app.unitArray = app.unitArray.spikeRemover(n,I);
-app.redrawTracePlot(app.figureHandles(1));
-app.redrawUnitPlots(app.figureHandles(2), app.figureHandles(3));
+app.redrawTracePlot();
+app.redrawUnitPlots(1);
 close(h)
 end

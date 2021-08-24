@@ -1,4 +1,4 @@
-function [] = readFilter2(app, batchNum)
+function [] = readFilter(app, batchNum)
 %   read a batch of data of length t.batchLengths samples and filter it.
 %   Extract spike times also
 app.StatusLabel.Value = "Reading data...";

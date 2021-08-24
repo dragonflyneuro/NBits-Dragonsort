@@ -39,14 +39,17 @@
         MatchunityaxisMenu            matlab.ui.container.Menu
         OthersMenu                    matlab.ui.container.Menu
         HelpMenu                      matlab.ui.container.Menu
-        GridMain                      matlab.ui.container.GridLayout
-        ColourGrid                    matlab.ui.container.GridLayout
+        MainGrid                      matlab.ui.container.GridLayout
+        TTitleRowGrid                 matlab.ui.container.GridLayout
+        TMultiButton                  matlab.ui.control.StateButton
+        TPCAButton                    matlab.ui.control.StateButton
         TTitle                        matlab.ui.control.EditField
+        ColourGrid                    matlab.ui.container.GridLayout
         TracePanel                    matlab.ui.container.Panel
         ControlTabs                   matlab.ui.container.TabGroup
         GeneralTab                    matlab.ui.container.Tab
-        GridLayout2                   matlab.ui.container.GridLayout
-        AutoGrid                      matlab.ui.container.GridLayout
+        GeneralGrid                   matlab.ui.container.GridLayout
+        MiscGrid                      matlab.ui.container.GridLayout
         OverviewDropDown              matlab.ui.control.DropDown
         CleanupButton                 matlab.ui.control.Button
         UnitfreqButton                matlab.ui.control.Button
@@ -55,9 +58,9 @@
         AutocreateunitsButton         matlab.ui.control.Button
         AutocreatejunkunitsButton     matlab.ui.control.Button
         NeatcoolthingsthoLabel        matlab.ui.control.Label
-        ManualGrid                    matlab.ui.container.GridLayout
+        ManipulationGrid              matlab.ui.container.GridLayout
         OperationTargetPanel          matlab.ui.container.Panel
-        GridLayout6                   matlab.ui.container.GridLayout
+        OperationtargetGrid           matlab.ui.container.GridLayout
         AutosplitintoLabel            matlab.ui.control.Label
         AutosplitField                matlab.ui.control.NumericEditField
         BatchButton                   matlab.ui.control.StateButton
@@ -83,14 +86,11 @@
         NextbatchButton               matlab.ui.control.Button
         PreviousbatchButton           matlab.ui.control.Button
         ScrubdataLabel                matlab.ui.control.Label
-        ParametersDataTab             matlab.ui.container.Tab
-        GridLayout                    matlab.ui.container.GridLayout
-        GridLayout3                   matlab.ui.container.GridLayout
-        TagmanagementButton           matlab.ui.control.Button
-        TagDropDown                   matlab.ui.control.DropDown
-        ToggletagButton               matlab.ui.control.Button
-        TagLabel                      matlab.ui.control.Label
+        ParametersdataTab             matlab.ui.container.Tab
+        ParametersGrid                matlab.ui.container.GridLayout
         TemplategenerateionGrid       matlab.ui.container.GridLayout
+        TemplatecropwidthEditField    matlab.ui.control.NumericEditField
+        TemplatewidthcropfactorLabel  matlab.ui.control.Label
         TemplategenerationLabel       matlab.ui.control.Label
         PastbatchesTField             matlab.ui.control.NumericEditField
         PastbatchesLabel_2            matlab.ui.control.Label
@@ -123,7 +123,6 @@
         BatchSizesamplesLabel         matlab.ui.control.Label
         yLimLowField                  matlab.ui.control.NumericEditField
         YlimitLabel                   matlab.ui.control.Label
-        PlotallchButton               matlab.ui.control.StateButton
         FuturebatchesField            matlab.ui.control.NumericEditField
         FuturebatchesLabel            matlab.ui.control.Label
         DataviewingLabel              matlab.ui.control.Label
@@ -132,25 +131,37 @@
         SpikeshownField               matlab.ui.control.NumericEditField
         SpikestotalLabel              matlab.ui.control.Label
         AdvancedTab                   matlab.ui.container.Tab
-        GridLayout4                   matlab.ui.container.GridLayout
-        GridLayout7                   matlab.ui.container.GridLayout
-        TemplatecropwidthEditField    matlab.ui.control.NumericEditField
-        TemplateWidthCropFactorLabel  matlab.ui.control.Label
-        SpikewidthEditField           matlab.ui.control.NumericEditField
-        SpikeWidthLabel               matlab.ui.control.Label
-        GridLayout5                   matlab.ui.container.GridLayout
+        AdvancedGrid                  matlab.ui.container.GridLayout
+        MultichannelGrid              matlab.ui.container.GridLayout
+        MultichannelLabel             matlab.ui.control.Label
+        TemplategenerationGrid        matlab.ui.container.GridLayout
+        ImportsampleweightsButton     matlab.ui.control.Button
         ShowsampleweightsButton       matlab.ui.control.Button
         ImporttemplatesButton         matlab.ui.control.Button
         ShowtemplatesButton           matlab.ui.control.Button
-        ImportsampleweightsButton     matlab.ui.control.Button
+        AdvTemplategenerationLabel    matlab.ui.control.Label
+        TaggingGrid                   matlab.ui.container.GridLayout
+        TagmanagementButton           matlab.ui.control.Button
+        TagDropDown                   matlab.ui.control.DropDown
+        ToggletagButton               matlab.ui.control.Button
+        TagLabel                      matlab.ui.control.Label
+        UnitGrid                      matlab.ui.container.GridLayout
+        UnitLabel                     matlab.ui.control.Label
+        SpikewidthEditField           matlab.ui.control.NumericEditField
+        SpikeWidthLabel               matlab.ui.control.Label
+        TimelineGrid                  matlab.ui.container.GridLayout
+        TimelineLabel                 matlab.ui.control.Label
         VieweventmarkersButton        matlab.ui.control.StateButton
         ImporteventmarkerdataButton   matlab.ui.control.Button
         ManualartifactremoverButton   matlab.ui.control.StateButton
         RGrid                         matlab.ui.container.GridLayout
+        RMultiButton                  matlab.ui.control.StateButton
         RTitle                        matlab.ui.control.EditField
         RPanel                        matlab.ui.container.Panel
         RightUnitDropDown             matlab.ui.control.DropDown
         LGrid                         matlab.ui.container.GridLayout
+        LMultiButton                  matlab.ui.control.Button
+        LPCAButton                    matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
         LPanel                        matlab.ui.container.Panel
         LeftUnitDropDown              matlab.ui.control.DropDown
@@ -226,7 +237,7 @@
     methods (Access = public)
 
         % initialise new sorting
-        e = updateVars2(app, newM, newT, newS)
+        e = updateVars(app, newM, newT, newS)
 
         % update spike assignments from refine
         updateUnits(app, d, opt)
@@ -253,7 +264,7 @@
         %% data input
 
         % read in data and filter for displaying
-        readFilter2(app, b)
+        readFilter(app, b)
 
         %% others
 
@@ -315,8 +326,8 @@
         end
 
         function [] = standardUpdate(app)
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawTracePlot();
+            app.redrawUnitPlots();
             app.StatusLabel.Value = "Ready";
             app.addHistory();
         end
@@ -403,7 +414,7 @@
                 tData = load([fP fN],'m','s','t');
             end
 
-            if app.updateVars2(tData.m, tData.t, tData.s)
+            if app.updateVars(tData.m, tData.t, tData.s)
                 app.StatusLabel.Value = "Load cancelled";
                 return;
             end
@@ -493,7 +504,7 @@
 
             app.updateDropdown();
             app.LeftUnitDropDown.Value = string(length(app.unitArray));
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawUnitPlots();
             app.ShowtemplatesButton.Enable = 1;
 
             app.StatusLabel.Value = "Ready";
@@ -537,13 +548,13 @@
 
         % Value changed function: LeftUnitDropDown
         function LeftUnitDropDownValueChanged(app, event)
-            app.redrawUnitPlots2(app.figureHandles,1);
+            app.redrawUnitPlots(1);
 
         end
 
         % Value changed function: RightUnitDropDown
         function RightUnitDropDownValueChanged(app, event)
-            app.redrawUnitPlots2(app.figureHandles,2);
+            app.redrawUnitPlots(2);
 
         end
 
@@ -573,7 +584,7 @@
             app.StatusLabel.Value = "Loading new batch of data...";
             drawnow
 
-            app.readFilter2(value);
+            app.readFilter(value);
 
             standardUpdate(app);
 
@@ -616,7 +627,7 @@
             app.LeftUnitDropDown.Value = string(length(app.unitArray));
             app.LTitle.Value ="";
 
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawUnitPlots();
             app.StatusLabel.Value = "Ready";
             app.addHistory();
 
@@ -898,7 +909,7 @@
 
             for ii = batches
                 if event.Source.UserData == 0
-                    app.readFilter2(ii);
+                    app.readFilter(ii);
                 end
                 r = getBatchRange(app);
                 [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
@@ -908,7 +919,7 @@
                 templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
                 r = getBatchRange(app, app.currentBatch+templateBatches);
 
-                [devMatrix, ~, thr] = newGetDevMatrix(app.t.add2UnitThr(1), app.unitArray, orphanWaves, r, ...
+                [devMatrix, ~, thr] = getDevMatrix(app.t.add2UnitThr(1), app.unitArray, orphanWaves, r, ...
                     app.m.sRateHz, app.SpikesusedEditField.Value, app.FuzzyButton.Value);
 
                 [devMins, devMinIdx] = min(devMatrix,[],2);
@@ -1177,14 +1188,14 @@
         function SpikeshownFieldValueChanged(app, event)
             % set the maximum number of spikes shown in the unit figures
 
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawUnitPlots();
 
         end
 
         % Value changed function: FuturebatchesField, 
         % PastbatchesField
         function DrawnbatchesChanged(app, event)
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawUnitPlots();
 
         end
 
@@ -1214,7 +1225,7 @@
             blNew = app.t.batchLengths;
             closestBatch = interp1(cumsum([0 blNew]),1:length(blNew)+1,currentBatchStart,'nearest','extrap');
             %             offset = app.m.nChans*app.m.dbytes*sum(blNew(1:closestBatch-1));
-            app.readFilter2(closestBatch);
+            app.readFilter(closestBatch);
 
             standardUpdate(app);
 
@@ -1245,7 +1256,7 @@
                             app.unitArray = app.unitArray.spikeRemover(ii,outBool);
                         end
                     end
-                    app.readFilter2(app.currentBatch);
+                    app.readFilter(app.currentBatch);
                     app.unitArray = app.unitArray.unitSorter();
                     standardUpdate(app);
                 else
@@ -1257,7 +1268,7 @@
                 drawnow
 
                 app.t.detectThr = value;
-                app.readFilter2(app.currentBatch);
+                app.readFilter(app.currentBatch);
                 standardUpdate(app);
             end
 
@@ -1307,7 +1318,7 @@
         % Button pushed function: ToggletagButton
         function ToggletagButtonPushed(app, event)
             app.unitArray(str2double(app.LeftUnitDropDown.Value)) = app.unitArray(str2double(app.LeftUnitDropDown.Value)).tagToggler("Junk");
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawUnitPlots();
             app.addHistory();
 
         end
@@ -1333,7 +1344,7 @@
                 app.switchButtons(3);
 
                 %                 offset = -app.m.nChans*app.m.dbytes*size(app.xi,2);
-                app.readFilter2(app.currentBatch);
+                app.readFilter(app.currentBatch);
                 standardUpdate(app);
             end
 
@@ -1373,8 +1384,8 @@
 
         % Value changed function: VieweventmarkersButton
         function VieweventmarkersButtonValueChanged(app, event)
-            app.redrawTracePlot2(app.figureHandles(1), app.figureHandles(2));
-            app.redrawUnitPlots2(app.figureHandles);
+            app.redrawTracePlot();
+            app.redrawUnitPlots();
         end
 
         % Button pushed function: ImportsampleweightsButton
@@ -1486,6 +1497,7 @@
             app.updateSpikeWidth();
 
             standardUpdate(app);
+            
         end
 
         % Value changed function: TemplatecropwidthEditField
@@ -1499,6 +1511,24 @@
         function ShowsampleweightsButtonPushed(app, event)
             weightDesigner(app.t.deviationSampleWeights);
 
+        end
+
+        % Value changed function: TMultiButton
+        function TMultiButtonValueChanged(app, event)
+            app.redrawTracePlot();
+            
+        end
+
+        % Button pushed function: LMultiButton
+        function LMultiButtonValueChanged(app, event)
+            app.redrawUnitPlots(1);
+            
+        end
+
+        % Value changed function: RMultiButton
+        function RMultiButtonValueChanged(app, event)
+            app.redrawUnitPlots(2);
+            
         end
     end
 
@@ -1690,16 +1720,16 @@
             app.HelpMenu.MenuSelectedFcn = createCallbackFcn(app, @HelpMenuSelected, true);
             app.HelpMenu.Text = 'Help';
 
-            % Create GridMain
-            app.GridMain = uigridlayout(app.UIBase);
-            app.GridMain.ColumnWidth = {'0.6x', '1x', '1x'};
-            app.GridMain.RowHeight = {'1x', 22, '1x', '0.05x'};
-            app.GridMain.ColumnSpacing = 5;
-            app.GridMain.RowSpacing = 5;
-            app.GridMain.Padding = [5 5 5 5];
+            % Create MainGrid
+            app.MainGrid = uigridlayout(app.UIBase);
+            app.MainGrid.ColumnWidth = {'0.6x', '1x', '1x'};
+            app.MainGrid.RowHeight = {'1x', 22, '1x', '0.05x'};
+            app.MainGrid.ColumnSpacing = 5;
+            app.MainGrid.RowSpacing = 5;
+            app.MainGrid.Padding = [5 5 5 5];
 
             % Create StatusLabel
-            app.StatusLabel = uieditfield(app.GridMain, 'text');
+            app.StatusLabel = uieditfield(app.MainGrid, 'text');
             app.StatusLabel.Editable = 'off';
             app.StatusLabel.FontColor = [1 1 1];
             app.StatusLabel.BackgroundColor = [0 0 0];
@@ -1708,8 +1738,8 @@
             app.StatusLabel.Value = 'Ready';
 
             % Create LGrid
-            app.LGrid = uigridlayout(app.GridMain);
-            app.LGrid.ColumnWidth = {140, '1x'};
+            app.LGrid = uigridlayout(app.MainGrid);
+            app.LGrid.ColumnWidth = {140, '1x', 50, 50};
             app.LGrid.RowHeight = {22, '1x'};
             app.LGrid.ColumnSpacing = 2;
             app.LGrid.RowSpacing = 2;
@@ -1730,7 +1760,7 @@
             app.LPanel = uipanel(app.LGrid);
             app.LPanel.BorderType = 'none';
             app.LPanel.Layout.Row = 2;
-            app.LPanel.Layout.Column = [1 2];
+            app.LPanel.Layout.Column = [1 4];
 
             % Create LTitle
             app.LTitle = uieditfield(app.LGrid, 'text');
@@ -1740,9 +1770,22 @@
             app.LTitle.Layout.Row = 1;
             app.LTitle.Layout.Column = 2;
 
+            % Create LPCAButton
+            app.LPCAButton = uibutton(app.LGrid, 'push');
+            app.LPCAButton.Layout.Row = 1;
+            app.LPCAButton.Layout.Column = 3;
+            app.LPCAButton.Text = 'PCA';
+
+            % Create LMultiButton
+            app.LMultiButton = uibutton(app.LGrid, 'push');
+            app.LMultiButton.ButtonPushedFcn = createCallbackFcn(app, @LMultiButtonValueChanged, true);
+            app.LMultiButton.Layout.Row = 1;
+            app.LMultiButton.Layout.Column = 4;
+            app.LMultiButton.Text = 'Multi';
+
             % Create RGrid
-            app.RGrid = uigridlayout(app.GridMain);
-            app.RGrid.ColumnWidth = {140, '1x'};
+            app.RGrid = uigridlayout(app.MainGrid);
+            app.RGrid.ColumnWidth = {140, '1x', 50};
             app.RGrid.RowHeight = {22, '1x'};
             app.RGrid.ColumnSpacing = 2;
             app.RGrid.RowSpacing = 2;
@@ -1763,7 +1806,7 @@
             app.RPanel = uipanel(app.RGrid);
             app.RPanel.BorderType = 'none';
             app.RPanel.Layout.Row = 2;
-            app.RPanel.Layout.Column = [1 2];
+            app.RPanel.Layout.Column = [1 3];
 
             % Create RTitle
             app.RTitle = uieditfield(app.RGrid, 'text');
@@ -1773,8 +1816,15 @@
             app.RTitle.Layout.Row = 1;
             app.RTitle.Layout.Column = 2;
 
+            % Create RMultiButton
+            app.RMultiButton = uibutton(app.RGrid, 'state');
+            app.RMultiButton.ValueChangedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
+            app.RMultiButton.Text = 'Multi';
+            app.RMultiButton.Layout.Row = 1;
+            app.RMultiButton.Layout.Column = 3;
+
             % Create ControlTabs
-            app.ControlTabs = uitabgroup(app.GridMain);
+            app.ControlTabs = uitabgroup(app.MainGrid);
             app.ControlTabs.Layout.Row = 1;
             app.ControlTabs.Layout.Column = 1;
 
@@ -1782,16 +1832,16 @@
             app.GeneralTab = uitab(app.ControlTabs);
             app.GeneralTab.Title = 'General';
 
-            % Create GridLayout2
-            app.GridLayout2 = uigridlayout(app.GeneralTab);
-            app.GridLayout2.ColumnWidth = {'0.6x', '1x'};
-            app.GridLayout2.RowHeight = {'1x', '0.4x'};
-            app.GridLayout2.ColumnSpacing = 5;
-            app.GridLayout2.RowSpacing = 5;
-            app.GridLayout2.Padding = [3 3 3 3];
+            % Create GeneralGrid
+            app.GeneralGrid = uigridlayout(app.GeneralTab);
+            app.GeneralGrid.ColumnWidth = {'0.6x', '1x'};
+            app.GeneralGrid.RowHeight = {'1x', '0.4x'};
+            app.GeneralGrid.ColumnSpacing = 5;
+            app.GeneralGrid.RowSpacing = 5;
+            app.GeneralGrid.Padding = [3 3 3 3];
 
             % Create DatascrubGrid
-            app.DatascrubGrid = uigridlayout(app.GridLayout2);
+            app.DatascrubGrid = uigridlayout(app.GeneralGrid);
             app.DatascrubGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x'};
             app.DatascrubGrid.ColumnSpacing = 2;
             app.DatascrubGrid.RowSpacing = 2;
@@ -1873,17 +1923,17 @@
             app.GotobatchField.Layout.Column = 2;
             app.GotobatchField.Value = 1;
 
-            % Create ManualGrid
-            app.ManualGrid = uigridlayout(app.GridLayout2);
-            app.ManualGrid.RowHeight = {20, '1x', '1x', 5, '1x', '1x', '1x', '1x', '1x'};
-            app.ManualGrid.ColumnSpacing = 2;
-            app.ManualGrid.RowSpacing = 2;
-            app.ManualGrid.Padding = [0 0 0 0];
-            app.ManualGrid.Layout.Row = 1;
-            app.ManualGrid.Layout.Column = 2;
+            % Create ManipulationGrid
+            app.ManipulationGrid = uigridlayout(app.GeneralGrid);
+            app.ManipulationGrid.RowHeight = {20, '1x', '1x', 5, '1x', '1x', '1x', '1x', '1x'};
+            app.ManipulationGrid.ColumnSpacing = 2;
+            app.ManipulationGrid.RowSpacing = 2;
+            app.ManipulationGrid.Padding = [0 0 0 0];
+            app.ManipulationGrid.Layout.Row = 1;
+            app.ManipulationGrid.Layout.Column = 2;
 
             % Create ManipulationLabel
-            app.ManipulationLabel = uilabel(app.ManualGrid);
+            app.ManipulationLabel = uilabel(app.ManipulationGrid);
             app.ManipulationLabel.HorizontalAlignment = 'center';
             app.ManipulationLabel.FontWeight = 'bold';
             app.ManipulationLabel.Layout.Row = 1;
@@ -1891,7 +1941,7 @@
             app.ManipulationLabel.Text = 'Manipulation';
 
             % Create DeleteunitButton
-            app.DeleteunitButton = uibutton(app.ManualGrid, 'push');
+            app.DeleteunitButton = uibutton(app.ManipulationGrid, 'push');
             app.DeleteunitButton.ButtonPushedFcn = createCallbackFcn(app, @DeleteunitButtonPushed, true);
             app.DeleteunitButton.BackgroundColor = [0.3922 0.8314 0.0745];
             app.DeleteunitButton.Layout.Row = 2;
@@ -1899,7 +1949,7 @@
             app.DeleteunitButton.Text = 'Delete unit';
 
             % Create AddspikeButton
-            app.AddspikeButton = uibutton(app.ManualGrid, 'push');
+            app.AddspikeButton = uibutton(app.ManipulationGrid, 'push');
             app.AddspikeButton.ButtonPushedFcn = createCallbackFcn(app, @AddspikeButtonPushed, true);
             app.AddspikeButton.BackgroundColor = [0.0392 0.4706 0.7608];
             app.AddspikeButton.Layout.Row = 3;
@@ -1907,7 +1957,7 @@
             app.AddspikeButton.Text = 'Add spike (D)';
 
             % Create RemovespikeButton
-            app.RemovespikeButton = uibutton(app.ManualGrid, 'push');
+            app.RemovespikeButton = uibutton(app.ManipulationGrid, 'push');
             app.RemovespikeButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.RemovespikeButton.BackgroundColor = [0.0745 0.6235 1];
             app.RemovespikeButton.FontSize = 11.5;
@@ -1916,7 +1966,7 @@
             app.RemovespikeButton.Text = 'Remove spike (F)';
 
             % Create SplitButton
-            app.SplitButton = uibutton(app.ManualGrid, 'push');
+            app.SplitButton = uibutton(app.ManipulationGrid, 'push');
             app.SplitButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.SplitButton.BackgroundColor = [0.0745 0.6235 1];
             app.SplitButton.Layout.Row = 6;
@@ -1924,7 +1974,7 @@
             app.SplitButton.Text = 'Split unit (C)';
 
             % Create NewunitButton
-            app.NewunitButton = uibutton(app.ManualGrid, 'push');
+            app.NewunitButton = uibutton(app.ManipulationGrid, 'push');
             app.NewunitButton.ButtonPushedFcn = createCallbackFcn(app, @NewunitButtonPushed, true);
             app.NewunitButton.BackgroundColor = [0.3922 0.8314 0.0745];
             app.NewunitButton.Layout.Row = 2;
@@ -1932,7 +1982,7 @@
             app.NewunitButton.Text = 'New unit (N)';
 
             % Create ForceaddButton
-            app.ForceaddButton = uibutton(app.ManualGrid, 'push');
+            app.ForceaddButton = uibutton(app.ManipulationGrid, 'push');
             app.ForceaddButton.ButtonPushedFcn = createCallbackFcn(app, @AddspikeButtonPushed, true);
             app.ForceaddButton.BackgroundColor = [0 0.4471 0.7412];
             app.ForceaddButton.Layout.Row = 3;
@@ -1940,7 +1990,7 @@
             app.ForceaddButton.Text = 'Force add (G)';
 
             % Create MergeButton
-            app.MergeButton = uibutton(app.ManualGrid, 'push');
+            app.MergeButton = uibutton(app.ManipulationGrid, 'push');
             app.MergeButton.ButtonPushedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
             app.MergeButton.BackgroundColor = [0.0745 0.6235 1];
             app.MergeButton.Layout.Row = 7;
@@ -1948,7 +1998,7 @@
             app.MergeButton.Text = 'Merge units (V)';
 
             % Create AutosplitButton
-            app.AutosplitButton = uibutton(app.ManualGrid, 'push');
+            app.AutosplitButton = uibutton(app.ManipulationGrid, 'push');
             app.AutosplitButton.ButtonPushedFcn = createCallbackFcn(app, @AutosplitButtonPushed, true);
             app.AutosplitButton.BackgroundColor = [0.8784 0.8784 0.1137];
             app.AutosplitButton.Layout.Row = 8;
@@ -1956,7 +2006,7 @@
             app.AutosplitButton.Text = 'Autosplit (A):';
 
             % Create AutomergeButton
-            app.AutomergeButton = uibutton(app.ManualGrid, 'push');
+            app.AutomergeButton = uibutton(app.ManipulationGrid, 'push');
             app.AutomergeButton.ButtonPushedFcn = createCallbackFcn(app, @AutomergeButtonPushed, true);
             app.AutomergeButton.BackgroundColor = [0.8784 0.8784 0.1137];
             app.AutomergeButton.Layout.Row = 9;
@@ -1964,41 +2014,41 @@
             app.AutomergeButton.Text = 'Automerge';
 
             % Create OperationTargetPanel
-            app.OperationTargetPanel = uipanel(app.ManualGrid);
+            app.OperationTargetPanel = uipanel(app.ManipulationGrid);
             app.OperationTargetPanel.TitlePosition = 'centertop';
             app.OperationTargetPanel.Title = 'Operation Target';
             app.OperationTargetPanel.Layout.Row = [5 9];
             app.OperationTargetPanel.Layout.Column = 2;
 
-            % Create GridLayout6
-            app.GridLayout6 = uigridlayout(app.OperationTargetPanel);
-            app.GridLayout6.ColumnWidth = {'1x', '0.3x'};
-            app.GridLayout6.RowHeight = {'1x', '1x', '1x', '1x'};
-            app.GridLayout6.ColumnSpacing = 2;
-            app.GridLayout6.RowSpacing = 2;
-            app.GridLayout6.Padding = [1 1 1 1];
+            % Create OperationtargetGrid
+            app.OperationtargetGrid = uigridlayout(app.OperationTargetPanel);
+            app.OperationtargetGrid.ColumnWidth = {'1x', '0.3x'};
+            app.OperationtargetGrid.RowHeight = {'1x', '1x', '1x', '1x'};
+            app.OperationtargetGrid.ColumnSpacing = 2;
+            app.OperationtargetGrid.RowSpacing = 2;
+            app.OperationtargetGrid.Padding = [1 1 1 1];
 
             % Create SelectedButton
-            app.SelectedButton = uibutton(app.GridLayout6, 'state');
+            app.SelectedButton = uibutton(app.OperationtargetGrid, 'state');
             app.SelectedButton.Text = 'Selected';
             app.SelectedButton.Layout.Row = 1;
             app.SelectedButton.Layout.Column = [1 2];
             app.SelectedButton.Value = true;
 
             % Create PlottedButton
-            app.PlottedButton = uibutton(app.GridLayout6, 'state');
+            app.PlottedButton = uibutton(app.OperationtargetGrid, 'state');
             app.PlottedButton.Text = 'Plotted';
             app.PlottedButton.Layout.Row = 2;
             app.PlottedButton.Layout.Column = [1 2];
 
             % Create BatchButton
-            app.BatchButton = uibutton(app.GridLayout6, 'state');
+            app.BatchButton = uibutton(app.OperationtargetGrid, 'state');
             app.BatchButton.Text = 'Batch';
             app.BatchButton.Layout.Row = 3;
             app.BatchButton.Layout.Column = [1 2];
 
             % Create AutosplitField
-            app.AutosplitField = uieditfield(app.GridLayout6, 'numeric');
+            app.AutosplitField = uieditfield(app.OperationtargetGrid, 'numeric');
             app.AutosplitField.Limits = [1 Inf];
             app.AutosplitField.RoundFractionalValues = 'on';
             app.AutosplitField.HorizontalAlignment = 'center';
@@ -2007,24 +2057,24 @@
             app.AutosplitField.Value = 3;
 
             % Create AutosplitintoLabel
-            app.AutosplitintoLabel = uilabel(app.GridLayout6);
+            app.AutosplitintoLabel = uilabel(app.OperationtargetGrid);
             app.AutosplitintoLabel.HorizontalAlignment = 'center';
             app.AutosplitintoLabel.Layout.Row = 4;
             app.AutosplitintoLabel.Layout.Column = 1;
             app.AutosplitintoLabel.Text = 'Autosplit into:';
 
-            % Create AutoGrid
-            app.AutoGrid = uigridlayout(app.GridLayout2);
-            app.AutoGrid.ColumnWidth = {'1x', '1x', '1x'};
-            app.AutoGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
-            app.AutoGrid.ColumnSpacing = 2;
-            app.AutoGrid.RowSpacing = 2;
-            app.AutoGrid.Padding = [0 0 0 0];
-            app.AutoGrid.Layout.Row = 2;
-            app.AutoGrid.Layout.Column = [1 2];
+            % Create MiscGrid
+            app.MiscGrid = uigridlayout(app.GeneralGrid);
+            app.MiscGrid.ColumnWidth = {'1x', '1x', '1x'};
+            app.MiscGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
+            app.MiscGrid.ColumnSpacing = 2;
+            app.MiscGrid.RowSpacing = 2;
+            app.MiscGrid.Padding = [0 0 0 0];
+            app.MiscGrid.Layout.Row = 2;
+            app.MiscGrid.Layout.Column = [1 2];
 
             % Create NeatcoolthingsthoLabel
-            app.NeatcoolthingsthoLabel = uilabel(app.AutoGrid);
+            app.NeatcoolthingsthoLabel = uilabel(app.MiscGrid);
             app.NeatcoolthingsthoLabel.HorizontalAlignment = 'center';
             app.NeatcoolthingsthoLabel.FontWeight = 'bold';
             app.NeatcoolthingsthoLabel.Layout.Row = 1;
@@ -2032,7 +2082,7 @@
             app.NeatcoolthingsthoLabel.Text = 'Neat cool things tho';
 
             % Create AutocreatejunkunitsButton
-            app.AutocreatejunkunitsButton = uibutton(app.AutoGrid, 'push');
+            app.AutocreatejunkunitsButton = uibutton(app.MiscGrid, 'push');
             app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
             app.AutocreatejunkunitsButton.BackgroundColor = [0.7176 0.2745 1];
             app.AutocreatejunkunitsButton.Layout.Row = [4 5];
@@ -2040,7 +2090,7 @@
             app.AutocreatejunkunitsButton.Text = 'Autocreate junk units';
 
             % Create AutocreateunitsButton
-            app.AutocreateunitsButton = uibutton(app.AutoGrid, 'push');
+            app.AutocreateunitsButton = uibutton(app.MiscGrid, 'push');
             app.AutocreateunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
             app.AutocreateunitsButton.BackgroundColor = [0.7176 0.2745 1];
             app.AutocreateunitsButton.Layout.Row = [2 3];
@@ -2048,7 +2098,7 @@
             app.AutocreateunitsButton.Text = 'Autocreate units';
 
             % Create UnitscrubButton
-            app.UnitscrubButton = uibutton(app.AutoGrid, 'push');
+            app.UnitscrubButton = uibutton(app.MiscGrid, 'push');
             app.UnitscrubButton.ButtonPushedFcn = createCallbackFcn(app, @UnitscrubButtonPushed, true);
             app.UnitscrubButton.BackgroundColor = [0.4667 0.6745 0.1882];
             app.UnitscrubButton.Layout.Row = [4 5];
@@ -2056,7 +2106,7 @@
             app.UnitscrubButton.Text = 'Scrub through unit';
 
             % Create OverviewButton
-            app.OverviewButton = uibutton(app.AutoGrid, 'push');
+            app.OverviewButton = uibutton(app.MiscGrid, 'push');
             app.OverviewButton.ButtonPushedFcn = createCallbackFcn(app, @OverviewButtonButtonPushed, true);
             app.OverviewButton.BackgroundColor = [0.4667 0.6745 0.1882];
             app.OverviewButton.Layout.Row = 2;
@@ -2064,7 +2114,7 @@
             app.OverviewButton.Text = 'Sorting overview';
 
             % Create UnitfreqButton
-            app.UnitfreqButton = uibutton(app.AutoGrid, 'push');
+            app.UnitfreqButton = uibutton(app.MiscGrid, 'push');
             app.UnitfreqButton.ButtonPushedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
             app.UnitfreqButton.BackgroundColor = [0.4667 0.6745 0.1882];
             app.UnitfreqButton.Layout.Row = [4 5];
@@ -2072,7 +2122,7 @@
             app.UnitfreqButton.Text = 'Unit freq time series';
 
             % Create CleanupButton
-            app.CleanupButton = uibutton(app.AutoGrid, 'push');
+            app.CleanupButton = uibutton(app.MiscGrid, 'push');
             app.CleanupButton.ButtonPushedFcn = createCallbackFcn(app, @CleanupButtonPushed, true);
             app.CleanupButton.BackgroundColor = [0.4667 0.6745 0.1882];
             app.CleanupButton.Layout.Row = [2 3];
@@ -2080,26 +2130,26 @@
             app.CleanupButton.Text = 'Nice-fy unit numbers';
 
             % Create OverviewDropDown
-            app.OverviewDropDown = uidropdown(app.AutoGrid);
+            app.OverviewDropDown = uidropdown(app.MiscGrid);
             app.OverviewDropDown.Items = {'Spike', 'PCA', 'LDA', 'Deviation'};
             app.OverviewDropDown.Layout.Row = 3;
             app.OverviewDropDown.Layout.Column = 3;
             app.OverviewDropDown.Value = 'Spike';
 
-            % Create ParametersDataTab
-            app.ParametersDataTab = uitab(app.ControlTabs);
-            app.ParametersDataTab.Title = 'Parameters & Data';
+            % Create ParametersdataTab
+            app.ParametersdataTab = uitab(app.ControlTabs);
+            app.ParametersdataTab.Title = 'Parameters & Data';
 
-            % Create GridLayout
-            app.GridLayout = uigridlayout(app.ParametersDataTab);
-            app.GridLayout.RowHeight = {45, '1x', '0.8x', '0.7x'};
-            app.GridLayout.ColumnSpacing = 5;
-            app.GridLayout.RowSpacing = 5;
-            app.GridLayout.Padding = [3 3 3 3];
+            % Create ParametersGrid
+            app.ParametersGrid = uigridlayout(app.ParametersdataTab);
+            app.ParametersGrid.RowHeight = {45, '1x', '0.8x', '0.7x'};
+            app.ParametersGrid.ColumnSpacing = 5;
+            app.ParametersGrid.RowSpacing = 5;
+            app.ParametersGrid.Padding = [3 3 3 3];
 
             % Create ViewingGrid
-            app.ViewingGrid = uigridlayout(app.GridLayout);
-            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '0.5x', '0.5x', '1x', '1x'};
+            app.ViewingGrid = uigridlayout(app.ParametersGrid);
+            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '0.5x', '0.5x', '1x'};
             app.ViewingGrid.ColumnSpacing = 2;
             app.ViewingGrid.RowSpacing = 2;
             app.ViewingGrid.Padding = [0 0 0 0];
@@ -2161,13 +2211,6 @@
             app.FuturebatchesField.Layout.Row = 3;
             app.FuturebatchesField.Layout.Column = 2;
 
-            % Create PlotallchButton
-            app.PlotallchButton = uibutton(app.ViewingGrid, 'state');
-            app.PlotallchButton.Text = 'Plot multiple channels';
-            app.PlotallchButton.BackgroundColor = [0 1 0];
-            app.PlotallchButton.Layout.Row = 9;
-            app.PlotallchButton.Layout.Column = [1 2];
-
             % Create YlimitLabel
             app.YlimitLabel = uilabel(app.ViewingGrid);
             app.YlimitLabel.HorizontalAlignment = 'right';
@@ -2222,7 +2265,7 @@
             app.yLimHighField.Value = Inf;
 
             % Create ThresholdsGrid
-            app.ThresholdsGrid = uigridlayout(app.GridLayout);
+            app.ThresholdsGrid = uigridlayout(app.ParametersGrid);
             app.ThresholdsGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x'};
             app.ThresholdsGrid.ColumnSpacing = 2;
             app.ThresholdsGrid.RowSpacing = 2;
@@ -2296,7 +2339,7 @@
             app.DetectThr2EditField.Layout.Column = 2;
 
             % Create InfoGrid
-            app.InfoGrid = uigridlayout(app.GridLayout);
+            app.InfoGrid = uigridlayout(app.ParametersGrid);
             app.InfoGrid.ColumnWidth = {60, '1x', '0.15x'};
             app.InfoGrid.ColumnSpacing = 2;
             app.InfoGrid.RowSpacing = 2;
@@ -2344,12 +2387,12 @@
             app.SavenamecopyButton.Text = 'Copy';
 
             % Create TemplategenerateionGrid
-            app.TemplategenerateionGrid = uigridlayout(app.GridLayout);
-            app.TemplategenerateionGrid.RowHeight = {20, '1x', '1x', '1x'};
+            app.TemplategenerateionGrid = uigridlayout(app.ParametersGrid);
+            app.TemplategenerateionGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
             app.TemplategenerateionGrid.ColumnSpacing = 2;
             app.TemplategenerateionGrid.RowSpacing = 2;
             app.TemplategenerateionGrid.Padding = [0 0 0 0];
-            app.TemplategenerateionGrid.Layout.Row = 3;
+            app.TemplategenerateionGrid.Layout.Row = [3 4];
             app.TemplategenerateionGrid.Layout.Column = 1;
 
             % Create FuturebatchesLabel_2
@@ -2404,180 +2447,224 @@
             app.TemplategenerationLabel.Layout.Column = [1 2];
             app.TemplategenerationLabel.Text = 'Template generation';
 
-            % Create GridLayout3
-            app.GridLayout3 = uigridlayout(app.GridLayout);
-            app.GridLayout3.RowHeight = {'1x', '1x', '1x', '1x'};
-            app.GridLayout3.ColumnSpacing = 2;
-            app.GridLayout3.RowSpacing = 2;
-            app.GridLayout3.Padding = [0 0 0 0];
-            app.GridLayout3.Layout.Row = 4;
-            app.GridLayout3.Layout.Column = 1;
+            % Create TemplatewidthcropfactorLabel
+            app.TemplatewidthcropfactorLabel = uilabel(app.TemplategenerateionGrid);
+            app.TemplatewidthcropfactorLabel.HorizontalAlignment = 'right';
+            app.TemplatewidthcropfactorLabel.WordWrap = 'on';
+            app.TemplatewidthcropfactorLabel.Layout.Row = 5;
+            app.TemplatewidthcropfactorLabel.Layout.Column = 1;
+            app.TemplatewidthcropfactorLabel.Text = 'Template width crop factor';
 
-            % Create TagLabel
-            app.TagLabel = uilabel(app.GridLayout3);
-            app.TagLabel.HorizontalAlignment = 'center';
-            app.TagLabel.FontWeight = 'bold';
-            app.TagLabel.Layout.Row = 1;
-            app.TagLabel.Layout.Column = [1 2];
-            app.TagLabel.Text = 'Tagging';
-
-            % Create ToggletagButton
-            app.ToggletagButton = uibutton(app.GridLayout3, 'push');
-            app.ToggletagButton.ButtonPushedFcn = createCallbackFcn(app, @ToggletagButtonPushed, true);
-            app.ToggletagButton.BackgroundColor = [0.7176 0.2745 1];
-            app.ToggletagButton.Layout.Row = 2;
-            app.ToggletagButton.Layout.Column = [1 2];
-            app.ToggletagButton.Text = 'Toggle left unit as:';
-
-            % Create TagDropDown
-            app.TagDropDown = uidropdown(app.GridLayout3);
-            app.TagDropDown.Items = {'Junk'};
-            app.TagDropDown.Layout.Row = 3;
-            app.TagDropDown.Layout.Column = [1 2];
-            app.TagDropDown.Value = 'Junk';
-
-            % Create TagmanagementButton
-            app.TagmanagementButton = uibutton(app.GridLayout3, 'push');
-            app.TagmanagementButton.ButtonPushedFcn = createCallbackFcn(app, @TagmanagementButtonPushed, true);
-            app.TagmanagementButton.BackgroundColor = [0.7176 0.2745 1];
-            app.TagmanagementButton.Layout.Row = 4;
-            app.TagmanagementButton.Layout.Column = [1 2];
-            app.TagmanagementButton.Text = 'Tag management';
+            % Create TemplatecropwidthEditField
+            app.TemplatecropwidthEditField = uieditfield(app.TemplategenerateionGrid, 'numeric');
+            app.TemplatecropwidthEditField.Limits = [0 1];
+            app.TemplatecropwidthEditField.ValueChangedFcn = createCallbackFcn(app, @TemplatecropwidthEditFieldValueChanged, true);
+            app.TemplatecropwidthEditField.Layout.Row = 5;
+            app.TemplatecropwidthEditField.Layout.Column = 2;
+            app.TemplatecropwidthEditField.Value = 1;
 
             % Create AdvancedTab
             app.AdvancedTab = uitab(app.ControlTabs);
             app.AdvancedTab.Title = 'Advanced';
 
-            % Create GridLayout4
-            app.GridLayout4 = uigridlayout(app.AdvancedTab);
-            app.GridLayout4.ColumnSpacing = 5;
-            app.GridLayout4.RowSpacing = 5;
-            app.GridLayout4.Padding = [3 3 3 3];
+            % Create AdvancedGrid
+            app.AdvancedGrid = uigridlayout(app.AdvancedTab);
+            app.AdvancedGrid.RowHeight = {'1x', '1x', '1x'};
+            app.AdvancedGrid.ColumnSpacing = 5;
+            app.AdvancedGrid.RowSpacing = 5;
+            app.AdvancedGrid.Padding = [3 3 3 3];
 
-            % Create GridLayout5
-            app.GridLayout5 = uigridlayout(app.GridLayout4);
-            app.GridLayout5.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout5.ColumnSpacing = 2;
-            app.GridLayout5.RowSpacing = 2;
-            app.GridLayout5.Padding = [0 0 0 0];
-            app.GridLayout5.Layout.Row = [1 2];
-            app.GridLayout5.Layout.Column = 1;
+            % Create TimelineGrid
+            app.TimelineGrid = uigridlayout(app.AdvancedGrid);
+            app.TimelineGrid.ColumnWidth = {'1x'};
+            app.TimelineGrid.RowHeight = {20, '1x', '1x', '1x'};
+            app.TimelineGrid.ColumnSpacing = 2;
+            app.TimelineGrid.RowSpacing = 2;
+            app.TimelineGrid.Padding = [0 0 0 0];
+            app.TimelineGrid.Layout.Row = 1;
+            app.TimelineGrid.Layout.Column = 1;
 
             % Create ManualartifactremoverButton
-            app.ManualartifactremoverButton = uibutton(app.GridLayout5, 'state');
+            app.ManualartifactremoverButton = uibutton(app.TimelineGrid, 'state');
             app.ManualartifactremoverButton.ValueChangedFcn = createCallbackFcn(app, @ManualartifactremoverButtonValueChanged, true);
             app.ManualartifactremoverButton.Text = 'Manual artifact remover';
-            app.ManualartifactremoverButton.Layout.Row = 1;
-            app.ManualartifactremoverButton.Layout.Column = [1 2];
+            app.ManualartifactremoverButton.Layout.Row = 2;
+            app.ManualartifactremoverButton.Layout.Column = 1;
 
             % Create ImporteventmarkerdataButton
-            app.ImporteventmarkerdataButton = uibutton(app.GridLayout5, 'push');
+            app.ImporteventmarkerdataButton = uibutton(app.TimelineGrid, 'push');
             app.ImporteventmarkerdataButton.ButtonPushedFcn = createCallbackFcn(app, @ImporteventmarkerdataButtonPushed, true);
             app.ImporteventmarkerdataButton.Layout.Row = 3;
-            app.ImporteventmarkerdataButton.Layout.Column = [1 2];
+            app.ImporteventmarkerdataButton.Layout.Column = 1;
             app.ImporteventmarkerdataButton.Text = 'Import event marker data';
 
             % Create VieweventmarkersButton
-            app.VieweventmarkersButton = uibutton(app.GridLayout5, 'state');
+            app.VieweventmarkersButton = uibutton(app.TimelineGrid, 'state');
             app.VieweventmarkersButton.ValueChangedFcn = createCallbackFcn(app, @VieweventmarkersButtonValueChanged, true);
             app.VieweventmarkersButton.Enable = 'off';
             app.VieweventmarkersButton.Text = 'View event markers';
             app.VieweventmarkersButton.BackgroundColor = [0 1 1];
             app.VieweventmarkersButton.Layout.Row = 4;
-            app.VieweventmarkersButton.Layout.Column = [1 2];
+            app.VieweventmarkersButton.Layout.Column = 1;
 
-            % Create ImportsampleweightsButton
-            app.ImportsampleweightsButton = uibutton(app.GridLayout5, 'push');
-            app.ImportsampleweightsButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeButtonPushed, true);
-            app.ImportsampleweightsButton.WordWrap = 'on';
-            app.ImportsampleweightsButton.Layout.Row = 5;
-            app.ImportsampleweightsButton.Layout.Column = [1 2];
-            app.ImportsampleweightsButton.Text = 'Import custom spike sample weights';
+            % Create TimelineLabel
+            app.TimelineLabel = uilabel(app.TimelineGrid);
+            app.TimelineLabel.HorizontalAlignment = 'center';
+            app.TimelineLabel.FontWeight = 'bold';
+            app.TimelineLabel.Layout.Row = 1;
+            app.TimelineLabel.Layout.Column = 1;
+            app.TimelineLabel.Text = 'Timeline';
 
-            % Create ShowtemplatesButton
-            app.ShowtemplatesButton = uibutton(app.GridLayout5, 'push');
-            app.ShowtemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ShowtemplatesButtonPushed, true);
-            app.ShowtemplatesButton.BackgroundColor = [1 1 0];
-            app.ShowtemplatesButton.Enable = 'off';
-            app.ShowtemplatesButton.Layout.Row = 8;
-            app.ShowtemplatesButton.Layout.Column = [1 2];
-            app.ShowtemplatesButton.Text = 'Show imported templates';
-
-            % Create ImporttemplatesButton
-            app.ImporttemplatesButton = uibutton(app.GridLayout5, 'push');
-            app.ImporttemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ImporttemplatesMenuSelected, true);
-            app.ImporttemplatesButton.Layout.Row = 7;
-            app.ImporttemplatesButton.Layout.Column = [1 2];
-            app.ImporttemplatesButton.Text = 'Import templates';
-
-            % Create ShowsampleweightsButton
-            app.ShowsampleweightsButton = uibutton(app.GridLayout5, 'push');
-            app.ShowsampleweightsButton.ButtonPushedFcn = createCallbackFcn(app, @ShowsampleweightsButtonPushed, true);
-            app.ShowsampleweightsButton.WordWrap = 'on';
-            app.ShowsampleweightsButton.BackgroundColor = [1 1 0];
-            app.ShowsampleweightsButton.Enable = 'off';
-            app.ShowsampleweightsButton.Layout.Row = 6;
-            app.ShowsampleweightsButton.Layout.Column = [1 2];
-            app.ShowsampleweightsButton.Text = 'Show imported spike sample weights';
-
-            % Create GridLayout7
-            app.GridLayout7 = uigridlayout(app.GridLayout4);
-            app.GridLayout7.RowHeight = {'1x', '1x', '1x', '1x'};
-            app.GridLayout7.ColumnSpacing = 5;
-            app.GridLayout7.RowSpacing = 5;
-            app.GridLayout7.Padding = [3 3 3 3];
-            app.GridLayout7.Layout.Row = 1;
-            app.GridLayout7.Layout.Column = 2;
+            % Create UnitGrid
+            app.UnitGrid = uigridlayout(app.AdvancedGrid);
+            app.UnitGrid.RowHeight = {20, '1x', '1x'};
+            app.UnitGrid.ColumnSpacing = 5;
+            app.UnitGrid.RowSpacing = 5;
+            app.UnitGrid.Padding = [3 3 3 3];
+            app.UnitGrid.Layout.Row = 1;
+            app.UnitGrid.Layout.Column = 2;
 
             % Create SpikeWidthLabel
-            app.SpikeWidthLabel = uilabel(app.GridLayout7);
+            app.SpikeWidthLabel = uilabel(app.UnitGrid);
             app.SpikeWidthLabel.HorizontalAlignment = 'right';
-            app.SpikeWidthLabel.Layout.Row = 1;
+            app.SpikeWidthLabel.Layout.Row = 2;
             app.SpikeWidthLabel.Layout.Column = 1;
             app.SpikeWidthLabel.Text = 'Spike Width';
 
             % Create SpikewidthEditField
-            app.SpikewidthEditField = uieditfield(app.GridLayout7, 'numeric');
+            app.SpikewidthEditField = uieditfield(app.UnitGrid, 'numeric');
             app.SpikewidthEditField.Limits = [1 Inf];
             app.SpikewidthEditField.ValueChangedFcn = createCallbackFcn(app, @SpikewidthEditFieldValueChanged, true);
-            app.SpikewidthEditField.Layout.Row = 1;
+            app.SpikewidthEditField.Layout.Row = 2;
             app.SpikewidthEditField.Layout.Column = 2;
             app.SpikewidthEditField.Value = 40;
 
-            % Create TemplateWidthCropFactorLabel
-            app.TemplateWidthCropFactorLabel = uilabel(app.GridLayout7);
-            app.TemplateWidthCropFactorLabel.HorizontalAlignment = 'right';
-            app.TemplateWidthCropFactorLabel.WordWrap = 'on';
-            app.TemplateWidthCropFactorLabel.Layout.Row = 2;
-            app.TemplateWidthCropFactorLabel.Layout.Column = 1;
-            app.TemplateWidthCropFactorLabel.Text = 'Template Width Crop Factor';
+            % Create UnitLabel
+            app.UnitLabel = uilabel(app.UnitGrid);
+            app.UnitLabel.HorizontalAlignment = 'center';
+            app.UnitLabel.FontWeight = 'bold';
+            app.UnitLabel.Layout.Row = 1;
+            app.UnitLabel.Layout.Column = [1 2];
+            app.UnitLabel.Text = 'Unit';
 
-            % Create TemplatecropwidthEditField
-            app.TemplatecropwidthEditField = uieditfield(app.GridLayout7, 'numeric');
-            app.TemplatecropwidthEditField.Limits = [0 1];
-            app.TemplatecropwidthEditField.ValueChangedFcn = createCallbackFcn(app, @TemplatecropwidthEditFieldValueChanged, true);
-            app.TemplatecropwidthEditField.Layout.Row = 2;
-            app.TemplatecropwidthEditField.Layout.Column = 2;
-            app.TemplatecropwidthEditField.Value = 1;
+            % Create TaggingGrid
+            app.TaggingGrid = uigridlayout(app.AdvancedGrid);
+            app.TaggingGrid.ColumnWidth = {'1x'};
+            app.TaggingGrid.RowHeight = {20, '1x', '1x', '1x'};
+            app.TaggingGrid.ColumnSpacing = 5;
+            app.TaggingGrid.RowSpacing = 5;
+            app.TaggingGrid.Padding = [3 3 3 3];
+            app.TaggingGrid.Layout.Row = 3;
+            app.TaggingGrid.Layout.Column = 2;
+
+            % Create TagLabel
+            app.TagLabel = uilabel(app.TaggingGrid);
+            app.TagLabel.HorizontalAlignment = 'center';
+            app.TagLabel.FontWeight = 'bold';
+            app.TagLabel.Layout.Row = 1;
+            app.TagLabel.Layout.Column = 1;
+            app.TagLabel.Text = 'Tagging';
+
+            % Create ToggletagButton
+            app.ToggletagButton = uibutton(app.TaggingGrid, 'push');
+            app.ToggletagButton.ButtonPushedFcn = createCallbackFcn(app, @ToggletagButtonPushed, true);
+            app.ToggletagButton.BackgroundColor = [0.7176 0.2745 1];
+            app.ToggletagButton.Layout.Row = 2;
+            app.ToggletagButton.Layout.Column = 1;
+            app.ToggletagButton.Text = 'Toggle left unit as:';
+
+            % Create TagDropDown
+            app.TagDropDown = uidropdown(app.TaggingGrid);
+            app.TagDropDown.Items = {'Junk'};
+            app.TagDropDown.Layout.Row = 3;
+            app.TagDropDown.Layout.Column = 1;
+            app.TagDropDown.Value = 'Junk';
+
+            % Create TagmanagementButton
+            app.TagmanagementButton = uibutton(app.TaggingGrid, 'push');
+            app.TagmanagementButton.ButtonPushedFcn = createCallbackFcn(app, @TagmanagementButtonPushed, true);
+            app.TagmanagementButton.BackgroundColor = [0.7176 0.2745 1];
+            app.TagmanagementButton.Layout.Row = 4;
+            app.TagmanagementButton.Layout.Column = 1;
+            app.TagmanagementButton.Text = 'Tag management';
+
+            % Create TemplategenerationGrid
+            app.TemplategenerationGrid = uigridlayout(app.AdvancedGrid);
+            app.TemplategenerationGrid.ColumnWidth = {'1x'};
+            app.TemplategenerationGrid.RowHeight = {20, '1x', '1x', '1x', '1x'};
+            app.TemplategenerationGrid.ColumnSpacing = 5;
+            app.TemplategenerationGrid.RowSpacing = 5;
+            app.TemplategenerationGrid.Padding = [3 3 3 3];
+            app.TemplategenerationGrid.Layout.Row = [2 3];
+            app.TemplategenerationGrid.Layout.Column = 1;
+
+            % Create AdvTemplategenerationLabel
+            app.AdvTemplategenerationLabel = uilabel(app.TemplategenerationGrid);
+            app.AdvTemplategenerationLabel.HorizontalAlignment = 'center';
+            app.AdvTemplategenerationLabel.FontWeight = 'bold';
+            app.AdvTemplategenerationLabel.Layout.Row = 1;
+            app.AdvTemplategenerationLabel.Layout.Column = 1;
+            app.AdvTemplategenerationLabel.Text = 'Template generation';
+
+            % Create ShowtemplatesButton
+            app.ShowtemplatesButton = uibutton(app.TemplategenerationGrid, 'push');
+            app.ShowtemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ShowtemplatesButtonPushed, true);
+            app.ShowtemplatesButton.BackgroundColor = [1 1 0];
+            app.ShowtemplatesButton.Enable = 'off';
+            app.ShowtemplatesButton.Layout.Row = 3;
+            app.ShowtemplatesButton.Layout.Column = 1;
+            app.ShowtemplatesButton.Text = 'Show imported templates';
+
+            % Create ImporttemplatesButton
+            app.ImporttemplatesButton = uibutton(app.TemplategenerationGrid, 'push');
+            app.ImporttemplatesButton.ButtonPushedFcn = createCallbackFcn(app, @ImporttemplatesMenuSelected, true);
+            app.ImporttemplatesButton.Layout.Row = 2;
+            app.ImporttemplatesButton.Layout.Column = 1;
+            app.ImporttemplatesButton.Text = 'Import templates';
+
+            % Create ShowsampleweightsButton
+            app.ShowsampleweightsButton = uibutton(app.TemplategenerationGrid, 'push');
+            app.ShowsampleweightsButton.ButtonPushedFcn = createCallbackFcn(app, @ShowsampleweightsButtonPushed, true);
+            app.ShowsampleweightsButton.WordWrap = 'on';
+            app.ShowsampleweightsButton.BackgroundColor = [1 1 0];
+            app.ShowsampleweightsButton.Enable = 'off';
+            app.ShowsampleweightsButton.Layout.Row = 5;
+            app.ShowsampleweightsButton.Layout.Column = 1;
+            app.ShowsampleweightsButton.Text = 'Show imported spike sample weights';
+
+            % Create ImportsampleweightsButton
+            app.ImportsampleweightsButton = uibutton(app.TemplategenerationGrid, 'push');
+            app.ImportsampleweightsButton.ButtonPushedFcn = createCallbackFcn(app, @ImportspikeshapeButtonPushed, true);
+            app.ImportsampleweightsButton.WordWrap = 'on';
+            app.ImportsampleweightsButton.Layout.Row = 4;
+            app.ImportsampleweightsButton.Layout.Column = 1;
+            app.ImportsampleweightsButton.Text = 'Import custom spike sample weights';
+
+            % Create MultichannelGrid
+            app.MultichannelGrid = uigridlayout(app.AdvancedGrid);
+            app.MultichannelGrid.RowHeight = {20, '1x', '1x'};
+            app.MultichannelGrid.ColumnSpacing = 5;
+            app.MultichannelGrid.RowSpacing = 5;
+            app.MultichannelGrid.Padding = [3 3 3 3];
+            app.MultichannelGrid.Layout.Row = 2;
+            app.MultichannelGrid.Layout.Column = 2;
+
+            % Create MultichannelLabel
+            app.MultichannelLabel = uilabel(app.MultichannelGrid);
+            app.MultichannelLabel.HorizontalAlignment = 'center';
+            app.MultichannelLabel.FontWeight = 'bold';
+            app.MultichannelLabel.Layout.Row = 1;
+            app.MultichannelLabel.Layout.Column = [1 2];
+            app.MultichannelLabel.Text = 'Multichannel';
 
             % Create TracePanel
-            app.TracePanel = uipanel(app.GridMain);
+            app.TracePanel = uipanel(app.MainGrid);
             app.TracePanel.BorderType = 'none';
             app.TracePanel.Layout.Row = 3;
             app.TracePanel.Layout.Column = [1 3];
 
-            % Create TTitle
-            app.TTitle = uieditfield(app.GridMain, 'text');
-            app.TTitle.Editable = 'off';
-            app.TTitle.HorizontalAlignment = 'center';
-            app.TTitle.FontWeight = 'bold';
-            app.TTitle.BackgroundColor = [0.8 0.8 0.8];
-            app.TTitle.Layout.Row = 2;
-            app.TTitle.Layout.Column = [1 3];
-            app.TTitle.Value = 'Data Trace';
-
             % Create ColourGrid
-            app.ColourGrid = uigridlayout(app.GridMain);
+            app.ColourGrid = uigridlayout(app.MainGrid);
             app.ColourGrid.ColumnWidth = {'1x'};
             app.ColourGrid.RowHeight = {'1x'};
             app.ColourGrid.ColumnSpacing = 0;
@@ -2585,6 +2672,39 @@
             app.ColourGrid.Padding = [0 0 0 0];
             app.ColourGrid.Layout.Row = 4;
             app.ColourGrid.Layout.Column = 3;
+
+            % Create TTitleRowGrid
+            app.TTitleRowGrid = uigridlayout(app.MainGrid);
+            app.TTitleRowGrid.ColumnWidth = {'1x', 50, 50};
+            app.TTitleRowGrid.RowHeight = {'1x'};
+            app.TTitleRowGrid.ColumnSpacing = 2;
+            app.TTitleRowGrid.RowSpacing = 2;
+            app.TTitleRowGrid.Padding = [0 0 0 0];
+            app.TTitleRowGrid.Layout.Row = 2;
+            app.TTitleRowGrid.Layout.Column = [1 3];
+
+            % Create TTitle
+            app.TTitle = uieditfield(app.TTitleRowGrid, 'text');
+            app.TTitle.Editable = 'off';
+            app.TTitle.HorizontalAlignment = 'center';
+            app.TTitle.FontWeight = 'bold';
+            app.TTitle.BackgroundColor = [0.8 0.8 0.8];
+            app.TTitle.Layout.Row = 1;
+            app.TTitle.Layout.Column = 1;
+            app.TTitle.Value = 'Data Trace';
+
+            % Create TPCAButton
+            app.TPCAButton = uibutton(app.TTitleRowGrid, 'state');
+            app.TPCAButton.Text = 'PCA';
+            app.TPCAButton.Layout.Row = 1;
+            app.TPCAButton.Layout.Column = 2;
+
+            % Create TMultiButton
+            app.TMultiButton = uibutton(app.TTitleRowGrid, 'state');
+            app.TMultiButton.ValueChangedFcn = createCallbackFcn(app, @TMultiButtonValueChanged, true);
+            app.TMultiButton.Text = 'Multi';
+            app.TMultiButton.Layout.Row = 1;
+            app.TMultiButton.Layout.Column = 3;
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';

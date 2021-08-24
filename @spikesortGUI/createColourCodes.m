@@ -17,9 +17,9 @@ if ~isfield(app.t,'batchLengths') || ~ismember(string(num), app.RightUnitDropDow
 end
 if mode == 'l'
     app.LeftUnitDropDown.Value = string(num);
-    app.redrawUnitPlots2(app.figureHandles,1);
+    app.redrawUnitPlots(1);
 elseif mode == 'r'
     app.RightUnitDropDown.Value = string(num);
-    app.redrawUnitPlots2(app.figureHandles,2);
+    app.redrawUnitPlots(2);
 end
 end

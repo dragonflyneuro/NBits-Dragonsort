@@ -1,4 +1,7 @@
-function [] = redrawTracePlot2(app,ht,hl)
+function [] = redrawTracePlot(app)
+ht = app.Trace;
+hl = app.LeftUnit;
+
 c = app.currentBatch;
 bl = app.t.batchLengths;
 %   redraw batch time series in blue then overlay scatter for detected
@@ -81,7 +84,7 @@ if ~isempty(orphanSpikes)
     set(app.pUnassigned, 'ButtonDownFcn',{@clickedUnassigned,app,ht});
     
     % markers on if multiple channels enabled
-    if size(app.xi,1) > 0 && app.PlotallchButton.Value
+    if app.TMultiButton.Value
         for ii = 1:size(app.xi,1)
             cla(app.spT(ii));
             plotBig(app.spT(ii), app.msConvert*(1:size(app.xi,2)), app.xi(ii,:),'Color','b');
@@ -112,7 +115,7 @@ for ii = 1:length(app.unitArray)
         set(app.pAssigned(d), 'UserData', ii, 'ButtonDownFcn',{@clickedAssigned,app,hl});
         
         % markers on if multiple channels enabled
-        if size(app.xi,1) > 0 && app.PlotallchButton.Value
+        if app.TMultiButton.Value
             for jj = 1:size(app.xi,1)
                 line(app.spT(jj), tempUnit*app.msConvert, app.xi(jj,tempUnit), ...
                     'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', app.cmap(rem(ii-1,25)+1,:));

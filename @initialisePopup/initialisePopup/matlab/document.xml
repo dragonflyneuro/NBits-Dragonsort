@@ -243,7 +243,7 @@
             app.initt.batchSize = app.SplitlengthEditField.Value;
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
             
-            updateVars2(app.CallingApp, app.initm, app.initt, []);
+            updateVars(app.CallingApp, app.initm, app.initt, []);
             switchButtons(app.CallingApp,1);
             
             delete(app)
@@ -575,6 +575,7 @@
             % Create UIAxes
             app.UIAxes = uiaxes(app.GridLayout);
             ylabel(app.UIAxes, 'Hz')
+            app.UIAxes.FontName = 'Arial';
             app.UIAxes.Layout.Row = [9 12];
             app.UIAxes.Layout.Column = [2 6];
 

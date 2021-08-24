@@ -53,6 +53,10 @@ opsStateButtons = [app.SelectedButton,...
 opsDropDowns = [app.LeftUnitDropDown,...
 app.RightUnitDropDown];
 
+multiChanButtons = [app.TMultiButton.Enable,...
+    app.LMultiButton.Enable,...
+    app.RMultiButton.Enable];
+
 switch opt
     case 0
         [initialMenus.Enable] = deal('off');
@@ -68,5 +72,9 @@ switch opt
         [opsButtons.Enable] = deal('on');
         [opsStateButtons.Enable] = deal('on');
         [opsDropDowns.Enable] = deal('on');
+    case 4
+        [multiChanButtons.Enable] = deal('off');
+    case 5
+        [multiChanButtons.Enable] = deal('on');
 end
 end

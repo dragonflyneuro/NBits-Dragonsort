@@ -1,4 +1,4 @@
-function e = updateVars2(app, newM, newT, newS)
+function e = updateVars(app, newM, newT, newS)
 e = 0;
 %    user input data
 app.StatusLabel.Value = "Loading...";
@@ -74,9 +74,15 @@ app.LeftUnitDropDown.Value = "1";
 app.RightUnitDropDown.Value = "1";
 app.VieweventmarkersButton.Value = 0;
 
+
 %    read and plot data
-app.readFilter2(app.currentBatch)
+app.readFilter(app.currentBatch)
+
+if length(app.m.ech)>1
+    switchButtons(app,5);
+end
 switchButtons(app,3)
+
 [app.colourButtons.Enable] = deal('on');
 
 updateDropdown(app);

@@ -40,7 +40,7 @@ for ii = 1:numFiles-1
     for jj = 1:length(s(ii+1).unitArray)
         % do template matching of all waves in a later sorted unit to all
         % units ofan earlier sorting
-        d = newGetDevMatrix(1,s(ii).unitArray,s(ii+1).unitArray(jj).waves,[0 inf],60,s(ii).m.sRateHz,0);
+        d = getDevMatrix(1,s(ii).unitArray,s(ii+1).unitArray(jj).waves,[0 inf],60,s(ii).m.sRateHz,0);
         % get closest unit for each wave
         [val, idx] = min(d,[],2);
         % get closest overwall wave
