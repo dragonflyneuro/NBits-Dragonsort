@@ -20,13 +20,13 @@ unitLines = line(hUnit, -app.m.spikeWidth:app.m.spikeWidth, plottedWaves(:,:,app
 if ~isempty(app.plottedWavesIdx) % if there are spikes in the unit
     
     traceLine = line(app.Trace, inBatchSpikeTimes*app.msConvert, app.xi(app.m.mainCh,inBatchSpikeTimes),...
-        'LineStyle', 'none', 'Marker', markerStyle, 'Color', app.cmap(rem(unitNum-1,25)+1,:));
+        'LineStyle', 'none', 'Marker', markerStyle, 'Color', iiCmap = getColour(unitNum));
     app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
     if ~isempty(app.spT) && ishandle(app.spT)
         ax = app.spT.Children.Children;
         for jj = 1:size(app.xi,1)
             line(ax(jj), -inBatchSpikeTimes*app.msConvert, app.xi(jj,inBatchSpikeTimes),...
-                'LineStyle', 'none', 'Marker', markerStyle, 'Color', app.cmap(rem(unitNum-1,25)+1,:));
+                'LineStyle', 'none', 'Marker', markerStyle, 'Color', getColour(unitNum));
         end
     end
 end

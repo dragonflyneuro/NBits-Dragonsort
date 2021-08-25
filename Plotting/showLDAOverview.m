@@ -1,40 +1,42 @@
-function [] = showLSDAOverview(app, u, selection)
+function [] = showLDAOverview(u, selection)
 
-[waves, ~, W] = getLDA(u, selection);
-for ii=1:length(waves)
-    clusW{ii}=waves{ii}*W(:,1:5);
+if length(selection) < 2
+    return;
 end
 
 drawnow
 
-%WA view-interactive
-f = uifigure;
+[~, clusW, ~] = getLDA(u, selection);
+
+%LDA view-interactive
+f = uifigure('Name','LDA Overview');
 set(f, 'Position',  [1100, 200, 800, 700]);
 axW = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
 view(axW,[-5 2 5]);
 
 for ii=1:length(selection)
-    iiCmap=app.cmap(rem(ii-1,25)+1,:);
-    ms = getMarker(size(app.cmap,1), ii);
+    iiCmap = getColour(ii);
+    ms = getMarker(ii);
     if ~isempty(u(selection(ii)).waves)
         scatter3(axW,clusW{ii}(:,1),clusW{ii}(:,2),clusW{ii}(:,3),20,...
             repmat(iiCmap,size(clusW{ii},1),1),"Marker",ms); % 3D WA plot
     end
 end
-xlabel(axW,"W1"); ylabel(axW,"W2"); zlabel(axW,"W3");
+labels = "W"+string(1:3); %length(selection);
+xlabel(axW,labels(1)); ylabel(axW,labels(2)); zlabel(axW,labels(3));
 title(axW,'Units found - LDA view');
 legend(axW,"Unit " + selection);
 
 markerSizeSldr = uislider(f,'Position',[50 80 700 3], 'Value',20, 'Limits',[1 200],...
     'ValueChangingFcn',{@sliderMoving, axW});
-axisChoice(1) = uidropdown(f,'Items',{'W1','W2','W3','W4','W5','W6'}, 'Value','W1',...
+axisChoice(1) = uidropdown(f,'Items', labels, 'Value',labels(1),...
     'Position',[100 20 200 22]);
-axisChoice(2) = uidropdown(f,'Items',{'W1','W2','W3','W4','W5','W6'}, 'Value','W2',...
+axisChoice(2) = uidropdown(f,'Items', labels, 'Value',labels(2),...
     'Position',[300 20 200 22]);
-axisChoice(3) = uidropdown(f,'Items',{' ','W1','W2','W3','W4','W5','W6'}, 'Value','W3',...
+axisChoice(3) = uidropdown(f,'Items', [" ", labels], 'Value',labels(3),...
     'Position',[500 20 200 22]);
 for ii = 1:3
-    set(axisChoice(ii),'ValueChangedFcn', {@updateView, app, clusW, u, selection, axW, axisChoice, markerSizeSldr});
+    set(axisChoice(ii),'ValueChangedFcn', {@updateView, clusW, u, selection, axW, axisChoice, markerSizeSldr});
 end
 
 end
@@ -46,13 +48,13 @@ for ii = 1:length(h.Children)
 end
 end
 
-function updateView(~, ~, app, clusW, u, sel, h, axisChoice, sldr)
+function updateView(~, ~, clusW, u, sel, h, axisChoice, sldr)
 [caz,cel] = view(h);
 cla(h)
 
 for ii=1:length(sel)
-    iiCmap=app.cmap(rem(ii-1,25)+1,:);
-    ms = getMarker(size(app.cmap,1), ii);
+    iiCmap = getColour(ii);
+    ms = getMarker(ii);
     if ~isempty(u(sel(ii)).waves)
         if axisChoice(3).Value ~= ' '
             for jj = 1:length(axisChoice)

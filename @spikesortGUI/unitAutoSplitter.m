@@ -32,11 +32,11 @@ for ii = 1:numClust
 
         if ii == 1
             title(ax(ii),"Unit " + string(n) + " " + ...
-                 sum(clust==ii) + " spikes", 'Color', app.cmap(rem(n-1,25)+1,:));
+                 sum(clust==ii) + " spikes", 'Color', getColour(n));
         else
             uN = length(app.unitArray)+ii;
             title(ax(ii),"New unit " + string(uN) + " " + ...
-                sum(clust==ii) + " spikes", 'Color', app.cmap(rem(uN-1,25)+1,:));
+                sum(clust==ii) + " spikes", 'Color', getColour(uN));
         end
     end
 end

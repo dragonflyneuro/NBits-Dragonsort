@@ -1,7 +1,7 @@
 function h = createColourCodes(app)
-for ii = 1:length(app.cmap)
+for ii = 1:length(25)
     h(ii) = uibutton(app.ColourGrid, 'push');
-    h(ii).BackgroundColor = app.cmap(ii,:);
+    h(ii).BackgroundColor = getColour(ii);
     h(ii).Layout.Column = ii;
     h(ii).Text = string(ii);
     h(ii).ButtonPushedFcn = @(src,event)colourButtonPushed(src,event,app,ii,'l');

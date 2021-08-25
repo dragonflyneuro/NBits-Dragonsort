@@ -16,8 +16,8 @@ for ii = 1:length(unitsWTemplates)
     unitNum = unitsWTemplates(ii);
     ax(2*ii-1) = subplott(sp,4,2*ii-1);
     ax(2*ii) = subplott(sp,4,2*ii);
-    ms = getMarker(size(app.cmap,1), unitNum);
-    iiCmap=app.cmap(rem(unitNum-1,25)+1,:);
+    ms = getMarker(unitNum);
+    iiCmap = getColour(unitNum);
     
     % plot random selection of up to 600 waveforms in unit
     waves = app.unitArray(unitNum).waves(:,:,app.unitArray(unitNum).mainCh);

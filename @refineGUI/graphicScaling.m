@@ -58,8 +58,8 @@ if app.ShowtraceButton.Value == 1
     
     if app.LockoriginalButton.Value ~= 0
         for ii = unitNames
-            iiCmap = cmap(rem(ii-1,25)+1,:);
-            [ms, msSize] = getMarker(size(cmap,1), ii);
+            iiCmap = getColour(ii);
+            [ms, msSize] = getMarker(ii);
             unitSpikesInBatch = app.p.unitArray(ii).getAssignedSpikes(range);
             tempUnit = unitSpikesInBatch - range(1);
             line(figs.trace, tempUnit, app.p.xi(app.p.m.mainCh,tempUnit), ...
@@ -74,7 +74,7 @@ end
 
 % make waves suplots
 for ii = unitNames
-    iiCmap = cmap(rem(ii-1,25)+1,:);
+    iiCmap = getColour(ii);
     loc = 1+rem(ii-1,numCols/2)+sizeMulti*numCols*floor(2*(ii-1)/numCols);
     figs.spikeAx(ii) = subplott(numRows,numCols,[loc, loc+numCols*(sizeMulti-1)]);
     
@@ -101,7 +101,7 @@ for ii = unitNames
         " - " + string(sum(figs.f.UserData{2}(:,ii))),'Color',iiCmap);
     
     if app.ShowtraceButton.Value == 1
-        [ms, msSize] = getMarker(size(cmap,1), ii);
+        [ms, msSize] = getMarker(ii);
         wT = app.wTimes(figs.f.UserData{2}(:,ii)) - range(1);
         if ~isempty(wT)
             figs.assignedOnTrace(ii) = line(figs.trace, wT, app.p.xi(app.p.m.mainCh,wT), ...
@@ -126,7 +126,7 @@ end
 % HISTOGRAM
 xMax = 0;
 for ii = unitNames
-    iiCmap = cmap(rem(ii-1,25)+1,:);
+    iiCmap = getColour(ii);
     ylim(figs.spikeAx(ii),yl);
     
     loc = 1+rem(ii-1,numCols/2)+numCols/2+sizeMulti*numCols*floor(2*(ii-1)/numCols);
@@ -226,14 +226,14 @@ updateFigures(h,app,1);
 
 numAssignedTotal = 0;
 for ii = find(app.ScalingTable.Data.ShowLock)'
-    iiCmap = cmap(rem(ii-1,25)+1,:);
+    iiCmap = getColour(ii);
     numAssignedTotal = numAssignedTotal + sum(h.f.UserData{2}(:,ii));
     
     h.sptitle(ii) = title(h.spikeAx(ii),"Unit " + ii +...
         " - " + string(sum(h.f.UserData{2}(:,ii))),'Color',iiCmap);
     
     if app.ShowtraceButton.Value == 1
-        [ms, msSize] = getMarker(size(cmap,1), ii);
+        [ms, msSize] = getMarker(ii);
         range = getBatchRange(app.CallingApp);
         wT = app.wTimes(h.f.UserData{2}(:,ii)) - range(1);
         delete(h.assignedOnTrace(ii));

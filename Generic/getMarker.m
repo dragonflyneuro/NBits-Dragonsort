@@ -1,4 +1,4 @@
-function [out, outSize] = getMarker(maxN, n)
+function [out, outSize] = getMarker(n)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Picks out a marker style based on the maximum number of potential plots
 % 
@@ -9,7 +9,7 @@ function [out, outSize] = getMarker(maxN, n)
 % OUTPUT
 % out = marker style
 
-switch rem(floor(n/(maxN+1)),5)
+switch rem(floor(n/(25+1)),5)
 	case 0
 		out = ".";
         outSize = 8;

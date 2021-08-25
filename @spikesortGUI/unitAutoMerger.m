@@ -37,7 +37,7 @@ yTemp(1,:) = ylim(ax(1));
 
 title(ax(1),"Unit " + string(n) + " losing " + ...
     string(length(u.spikeTimes)-length(idx)) ...
-    + " spikes", 'Color', app.cmap(rem(n-1,25)+1,:));
+    + " spikes", 'Color', getColour(n));
 
 cc = 1;
 for ii = unitsToMergeTo
@@ -51,7 +51,7 @@ for ii = unitsToMergeTo
         
         title(ax(cc),"Unit " + string(ii) + " " + ...
             string(length(app.unitArray(ii).spikeTimes)+sum(clust==ii)) ...
-            + " spikes", 'Color', app.cmap(rem(ii-1,25)+1,:));
+            + " spikes", 'Color', getColour(ii));
     end
 end
 

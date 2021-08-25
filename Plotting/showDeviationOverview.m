@@ -1,4 +1,4 @@
-function [] = showDeviationOverview(app, u, selection)
+function [] = showDeviationOverview(u, selection)
 
 if ~isrow(selection)
     selection = selection';
@@ -14,8 +14,8 @@ for ii = 1:length(selection)
     waves = u(selection(ii)).waves(:,:,u(selection(ii)).mainCh);
     waves = permute(waves, [3 2 1]);
     if ~isempty(waves)
-        iiCmap = app.cmap(rem(ii-1,25)+1,:);
-        ms = getMarker(size(app.cmap,1), ii);
+        iiCmap = getColour(ii);
+        ms = getMarker(ii);
         meanDev = zeros(1,uLen);
         for jj = 1:uLen
             templateMean = mean(waves,3);
@@ -53,8 +53,8 @@ legend("Unit " + selection);
 
 
 for ii=1:length(selection)
-    iiCmap = app.cmap(rem(ii-1,25)+1,:);
-    ms = getMarker(size(app.cmap,1), ii);
+    iiCmap = getColour(ii);
+    ms = getMarker(ii);
     title(ax(ii), 'Unit '+string(selection(ii))+" "+...
         ms +" ("+length(u(selection(ii)).spikeTimes)+")",'Color',iiCmap);
     if ~isempty(u(selection(ii)).waves)

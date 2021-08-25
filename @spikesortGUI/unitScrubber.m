@@ -11,7 +11,7 @@ if length(p) > 1 % make future spikes invisible for now
     set(p(2:end),'Visible', 'off');
 end
 
-title(ax, "Unit "+n,'Color',app.cmap(rem(n-1,25)+1,:));
+title(ax, "Unit "+n,'Color',getColour(n));
 xlabel(ax, "Samples")
 ylabel(ax, "Amplitude (uV)")
 

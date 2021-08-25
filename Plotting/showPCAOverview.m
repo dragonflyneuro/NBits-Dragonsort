@@ -1,4 +1,4 @@
-function [] = showPCAOverview(app, u, selection)
+function [] = showPCAOverview(u, selection)
 
 [waves, ~, PC] = getPCs(u, selection);
 for ii=1:length(waves)
@@ -8,14 +8,14 @@ end
 drawnow
 
 %PCA view-interactive
-f = uifigure;
+f = uifigure('Name','PCA Overview');
 set(f, 'Position',  [1100, 200, 800, 700]);
 axPC = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
 view(axPC,[-5 2 5]);
 
 for ii=1:length(selection)
-    iiCmap=app.cmap(rem(ii-1,25)+1,:);
-    ms = getMarker(size(app.cmap,1), ii);
+    iiCmap = getColour(ii);
+    ms = getMarker(ii);
     if ~isempty(u(selection(ii)).waves)
         scatter3(axPC,clusPC{ii}(:,1),clusPC{ii}(:,2),clusPC{ii}(:,3),20,...
             repmat(iiCmap,size(clusPC{ii},1),1),"Marker",ms); % 3D PCA plot
@@ -36,7 +36,7 @@ axisChoice(2) = uidropdown(f,'Items', labels, 'Value',labels(2),...
 axisChoice(3) = uidropdown(f,'Items', [" ", labels], 'Value',labels(3),...
     'Position',[500 20 200 22]);
 for ii = 1:3
-    set(axisChoice(ii),'ValueChangedFcn', {@updateView, app, clusPC, u, selection, axPC, axisChoice, markerSizeSldr});
+    set(axisChoice(ii),'ValueChangedFcn', {@updateView, clusPC, u, selection, axPC, axisChoice, markerSizeSldr});
 end
 
 end
@@ -48,13 +48,13 @@ for ii = 1:length(h.Children)
 end
 end
 
-function updateView(~, ~, app, clusPC, u, sel, h, axisChoice, sldr)
+function updateView(~, ~, clusPC, u, sel, h, axisChoice, sldr)
 [caz,cel] = view(h);
 cla(h)
 
 for ii=1:length(sel)
-    iiCmap=app.cmap(rem(ii-1,25)+1,:);
-    ms = getMarker(size(app.cmap,1), ii);
+    iiCmap = getColour(ii);
+    ms = getMarker(ii);
     if ~isempty(u(sel(ii)).waves)
         if axisChoice(3).Value ~= ' '
             for jj = 1:length(axisChoice)

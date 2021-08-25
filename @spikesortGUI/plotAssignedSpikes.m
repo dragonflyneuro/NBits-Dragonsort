@@ -21,12 +21,12 @@ for ii = 1:length(app.unitArray)
     end
     
     if ~isempty(spikes)
-        [ms, msSize] = getMarker(size(app.cmap,1), ii);
+        [ms, msSize] = getMarker(ii);
         
         % set up interactivity with assigned spikes to select
         % waveforms in left unit figure from trace
         assignedLine(d) = line(h, spikes*app.msConvert, app.xi(ch,spikes), ...
-            'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', app.cmap(rem(ii-1,25)+1,:));
+            'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', getColour(ii));
         if interactFlag
             set(assignedLine(d), 'UserData', ii, 'ButtonDownFcn',{@clickedAssigned,app,hl});
         end

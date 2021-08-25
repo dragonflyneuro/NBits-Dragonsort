@@ -160,6 +160,7 @@
         RPanel                        matlab.ui.container.Panel
         RightUnitDropDown             matlab.ui.control.DropDown
         LGrid                         matlab.ui.container.GridLayout
+        LPCAButton                    matlab.ui.control.Button
         LMultiButton                  matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
         LPanel                        matlab.ui.container.Panel
@@ -181,7 +182,6 @@
         %   general plotting
         xi % data trace
         msConvert % sample space to time conversion
-        cmap % colourmap for use in all plots
 
         %   left unit interaction
         plottedWavesIdx = []; % indices along left unit for waves plotted in left unit
@@ -345,9 +345,6 @@
             setupHotkeys(app);
 
             switchButtons(app, 2);
-
-            app.cmap = distinguishable_colors(28);
-            app.cmap = app.cmap([2:3, 5:18, 20:end],:); %remove colours that are too similar
 
             setupFigures(app);
 
@@ -997,11 +994,11 @@
             drawnow
 
             if strcmp(app.OverviewDropDown.Value,'Spike')
-                showSpikeOverview(app ,app.unitArray, unitsToPlot);
+                showSpikeOverview(app.unitArray, unitsToPlot, [app.yLimLowField.Value, app.yLimHighField.Value]);
             elseif strcmp(app.OverviewDropDown.Value,'PCA')
-                showPCAOverview(app, app.unitArray, unitsToPlot)
+                showPCAOverview(app.unitArray, unitsToPlot)
             elseif strcmp(app.OverviewDropDown.Value,'LDA')
-                showLDAOverview(app, app.unitArray, unitsToPlot)
+                showLDAOverview(app.unitArray, unitsToPlot)
             else
                 showDeviationOverview(app, app.unitArray, unitsToPlot)
             end
@@ -1039,8 +1036,8 @@
             f = figure; ax = axes; set(f, 'Position',  [200, 200, 900, 700]);
 
             for ii=1:length(app.unitArray)
-                iiCmap = app.cmap(rem(ii-1,25)+1,:);
-                ms = getMarker(size(app.cmap,1), ii);
+                iiCmap = getColour(ii);
+                ms = getMarker(ii);
                 numInBatch = zeros(1,bl); % number of spikes in each unit in each batch
                 for jj = 1:bl
                     spikesInBatch = app.unitArray(ii).getAssignedSpikes(getBatchRange(app,[jj-1, jj]));
@@ -1529,6 +1526,10 @@
 
         % Button pushed function: TMultiButton
         function TMultiButtonValueChanged(app, event)
+            if size(app.xi,1) == 1
+                return;
+            end
+            
             if isempty(app.spT) || ~ishandle(app.spT)
                 nCh = size(app.xi,1);
                 app.spT = uifigure;
@@ -1553,6 +1554,10 @@
 
         % Button pushed function: LMultiButton
         function LMultiButtonValueChanged(app, event)
+            if size(app.xi,1) == 1
+                return;
+            end
+            
             if isempty(app.spL) || ~ishandle(app.spL)
                 nCh = size(app.xi,1);
                 app.spL = uifigure;
@@ -1578,6 +1583,10 @@
 
         % Button pushed function: RMultiButton
         function RMultiButtonValueChanged(app, event)
+            if size(app.xi,1) == 1
+                return;
+            end
+            
             if isempty(app.spR) || ~ishandle(app.spR)
                 nCh = size(app.xi,1);
                 app.spR = uifigure;
@@ -1838,7 +1847,7 @@
             app.LTitle.FontWeight = 'bold';
             app.LTitle.BackgroundColor = [0.8 0.8 0.8];
             app.LTitle.Layout.Row = 1;
-            app.LTitle.Layout.Column = [2 3];
+            app.LTitle.Layout.Column = 2;
 
             % Create LMultiButton
             app.LMultiButton = uibutton(app.LGrid, 'push');
@@ -1847,6 +1856,13 @@
             app.LMultiButton.Layout.Row = 1;
             app.LMultiButton.Layout.Column = 4;
             app.LMultiButton.Text = 'Multi';
+
+            % Create LPCAButton
+            app.LPCAButton = uibutton(app.LGrid, 'push');
+            app.LPCAButton.Enable = 'off';
+            app.LPCAButton.Layout.Row = 1;
+            app.LPCAButton.Layout.Column = 3;
+            app.LPCAButton.Text = {'PCA'; ''};
 
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);

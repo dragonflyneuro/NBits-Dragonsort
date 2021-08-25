@@ -17,7 +17,7 @@ if updateFlag == 0 || updateFlag == 1
     if ~isempty(app.spL) && ishandle(app.spL)
         app.spL = plotMultiUnit(app, app.spL, u, waves);
     end
-    app.LeftUnitDropDown.FontColor = app.cmap(rem(u-1,25)+1,:);
+    app.LeftUnitDropDown.FontColor = getColour(u);
 end
 
 if updateFlag == 0 || updateFlag == 2
@@ -27,7 +27,7 @@ if updateFlag == 0 || updateFlag == 2
     if ~isempty(app.spR) && ishandle(app.spR)
         app.spR = plotMultiUnit(app, app.spR, u, waves);
     end
-    app.RightUnitDropDown.FontColor = app.cmap(rem(u-1,25)+1,:);
+    app.RightUnitDropDown.FontColor = getColour(u);
 end
 
 app.StatusLabel.Value = "Ready";
