@@ -41,8 +41,8 @@
         HelpMenu                      matlab.ui.container.Menu
         MainGrid                      matlab.ui.container.GridLayout
         TTitleRowGrid                 matlab.ui.container.GridLayout
-        TMultiButton                  matlab.ui.control.StateButton
-        TPCAButton                    matlab.ui.control.StateButton
+        TPCAButton                    matlab.ui.control.Button
+        TMultiButton                  matlab.ui.control.Button
         TTitle                        matlab.ui.control.EditField
         ColourGrid                    matlab.ui.container.GridLayout
         TracePanel                    matlab.ui.container.Panel
@@ -155,13 +155,12 @@
         ImporteventmarkerdataButton   matlab.ui.control.Button
         ManualartifactremoverButton   matlab.ui.control.StateButton
         RGrid                         matlab.ui.container.GridLayout
-        RMultiButton                  matlab.ui.control.StateButton
+        RMultiButton                  matlab.ui.control.Button
         RTitle                        matlab.ui.control.EditField
         RPanel                        matlab.ui.container.Panel
         RightUnitDropDown             matlab.ui.control.DropDown
         LGrid                         matlab.ui.container.GridLayout
         LMultiButton                  matlab.ui.control.Button
-        LPCAButton                    matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
         LPanel                        matlab.ui.container.Panel
         LeftUnitDropDown              matlab.ui.control.DropDown
@@ -1513,21 +1512,77 @@
 
         end
 
-        % Value changed function: TMultiButton
+        % Button pushed function: TMultiButton
         function TMultiButtonValueChanged(app, event)
-            app.redrawTracePlot();
+            if isempty(app.spT) || ~ishandle(app.spT)
+                nCh = size(app.xi,1);
+                app.spT = uifigure;
+                app.spT.Name = 'Data trace multichannel';
+                app.spT.Position = [50 50 1700 600];
+                %     t = tiledlayout(app.spL,nCh,nCh);
+                %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
+                t = tiledlayout(app.spT,nCh,1);
+                ax = gobjects(nCh,1);
+                for ii = 1:nCh
+                    ax(ii) = axes(t);
+                    ax(ii).Layout.Tile = ii;
+                end
+                app.spT.Children.Children = flipud(app.spT.Children.Children);
+                app.redrawTracePlot();
+            else
+                app.spT.Visible = 'off';
+                app.spT.Visible = 'on';
+            end
             
         end
 
         % Button pushed function: LMultiButton
         function LMultiButtonValueChanged(app, event)
-            app.redrawUnitPlots(1);
-            
+            if isempty(app.spL) || ~ishandle(app.spL)
+                nCh = size(app.xi,1);
+                app.spL = uifigure;
+                app.spL.Name = 'Left unit multichannel';
+                app.spL.Position = [50 550 1700 500];
+            %     t = tiledlayout(app.spL,nCh,nCh);
+            %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
+                t = tiledlayout(app.spL,1,nCh);
+                ax = gobjects(nCh,1);
+                for ii = 1:nCh
+                    ax(ii) = axes(t);
+                    ax(ii).Layout.Tile = ii;
+                end
+                app.spL.Children.Children = flipud(app.spL.Children.Children);
+                app.redrawUnitPlots(1);
+            %     uibutton(app.spL, 'Text', 'Transpose', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@transp, app.spL, t, ax});
+            else
+                app.spL.Visible = 'off';
+                app.spL.Visible = 'on';
+            end
+           
         end
 
-        % Value changed function: RMultiButton
+        % Button pushed function: RMultiButton
         function RMultiButtonValueChanged(app, event)
-            app.redrawUnitPlots(2);
+            if isempty(app.spR) || ~ishandle(app.spR)
+                nCh = size(app.xi,1);
+                app.spR = uifigure;
+                app.spR.Name = 'Right unit multichannel';
+                app.spR.Position = [50 550 1700 500];
+            %     t = tiledlayout(app.spL,nCh,nCh);
+            %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
+                t = tiledlayout(app.spR,1,nCh);
+                ax = gobjects(nCh,1);
+                for ii = 1:nCh
+                    ax(ii) = axes(t);
+                    ax(ii).Layout.Tile = ii;
+                end
+                app.spR.Children.Children = flipud(app.spR.Children.Children);
+            %     uibutton(app.spL, 'Text', 'Transpose', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@transp, app.spL, t, ax});
+                app.redrawUnitPlots(2);
+            else
+                app.spR.Visible = 'off';
+                app.spR.Visible = 'on';
+            end
             
         end
     end
@@ -1768,17 +1823,12 @@
             app.LTitle.FontWeight = 'bold';
             app.LTitle.BackgroundColor = [0.8 0.8 0.8];
             app.LTitle.Layout.Row = 1;
-            app.LTitle.Layout.Column = 2;
-
-            % Create LPCAButton
-            app.LPCAButton = uibutton(app.LGrid, 'push');
-            app.LPCAButton.Layout.Row = 1;
-            app.LPCAButton.Layout.Column = 3;
-            app.LPCAButton.Text = 'PCA';
+            app.LTitle.Layout.Column = [2 3];
 
             % Create LMultiButton
             app.LMultiButton = uibutton(app.LGrid, 'push');
             app.LMultiButton.ButtonPushedFcn = createCallbackFcn(app, @LMultiButtonValueChanged, true);
+            app.LMultiButton.Enable = 'off';
             app.LMultiButton.Layout.Row = 1;
             app.LMultiButton.Layout.Column = 4;
             app.LMultiButton.Text = 'Multi';
@@ -1817,11 +1867,12 @@
             app.RTitle.Layout.Column = 2;
 
             % Create RMultiButton
-            app.RMultiButton = uibutton(app.RGrid, 'state');
-            app.RMultiButton.ValueChangedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
-            app.RMultiButton.Text = 'Multi';
+            app.RMultiButton = uibutton(app.RGrid, 'push');
+            app.RMultiButton.ButtonPushedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
+            app.RMultiButton.Enable = 'off';
             app.RMultiButton.Layout.Row = 1;
             app.RMultiButton.Layout.Column = 3;
+            app.RMultiButton.Text = 'Multi';
 
             % Create ControlTabs
             app.ControlTabs = uitabgroup(app.MainGrid);
@@ -2693,18 +2744,20 @@
             app.TTitle.Layout.Column = 1;
             app.TTitle.Value = 'Data Trace';
 
-            % Create TPCAButton
-            app.TPCAButton = uibutton(app.TTitleRowGrid, 'state');
-            app.TPCAButton.Text = 'PCA';
-            app.TPCAButton.Layout.Row = 1;
-            app.TPCAButton.Layout.Column = 2;
-
             % Create TMultiButton
-            app.TMultiButton = uibutton(app.TTitleRowGrid, 'state');
-            app.TMultiButton.ValueChangedFcn = createCallbackFcn(app, @TMultiButtonValueChanged, true);
-            app.TMultiButton.Text = 'Multi';
+            app.TMultiButton = uibutton(app.TTitleRowGrid, 'push');
+            app.TMultiButton.ButtonPushedFcn = createCallbackFcn(app, @TMultiButtonValueChanged, true);
+            app.TMultiButton.Enable = 'off';
             app.TMultiButton.Layout.Row = 1;
             app.TMultiButton.Layout.Column = 3;
+            app.TMultiButton.Text = 'Multi';
+
+            % Create TPCAButton
+            app.TPCAButton = uibutton(app.TTitleRowGrid, 'push');
+            app.TPCAButton.Enable = 'off';
+            app.TPCAButton.Layout.Row = 1;
+            app.TPCAButton.Layout.Column = 2;
+            app.TPCAButton.Text = {'PCA'; ''};
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';

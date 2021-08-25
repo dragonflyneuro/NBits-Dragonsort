@@ -22,9 +22,10 @@ if ~isempty(app.plottedWavesIdx) % if there are spikes in the unit
     traceLine = line(app.Trace, inBatchSpikeTimes*app.msConvert, app.xi(app.m.mainCh,inBatchSpikeTimes),...
         'LineStyle', 'none', 'Marker', markerStyle, 'Color', app.cmap(rem(unitNum-1,25)+1,:));
     app.Trace.Children = app.Trace.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
-    if size(app.xi,1) > 0 && app.TMultiButton.Value
+    if ~isempty(app.spT) && ishandle(app.spT)
+        ax = app.spT.Children.Children;
         for jj = 1:size(app.xi,1)
-            line(app.spT(jj), -inBatchSpikeTimes*app.msConvert, app.xi(jj,inBatchSpikeTimes),...
+            line(ax(jj), -inBatchSpikeTimes*app.msConvert, app.xi(jj,inBatchSpikeTimes),...
                 'LineStyle', 'none', 'Marker', markerStyle, 'Color', app.cmap(rem(unitNum-1,25)+1,:));
         end
     end

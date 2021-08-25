@@ -4,25 +4,13 @@ function hMulti = plotMultiUnit(app, hMulti, unitNum, plottedWaves)
 
 nCh = size(app.xi,1);
 chToPlot = 1:nCh;
-if isempty(hMulti) || ~ishandle(hMulti)
-    hMulti = uifigure;
-    hMulti.Position = [50 50 1700 500];
-%     t = tiledlayout(hMulti,nCh,nCh);
-%     t.OuterPosition = [0,-nCh+1.15,1,nCh];
-    t = tiledlayout(hMulti,1,nCh);
-    ax = gobjects(1:size(app.xi,1));
-    for ii = chToPlot
-        ax(ii) = axes(t);
-        ax(ii).Layout.Tile = ii;
-    end
-    hMulti.Children.Children = flipud(hMulti.Children.Children);
-%     uibutton(hMulti, 'Text', 'Transpose', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@transp, hMulti, t, ax});
-else
-    ax = hMulti.Children.Children;
-end
+
+ax = hMulti.Children.Children;
 for ii = chToPlot
     cla(ax(ii));
-    line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, plottedWaves(:,:,ii)');
+    if ~isempty(plottedWaves)
+        line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, plottedWaves(:,:,ii)');
+    end
     if ii == app.m.mainCh
         title(ax(ii), "MAIN Ch "+string(ii));
     else
@@ -30,24 +18,25 @@ for ii = chToPlot
     end
     
 end
-
-if ~isinf(app.yLimLowField.Value)
-    yl(1) = app.yLimLowField.Value;
-else
-    yl(1) = min(plottedWaves,[],'all')-50;
-end
-if ~isinf(app.yLimHighField.Value)
-    yl(2) = app.yLimHighField.Value;
-else
-    yl(2) = max(plottedWaves,[],'all')+50;
-end
-
-for ii = chToPlot
-    step = 50*ceil((yl(2) - yl(1))/500);
-    ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
-    ylim(ax(ii),yl);
-    yticks(ax(ii),ticks);
-    set(ax(ii), 'YGrid', 'on', 'XGrid', 'off')
+if ~isempty(plottedWaves)
+    if ~isinf(app.yLimLowField.Value)
+        yl(1) = app.yLimLowField.Value;
+    else
+        yl(1) = min(plottedWaves,[],'all')-50;
+    end
+    if ~isinf(app.yLimHighField.Value)
+        yl(2) = app.yLimHighField.Value;
+    else
+        yl(2) = max(plottedWaves,[],'all')+50;
+    end
+    
+    for ii = chToPlot
+        step = 50*ceil((yl(2) - yl(1))/500);
+        ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
+        ylim(ax(ii),yl);
+        yticks(ax(ii),ticks);
+        set(ax(ii), 'YGrid', 'on', 'XGrid', 'off')
+    end
 end
 
 end
