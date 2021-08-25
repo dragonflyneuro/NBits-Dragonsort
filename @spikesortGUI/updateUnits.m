@@ -17,5 +17,4 @@ end
 app.unitArray = app.unitArray.unitSorter();
 
 standardUpdate(app)
-figure(app.UIBase);
 end

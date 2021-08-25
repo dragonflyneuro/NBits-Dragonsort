@@ -1,4 +1,4 @@
-function [pressedEnter, figData] = getFigData(f)
+function [pressedEnter, figData] = getFigData(f, varargin)
 % Daniel Ko (dsk13@ic.ac.uk), [Feb 2020]
 % Returns figure embedded data if enter is pressed, otherwise returns
 % empty. Closes figure if enter was pressed
@@ -9,6 +9,12 @@ function [pressedEnter, figData] = getFigData(f)
 % OUTPUT
 % pressedEnter = 1 if enter pressed, 0 otherwise
 % figData = figure embedded data
+
+if nargin > 1
+    keepOpen = 1;
+else
+    keepOpen = 0;
+end
 
 figOpen = 1;
 while figOpen
@@ -28,12 +34,16 @@ while figOpen
 		if k == 13
 			figOpen = 0;
 			figData = get(f,'UserData');
-			close(f);
+            if ~keepOpen
+                close(f);
+            end
 			pressedEnter = 1;
         elseif k == 27
             figOpen = 0;
             figData = [];
-            close(f);
+            if ~keepOpen
+                close(f);
+            end
             pressedEnter = 0;
         end
 	end

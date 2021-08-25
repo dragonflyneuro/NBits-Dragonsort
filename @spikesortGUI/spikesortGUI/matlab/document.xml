@@ -276,10 +276,6 @@
         % reassign s.unit_ and s.waves_ structures
         unitReassigner(app, n, u, w)
 
-        % use PCA to split waves into clusters - return clusters as well as
-        % user input (confirm/cancel)
-        [clust, yn] = unitAutoSplitter(app, w, n)
-
 
         %% callbacks
 
@@ -350,8 +346,8 @@
 
             % initialise sorting variables
             app.updateDropdown();
-            app.LeftUnitDropDown.FontColor = app.cmap(str2double(app.LeftUnitDropDown.Value),:);
-            app.RightUnitDropDown.FontColor = app.cmap(str2double(app.RightUnitDropDown.Value),:);
+            app.LeftUnitDropDown.FontColor = getColour(str2double(app.LeftUnitDropDown.Value));
+            app.RightUnitDropDown.FontColor = getColour(str2double(app.RightUnitDropDown.Value));
 
             app.figureHandles = [app.Trace, app.LeftUnit, app.RightUnit];
             for ii = 1:length(app.figureHandles)
@@ -361,7 +357,7 @@
             app.basicModes = uiToggleGroup([app.SelectedButton, app.PlottedButton, app.BatchButton],...
                 ["selected","plotted","batch"]);
 
-            app.ColourGrid.ColumnWidth = repmat({'1x'},[1,length(app.cmap)]);
+            app.ColourGrid.ColumnWidth = repmat({'1x'},[1,25]);
             app.colourButtons = app.createColourCodes();
             [app.colourButtons.Enable] = deal('off');
 
@@ -810,7 +806,7 @@
             drawnow
 
             % PCA split unit and check if user confirmed
-            [clust, yn] = app.unitAutoSplitter(value, I);
+            [clust, yn] = unitAutoSplitter(app.unitArray, value, app.AutosplitField.Value, I, [app.yLimLowField.Value, app.yLimHighField.Value]);
             if ~yn
                 return;
             end
@@ -858,7 +854,7 @@
             drawnow
 
             % PCA split unit and check if user confirmed
-            [clust, yn] = app.unitAutoMerger(value, I);
+            [clust, yn] = unitAutoMerger(app.unitArray, value, I, [app.yLimLowField.Value, app.yLimHighField.Value]);
             if ~yn
                 return;
             end
@@ -1067,7 +1063,7 @@
                 return;
             end
 
-            showImportedTemplates(app)
+            showImportedTemplates(app.unitArray, [app.yLimLowField.Value, app.yLimHighField.Value])
 
         end
 
@@ -1531,19 +1527,7 @@
             end
             
             if isempty(app.spT) || ~ishandle(app.spT)
-                nCh = size(app.xi,1);
-                app.spT = uifigure;
-                app.spT.Name = 'Data trace multichannel';
-                app.spT.Position = [50 50 1700 600];
-                %     t = tiledlayout(app.spL,nCh,nCh);
-                %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
-                t = tiledlayout(app.spT,nCh,1);
-                ax = gobjects(nCh,1);
-                for ii = 1:nCh
-                    ax(ii) = axes(t);
-                    ax(ii).Layout.Tile = ii;
-                end
-                app.spT.Children.Children = flipud(app.spT.Children.Children);
+                app.spT = makeTiledFigure(size(app.xi,1), [50 50 1700 600], 'Data trace multichannel', 'vertical');
                 app.redrawTracePlot();
             else
                 app.spT.Visible = 'off';
@@ -1559,21 +1543,8 @@
             end
             
             if isempty(app.spL) || ~ishandle(app.spL)
-                nCh = size(app.xi,1);
-                app.spL = uifigure;
-                app.spL.Name = 'Left unit multichannel';
-                app.spL.Position = [50 550 1700 500];
-            %     t = tiledlayout(app.spL,nCh,nCh);
-            %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
-                t = tiledlayout(app.spL,1,nCh);
-                ax = gobjects(nCh,1);
-                for ii = 1:nCh
-                    ax(ii) = axes(t);
-                    ax(ii).Layout.Tile = ii;
-                end
-                app.spL.Children.Children = flipud(app.spL.Children.Children);
+                app.spL = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Left unit multichannel');
                 app.redrawUnitPlots(1);
-            %     uibutton(app.spL, 'Text', 'Transpose', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@transp, app.spL, t, ax});
             else
                 app.spL.Visible = 'off';
                 app.spL.Visible = 'on';
@@ -1588,26 +1559,18 @@
             end
             
             if isempty(app.spR) || ~ishandle(app.spR)
-                nCh = size(app.xi,1);
-                app.spR = uifigure;
-                app.spR.Name = 'Right unit multichannel';
-                app.spR.Position = [50 550 1700 500];
-            %     t = tiledlayout(app.spL,nCh,nCh);
-            %     t.OuterPosition = [0,-nCh+1.15,1,nCh];
-                t = tiledlayout(app.spR,1,nCh);
-                ax = gobjects(nCh,1);
-                for ii = 1:nCh
-                    ax(ii) = axes(t);
-                    ax(ii).Layout.Tile = ii;
-                end
-                app.spR.Children.Children = flipud(app.spR.Children.Children);
-            %     uibutton(app.spL, 'Text', 'Transpose', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@transp, app.spL, t, ax});
+                app.spR = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Right unit multichannel');
                 app.redrawUnitPlots(2);
             else
                 app.spR.Visible = 'off';
                 app.spR.Visible = 'on';
             end
             
+        end
+
+        % Button pushed function: TPCAButton
+        function TPCAButtonPushed(app, event)
+            tracePCASorter(app, app.unitArray);
         end
     end
 
@@ -1859,7 +1822,6 @@
 
             % Create LPCAButton
             app.LPCAButton = uibutton(app.LGrid, 'push');
-            app.LPCAButton.Enable = 'off';
             app.LPCAButton.Layout.Row = 1;
             app.LPCAButton.Layout.Column = 3;
             app.LPCAButton.Text = {'PCA'; ''};
@@ -2784,7 +2746,7 @@
 
             % Create TPCAButton
             app.TPCAButton = uibutton(app.TTitleRowGrid, 'push');
-            app.TPCAButton.Enable = 'off';
+            app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
             app.TPCAButton.Layout.Row = 1;
             app.TPCAButton.Layout.Column = 2;
             app.TPCAButton.Text = {'PCA'; ''};

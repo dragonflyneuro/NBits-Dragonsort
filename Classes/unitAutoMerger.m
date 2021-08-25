@@ -1,24 +1,25 @@
-function [clust, yn] = unitAutoMerger(app, n, idx)
+function [clust, yn] = unitAutoMerger(u, n, idx, yl)
 % crop waves for better PCA
-u = app.unitArray(n);
 
-if isempty(idx)
-    idx = 1:size(u.waves,1);
-end
+spikeWidth = size(u(1).waves,2);
+
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);
-croppedWaves = u.waves(idx,:);
-unitsToMergeTo = setdiff(1:length(app.unitArray),n);
-[~, clusPC, PC] = getPCs(app.unitArray, unitsToMergeTo);
-
-% perform PCA and cluster waves
-PCwaves = croppedWaves*PC(:,1:3);
-for ii = 1:length(clusPC)
-    meanClusPC(ii,:) = mean(clusPC{ii});
+croppedWaves = u(n).waves(idx,:);
+unitsToMergeTo = setdiff(1:length(u),n);
+[waves, PC] = getPCs(u, unitsToMergeTo);
+for ii=1:length(u)
+    spikePC{ii} = waves{ii}*PC(:,1:3);
 end
 
-for ii = 1:length(PCwaves)
-    dists = squareform(pdist([PCwaves(ii,:);meanClusPC]));
+% perform PCA and cluster waves
+wavesToMergePC = croppedWaves*PC(:,1:3);
+for ii = 1:length(spikePC)
+    meanSpikePC(ii,:) = mean(spikePC{ii});
+end
+
+for ii = 1:length(wavesToMergePC)
+    dists = squareform(pdist([wavesToMergePC(ii,:);meanSpikePC]));
     [~, minIdx] = min(dists(1,2:end));
     clust(ii) = unitsToMergeTo(minIdx);
 end
@@ -26,17 +27,17 @@ numClust = length(unique(clust));
 
 % plot waveforms, separated into subplots for different
 % clusters
-f = figure;
+f = figure('Name','Automerge');
 set(f, 'Position',  [300, 200, 1200, 700]);
 ax = gobjects(numClust,1);
 yTemp = zeros(numClust,2);
 
 ax(1) = subplot(ceil((numClust+1)/4),4,1,'Parent',f);
-line(ax(1), -app.m.spikeWidth:app.m.spikeWidth, u.waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
+line(ax(1), -spikeWidth:spikeWidth, u(n).waves(:,:,u(n).mainCh)', 'Color', [0.8, 0.8, 0.8]);
 yTemp(1,:) = ylim(ax(1));
 
 title(ax(1),"Unit " + string(n) + " losing " + ...
-    string(length(u.spikeTimes)-length(idx)) ...
+    string(length(u(n).spikeTimes)-length(idx)) ...
     + " spikes", 'Color', getColour(n));
 
 cc = 1;
@@ -44,26 +45,20 @@ for ii = unitsToMergeTo
     if sum(clust==ii) ~= 0
         cc = cc+1;
         ax(cc) = subplot(ceil((numClust+1)/4),4,cc,'Parent',f);
-        line(ax(cc), -app.m.spikeWidth:app.m.spikeWidth, app.unitArray(ii).waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
-        line(ax(cc), -app.m.spikeWidth:app.m.spikeWidth, u.waves(idx(clust==ii),:,app.m.mainCh)');
+        line(ax(cc), -spikeWidth:spikeWidth, u(ii).waves(:,:,u(ii).mainCh)', 'Color', [0.8, 0.8, 0.8]);
+        line(ax(cc), -spikeWidth:spikeWidth, u(n).waves(idx(clust==ii),:,u(n).mainCh)');
         %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
         yTemp(ii,:) = ylim(ax(cc));
         
         title(ax(cc),"Unit " + string(ii) + " " + ...
-            string(length(app.unitArray(ii).spikeTimes)+sum(clust==ii)) ...
+            string(length(u(ii).spikeTimes)+sum(clust==ii)) ...
             + " spikes", 'Color', getColour(ii));
     end
 end
 
 % match ylim of each subplot
 yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-
-if ~isinf(app.yLimLowField.Value)
-    yTemp(1) = app.yLimLowField.Value;
-end
-if ~isinf(app.yLimHighField.Value)
-    yTemp(2) = app.yLimHighField.Value;
-end
+yTemp(~isinf(yl)) = yl(~isinf(yl));
 
 for ii = 1:cc
     ylim(ax(ii), yTemp);

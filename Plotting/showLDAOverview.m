@@ -6,7 +6,7 @@ end
 
 drawnow
 
-[~, clusW, ~] = getLDA(u, selection);
+spikeW = getLDA(u, selection);
 
 %LDA view-interactive
 f = uifigure('Name','LDA Overview');
@@ -18,8 +18,8 @@ for ii=1:length(selection)
     iiCmap = getColour(ii);
     ms = getMarker(ii);
     if ~isempty(u(selection(ii)).waves)
-        scatter3(axW,clusW{ii}(:,1),clusW{ii}(:,2),clusW{ii}(:,3),20,...
-            repmat(iiCmap,size(clusW{ii},1),1),"Marker",ms); % 3D WA plot
+        scatter3(axW,spikeW{ii}(:,1),spikeW{ii}(:,2),spikeW{ii}(:,3),20,...
+            repmat(iiCmap,size(spikeW{ii},1),1),"Marker",ms); % 3D WA plot
     end
 end
 labels = "W"+string(1:3); %length(selection);
@@ -36,7 +36,7 @@ axisChoice(2) = uidropdown(f,'Items', labels, 'Value',labels(2),...
 axisChoice(3) = uidropdown(f,'Items', [" ", labels], 'Value',labels(3),...
     'Position',[500 20 200 22]);
 for ii = 1:3
-    set(axisChoice(ii),'ValueChangedFcn', {@updateView, clusW, u, selection, axW, axisChoice, markerSizeSldr});
+    set(axisChoice(ii),'ValueChangedFcn', {@updateView, spikeW, u, selection, axW, axisChoice, markerSizeSldr});
 end
 
 end

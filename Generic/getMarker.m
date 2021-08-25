@@ -9,22 +9,24 @@ function [out, outSize] = getMarker(n)
 % OUTPUT
 % out = marker style
 
-switch rem(floor(n/(25+1)),5)
-	case 0
-		out = ".";
-        outSize = 8;
-	case 1
-		out = "*";
-        outSize = 6;
-	case 2
-		out = "+";
-        outSize = 6;
-	case 3
-		out = "p";
-        outSize = 6;
-	case 4
-		out = "diamond";
-        outSize = 6;
+for ii = 1:length(n)
+    switch rem(floor(n(ii)/(25+1)),5)
+        case 0
+            out(ii) = ".";
+            outSize(ii) = 8;
+        case 1
+            out(ii) = "*";
+            outSize(ii) = 6;
+        case 2
+            out(ii) = "+";
+            outSize(ii) = 6;
+        case 3
+            out(ii) = "p";
+            outSize(ii) = 6;
+        case 4
+            out(ii) = "diamond";
+            outSize(ii) = 6;
+    end
 end
 
 end

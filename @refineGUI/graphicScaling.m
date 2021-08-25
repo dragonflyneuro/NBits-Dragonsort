@@ -33,9 +33,6 @@ set(figs.f, 'Position',  [(1920-width)/2, (1080-height)/2, width, height]);
 % get colourmaps and set up subplot formatting
 unitNames = find(app.ScalingTable.Data.ShowLock)';
 numCols = 6;
-
-cmap = distinguishable_colors(28);
-cmap = cmap([2:3, 5:18, 20:end],:);
 sizeMulti = 5;
 numRows = ceil(2*length(unitNames)/numCols)*sizeMulti+1;
 if app.ShowtraceButton.Value == 1
@@ -160,9 +157,9 @@ for ii = unitNames
     figs.histos(ii).UserData = ii; % used for getting axes clicked
     
     % set up callbacks
-    figs.userLine(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
-    figs.histosAx(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
-    figs.histos(ii).ButtonDownFcn = {@buttonDownHistos,figs,app,cmap};
+    figs.userLine(ii).ButtonDownFcn = {@buttonDownHistos,figs,app};
+    figs.histosAx(ii).ButtonDownFcn = {@buttonDownHistos,figs,app};
+    figs.histos(ii).ButtonDownFcn = {@buttonDownHistos,figs,app};
 end
 
 % SLIDERS
@@ -198,7 +195,7 @@ end
 end
 
 %%
-function [] = buttonDownHistos(~,~,h,app,cmap)
+function [] = buttonDownHistos(~,~,h,app)
 axNum = get(gca,'UserData');
 ax = h.histosAx(axNum);
 
@@ -212,7 +209,7 @@ h.userLine(axNum).XData = [mousePoint,mousePoint];
 % h.userLine(axNum).ButtonDownFcn = {@buttonDownHistos,h,in};
 
 h.f.WindowButtonMotionFcn = {@buttonHeldHistos,h,app};
-h.f.WindowButtonUpFcn = {@buttonUpHistos,h,app,cmap};
+h.f.WindowButtonUpFcn = {@buttonUpHistos,h,app};
 end
 
 %%
@@ -221,7 +218,7 @@ updateFigures(h,app,0);
 end
 
 %%
-function [] = buttonUpHistos(~,~,h,app,cmap)
+function [] = buttonUpHistos(~,~,h,app)
 updateFigures(h,app,1);
 
 numAssignedTotal = 0;

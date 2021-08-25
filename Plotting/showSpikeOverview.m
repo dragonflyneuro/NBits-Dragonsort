@@ -3,6 +3,7 @@ function [] = showSpikeOverview(u, selection, yl)
 % plot unit waveforms in popout figure
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
+maxNum = 800;
 spikeWidth = size(u(1).waves,2);
 
 if length(selection) > 6
@@ -15,7 +16,16 @@ figure('Name','Spike Overview'); set(gcf, 'Position',  [200, 200, 900, 700]);
 ax = gobjects(length(selection),1);
 yTemp = zeros(length(selection),2); % to match ylim later
 
-[waves, ~, ~] = getPCs(u, selection, 600);
+for ii=1:length(selection)
+    waves{ii} = u(selection(ii)).waves(:,:,u(selection(ii)).mainCh);
+    if ~isempty(waves{ii})
+        rp = randperm(size(waves{ii},1));
+        if maxNum ~= 0 && length(rp) > maxNum  % don't plot too many
+            rp = rp(1:maxNum);
+        end
+        waves{ii} = waves{ii}(sort(rp),:);
+    end
+end
 
 for ii=1:length(selection)
     ax(ii) = subplott(sp,numCol,ii);
@@ -41,7 +51,7 @@ for ii = 1:length(selection)
     set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
 end
 
-sgtitle('Units found - max 600 random spikes plotted');
+sgtitle("Units found - max" + string(maxNum) + "random spikes plotted");
 
 end
 

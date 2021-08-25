@@ -39,7 +39,7 @@ end
 
 orphanWaves = orphanWaves(potentialSpikes,:,:);
 croppedWaves = orphanWaves(:,ceil(size(orphanWaves,2)/2) + (round(-0.3*sRate/1000):round(0.3*sRate/1000)),:);
-croppedWaves = reshape(croppedWaves, size(orphanWaves,1), []);
+croppedWaves = croppedWaves(:,:);
 
 PC = pca(croppedWaves);
 PCwaves = croppedWaves*PC(:,1:3);

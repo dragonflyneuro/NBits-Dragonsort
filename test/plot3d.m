@@ -4,7 +4,7 @@ q = rand(4,3);
 l = plot3(ax,q(:,1),q(:,2),q(:,3),'Marker','o','LineStyle','none');
 set(l, 'ButtonDownFcn',{@clickedAssigned,ax});
 % set(ax, 'ButtonDownFcn',{@boxClick,ax});
-hold on
+hold(ax)
 
 %%
 function clickedAssigned(src,evt,ax)

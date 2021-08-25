@@ -1,23 +1,21 @@
-function [clust, yn] = unitAutoSplitter(app, n, idx)
+function [clust, yn] = unitAutoSplitter(u, n, idx, numSplit, yl)
 % crop waves for better PCA
-u = app.unitArray(n);
 
-if isempty(idx)
-    idx = 1:size(u.waves,1);
-end
+spikeWidth = size(u(1).waves,2);
+
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);
-croppedWaves = u.waves(idx,:);
+croppedWaves = u(n).waves(idx,:);
 
 % perform PCA and cluster waves
 PC = pca(croppedWaves);
 PCwaves = croppedWaves*PC(:,1:3);
-clust = kmeans(PCwaves',app.AutosplitField.Value);
+clust = kmeans(PCwaves',numSplit);
 numClust = length(unique(clust));
 
 % plot waveforms, separated into subplots for different
 % clusters
-f = figure;
+f = figure('Name','Autosplit');
 set(f, 'Position',  [300, 200, 1200, 700]);
 ax = gobjects(numClust,1);
 yTemp = zeros(numClust,2);
@@ -25,8 +23,8 @@ yTemp = zeros(numClust,2);
 for ii = 1:numClust
     if sum(clust==ii) ~= 0
         ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
-        line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(:,:,u.mainCh)', 'Color', [0.8, 0.8, 0.8]);
-        line(ax(ii), -app.m.spikeWidth:app.m.spikeWidth, u.waves(clust==ii,:,app.m.mainCh)');
+        line(ax(ii), -spikeWidth:spikeWidth, u(n).waves(:,:,u(n).mainCh)', 'Color', [0.8, 0.8, 0.8]);
+        line(ax(ii), -spikeWidth:spikeWidth, u(n).waves(clust==ii,:,u(n).mainCh)');
         %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
         yTemp(ii,:) = ylim(ax(ii));
 
@@ -34,7 +32,7 @@ for ii = 1:numClust
             title(ax(ii),"Unit " + string(n) + " " + ...
                  sum(clust==ii) + " spikes", 'Color', getColour(n));
         else
-            uN = length(app.unitArray)+ii;
+            uN = length(u)+ii;
             title(ax(ii),"New unit " + string(uN) + " " + ...
                 sum(clust==ii) + " spikes", 'Color', getColour(uN));
         end
@@ -43,13 +41,7 @@ end
 
 % match ylim of each subplot
 yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
-
-if ~isinf(app.yLimLowField.Value)
-    yTemp(1) = app.yLimLowField.Value;
-end
-if ~isinf(app.yLimHighField.Value)
-    yTemp(2) = app.yLimHighField.Value;
-end
+yTemp(~isinf(yl)) = yl(~isinf(yl));
 
 for ii = 1:numClust
     ylim(ax(ii), yTemp);

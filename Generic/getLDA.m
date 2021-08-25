@@ -1,4 +1,4 @@
-function [waves, transformed, W] = getLDA(u, selection, maxNum)
+function transformed = getLDA(u, selection, maxNum)
 
 if ~exist('maxNum','var') || isempty(maxNum)
     maxNum = 0;

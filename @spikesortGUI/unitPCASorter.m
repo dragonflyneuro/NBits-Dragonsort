@@ -1,11 +1,13 @@
-function [] = showPCAOverview(u, selection)
+function f = unitPCASorter(app, u)
+selection = 1:length(u);
 
 [waves, PC] = getPCs(u, selection);
+[~,~,orphansInBatch] = u.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+orphanWaves = app.rawSpikeWaves(orphansInBatch,:);
+
 for ii=1:length(waves)
     spikePC{ii}=waves{ii}*PC(:,1:6);
 end
-
-drawnow
 
 %PCA view-interactive
 f = uifigure('Name','PCA Overview');
