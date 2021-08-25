@@ -117,8 +117,6 @@
         ThresholdsLabel               matlab.ui.control.Label
         ViewingGrid                   matlab.ui.container.GridLayout
         yLimHighField                 matlab.ui.control.NumericEditField
-        MainchannelSpinner            matlab.ui.control.Spinner
-        MainchannelSpinnerLabel       matlab.ui.control.Label
         BatchsizeEditField            matlab.ui.control.NumericEditField
         BatchSizesamplesLabel         matlab.ui.control.Label
         yLimLowField                  matlab.ui.control.NumericEditField
@@ -133,6 +131,8 @@
         AdvancedTab                   matlab.ui.container.Tab
         AdvancedGrid                  matlab.ui.container.GridLayout
         MultichannelGrid              matlab.ui.container.GridLayout
+        MainchannelSpinner            matlab.ui.control.Spinner
+        MainchannelSpinner_2Label     matlab.ui.control.Label
         MultichannelLabel             matlab.ui.control.Label
         TemplategenerationGrid        matlab.ui.container.GridLayout
         ImportsampleweightsButton     matlab.ui.control.Button
@@ -1275,8 +1275,23 @@
 
         % Value changed function: MainchannelSpinner
         function MainchannelSpinnerValueChanged(app, event)
-            %             app.m.mainch = app.MainchannelSpinner.Value;
-            %             standardUpdate(app);
+            answer = uiconfirm(app.UIBase,"Changing the main thresholding channel may result will result in the"+...
+                " update of the entire sorting and may result in"+...
+                " spike deletion & changes in sorting dynamics. Continue?","Warning",...
+                'Icon','warning','DefaultOption',2);
+            if strcmpi(answer, "CANCEL")
+                return;
+            end
+            
+%             prompt = 'Number of samples within which a spike will be detected as the same spike';
+%             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
+            
+            app.StatusLabel.Value = "Updating main channel...";
+            app.m.mainch = app.MainchannelSpinner.Value;
+            
+            app.updateMainCh();
+
+            standardUpdate(app);
         end
 
         % Button pushed function: BinarynamecopyButton
@@ -2200,7 +2215,7 @@
 
             % Create ViewingGrid
             app.ViewingGrid = uigridlayout(app.ParametersGrid);
-            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '0.5x', '0.5x', '1x'};
+            app.ViewingGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '0.5x', '0.5x'};
             app.ViewingGrid.ColumnSpacing = 2;
             app.ViewingGrid.RowSpacing = 2;
             app.ViewingGrid.Padding = [0 0 0 0];
@@ -2291,22 +2306,6 @@
             app.BatchsizeEditField.Layout.Row = 5;
             app.BatchsizeEditField.Layout.Column = 2;
             app.BatchsizeEditField.Value = 5000000;
-
-            % Create MainchannelSpinnerLabel
-            app.MainchannelSpinnerLabel = uilabel(app.ViewingGrid);
-            app.MainchannelSpinnerLabel.HorizontalAlignment = 'right';
-            app.MainchannelSpinnerLabel.Layout.Row = 8;
-            app.MainchannelSpinnerLabel.Layout.Column = 1;
-            app.MainchannelSpinnerLabel.Text = 'Main channel';
-
-            % Create MainchannelSpinner
-            app.MainchannelSpinner = uispinner(app.ViewingGrid);
-            app.MainchannelSpinner.Limits = [1 Inf];
-            app.MainchannelSpinner.RoundFractionalValues = 'on';
-            app.MainchannelSpinner.ValueChangedFcn = createCallbackFcn(app, @MainchannelSpinnerValueChanged, true);
-            app.MainchannelSpinner.Layout.Row = 8;
-            app.MainchannelSpinner.Layout.Column = 2;
-            app.MainchannelSpinner.Value = 1;
 
             % Create yLimHighField
             app.yLimHighField = uieditfield(app.ViewingGrid, 'numeric');
@@ -2707,6 +2706,21 @@
             app.MultichannelLabel.Layout.Row = 1;
             app.MultichannelLabel.Layout.Column = [1 2];
             app.MultichannelLabel.Text = 'Multichannel';
+
+            % Create MainchannelSpinner_2Label
+            app.MainchannelSpinner_2Label = uilabel(app.MultichannelGrid);
+            app.MainchannelSpinner_2Label.HorizontalAlignment = 'right';
+            app.MainchannelSpinner_2Label.Layout.Row = 2;
+            app.MainchannelSpinner_2Label.Layout.Column = 1;
+            app.MainchannelSpinner_2Label.Text = 'Main channel';
+
+            % Create MainchannelSpinner
+            app.MainchannelSpinner = uispinner(app.MultichannelGrid);
+            app.MainchannelSpinner.Limits = [1 Inf];
+            app.MainchannelSpinner.ValueChangedFcn = createCallbackFcn(app, @MainchannelSpinnerValueChanged, true);
+            app.MainchannelSpinner.Layout.Row = 2;
+            app.MainchannelSpinner.Layout.Column = 2;
+            app.MainchannelSpinner.Value = 1;
 
             % Create TracePanel
             app.TracePanel = uipanel(app.MainGrid);

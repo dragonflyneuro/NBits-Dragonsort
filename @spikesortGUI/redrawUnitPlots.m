@@ -9,8 +9,8 @@ app.StatusLabel.Value = "Updating unit figures...";
 drawnow
 
 if updateFlag == 0 || updateFlag == 1
-    set(app.Trace,'UserData', {[],[]}); % reset selected spikes in left unit
-    set(app.Trace,'ButtonDownFcn',[]);
+    set(app.LeftUnit,'UserData', {[],[]}); % reset selected spikes in left unit
+    set(app.LeftUnit,'ButtonDownFcn',[]);
     u = str2double(app.LeftUnitDropDown.Value);
     delete(app.lSelection); delete(app.pL); delete(app.pTL);
     [app.pL, app.pTL, waves] = plotUnitInteractive(app, app.LTitle, app.LeftUnit, u);

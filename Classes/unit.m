@@ -108,7 +108,7 @@ classdef unit < handle
             if isempty(I)
                 e = "No spikes selected for operation";
                 return;
-            elseif length(I) == length(obj(n).spikeTimes) && ~force
+            elseif isempty(setdiff(I, 1:length(obj(n).spikeTimes))) && ~force
                 e = "All spikes in unit selected, no changes will be made";
                 return;
             end

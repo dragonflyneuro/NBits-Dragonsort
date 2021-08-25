@@ -34,9 +34,9 @@ end
 nCh = size(rawWaves,3); %number of channels
 
 % crop template shorter for more accurate matching
-cropFactor = round(cropFactor*(size(templateWaves,2)-1)/2); %samples to get before and after the peak
+cropSize = round(cropFactor*(size(templateWaves,2)-1)/2); %samples to get before and after the peak
 peakSample = ceil(size(templateWaves,2)/2); % by default the extract wave's peak is centered about the peak
-cropRange = peakSample-cropFactor:peakSample+cropFactor;
+cropRange = peakSample-cropSize:peakSample+cropSize;
 
 rawWaves = rawWaves(:, cropRange, :); %crop the trace as short as the template
 templateWaves = templateWaves(:, cropRange, :);
