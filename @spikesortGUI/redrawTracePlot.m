@@ -86,18 +86,7 @@ else
     drawnow
     
     % store selected orphans in UserData
-    for qq = 1:length(selectedPoint)
-        alreadySelectedBool = ismember(h.UserData,selectedPoint(qq));
-        if ~any(alreadySelectedBool)
-            h.UserData = [h.UserData, selectedPoint(qq)];
-            app.pSelected(end+1) = plot(h, X(selectedPoint(qq)),Y(selectedPoint(qq)),'ro');
-            h.Children = h.Children([2:end-(length(app.pEvent)+1), 1, end-(length(app.pEvent)):end]);
-        else
-            delete(app.pSelected(alreadySelectedBool))
-            app.pSelected(alreadySelectedBool) = [];
-            h.UserData(alreadySelectedBool) = [];
-        end
-    end
+    updateUnassignedSelection(app,selectedPoint);
     delete(app.pSelection);
 end
 end

@@ -1,7 +1,16 @@
 function included = ROI3D(posData, includable, varargin)
+% posData is cell array of x by 3 positions of each dot
+% included is a cell array of 1 by x bool of inclusion
+% includable is index along posData for datasets that can be included in
+% ROI
 
 subplott = @(m,n,p) subtightplot (m, n, p, [0.02 0.05], [0.06 0.03], [0.05 0.05]);
 
+if nargin > 6
+    labels = varargin{4};
+else
+    labels = ["X","Y","Z"];
+end
 if nargin > 5
     sizeData = varargin{3};
 else
@@ -18,30 +27,25 @@ else
     colourData = cool(length(posData));
 end
 
-% posData is cell array of x by 3 positions of each dot
-% included is a cell array of 1 by x bool of inclusion
-% includable is index along posData for datasets that can be included in
-% ROI
-
 views = [1,2;2,3;1,3];
 numROI = size(views,1);
 roiVal = cell(numROI,1);
-labels = ["PC1","PC2","PC3"];
 included = cell(size(posData));
+
 f = figure('Position',[50 50 1700 650], 'Name','Choose ROI');
 for ii = 1:numROI
     ax(ii) = subplott(1,numROI,ii);
-    axis square
     hold(ax(ii),'on');
-    for jj = 1:length(posData)
-        if ~isempty(posData{jj})
-            scatter(ax(ii), posData{jj}(:,views(ii,1)),posData{jj}(:,views(ii,2)),sizeData(jj),...
-                repmat(colourData(jj,:),[size(posData{jj},1),1]),"Marker",markerData(jj)); % 3D PCA plot
-        end
-    end
+    axis square
     title(sprintf('View %d',ii));
     xlabel(labels(views(ii,1)));
     ylabel(labels(views(ii,2)));
+end
+for ii = 1:numROI
+    posDataTemp = cellfun(@(x) x(:,views(ii,:),posData),'UniformOutput',false);
+    scatterDK(posDataTemp,ax(ii),ColourData,markerData,sizeData);
+%     scatter(ax(ii), posData{jj}(:,views(ii,1)),posData{jj}(:,views(ii,2)),sizeData(jj),...
+%         repmat(colourData(jj,:),[size(posData{jj},1),1]),"Marker",markerData(jj)); % 3D PCA plot
 end
 sgtitle('L-R Click within axes to begin your selection polygon, double click to close polygon, ENTER to confirm');
 

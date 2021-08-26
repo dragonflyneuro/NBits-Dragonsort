@@ -197,16 +197,20 @@
         spR % right unit subplots
 
         pAssigned = []; % markers on trace for assigned spikes
-        pUnassigned = []; % markers on trace for unassigned spikes
         pNospike = []; % shaded areas on trace for manual no-spike regions
-        pSelected = []; % markers on trace for selected unassigned spikes
         pSelection = gobjects(1); % temporary objects to show user selection regions
         pEvent = []; % shaded areas on trace for event marker regions
         pRaw = []; % raw data trace
+        
+        pUnassigned = []; % markers on trace for unassigned spikes
+        pSelected = []; % markers on trace for selected unassigned spikes
+        pUnassignedPC = [];
+        pSelectedPC = [];
 
         figureHandles = [];
 
         Trace % trace plot
+        tracePC
         spT % trace subplots
         LeftUnit
         RightUnit
