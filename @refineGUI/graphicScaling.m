@@ -49,8 +49,8 @@ if app.ShowtraceButton.Value == 1
         (numRows-1)*numCols+(floor(numCols/2)+1:numCols)]);
     line(figs.trace,1:size(app.p.xi,2),app.p.xi(app.p.m.mainCh,:));
     range = getBatchRange(app.CallingApp);
-    orphanTimes = app.wTimes-range(1);
-    line(figs.trace, orphanTimes, app.p.xi(app.p.m.mainCh,orphanTimes),...
+    unassignedTimes = app.wTimes-range(1);
+    line(figs.trace, unassignedTimes, app.p.xi(app.p.m.mainCh,unassignedTimes),...
         'Color', 'k', 'Marker', '.', 'LineStyle', 'none', 'MarkerSize',3);
     
     if app.LockoriginalButton.Value ~= 0

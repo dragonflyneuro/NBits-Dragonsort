@@ -42,11 +42,10 @@ for ii = 1:numROI
     ylabel(labels(views(ii,2)));
 end
 for ii = 1:numROI
-    posDataTemp = cellfun(@(x) x(:,views(ii,:),posData),'UniformOutput',false);
-    scatterDK(posDataTemp,ax(ii),ColourData,markerData,sizeData);
-%     scatter(ax(ii), posData{jj}(:,views(ii,1)),posData{jj}(:,views(ii,2)),sizeData(jj),...
-%         repmat(colourData(jj,:),[size(posData{jj},1),1]),"Marker",markerData(jj)); % 3D PCA plot
+    posDataTemp = cellfun(@(x) x(:,views(ii,:)),posData,'UniformOutput',false);
+    scatterDK(posDataTemp,ax(ii),colourData,markerData,sizeData);
 end
+
 sgtitle('L-R Click within axes to begin your selection polygon, double click to close polygon, ENTER to confirm');
 
 for ii = 1:numROI
@@ -70,6 +69,10 @@ end
 
 for ii = 1:numROI
     roiVal{ii} = roi(ii).Position;
+    if max(size(roiVal{ii}))<2
+        close(f);
+        return;
+    end
 end
 close(f);
 

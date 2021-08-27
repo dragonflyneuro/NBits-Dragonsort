@@ -1,4 +1,4 @@
-function [] = scatterDK(posData, varargin)
+function h = scatterDK(posData, varargin)
 
 if nargin > 5
     sizeData = varargin{4};
@@ -21,13 +21,14 @@ else
     ax = axes;
 end
 
+h = gobjects(size(posData));
 for ii = 1:length(posData)
     if ~isempty(posData{ii})
         if size(posData{ii},2) == 2
-            scatter(ax, posData{ii}(:,1),posData{ii}(:,2),sizeData(ii),...
+            h(ii) = scatter(ax, posData{ii}(:,1),posData{ii}(:,2),sizeData(ii),...
                 repmat(colourData(ii,:),[size(posData{ii},1),1]),"Marker",markerData(ii));
         else
-            scatter3(ax, posData{ii}(:,1),posData{ii}(:,2),posData{ii}(:,3),...
+            h(ii) = scatter3(ax, posData{ii}(:,1),posData{ii}(:,2),posData{ii}(:,3),...
                 sizeData(ii),repmat(colourData(ii,:),[size(posData{ii},1),1]),"Marker",markerData(ii));
         end
     end

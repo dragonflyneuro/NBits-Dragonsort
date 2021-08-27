@@ -9,11 +9,11 @@ app.StatusLabel.Value = "Updating unit figures...";
 drawnow
 
 if updateFlag == 0 || updateFlag == 1
-    set(app.LeftUnit,'UserData', {[],[]}); % reset selected spikes in left unit
-    set(app.LeftUnit,'ButtonDownFcn',[]);
+    set(app.leftUnitAx,'UserData', {[],[]}); % reset selected spikes in left unit
+    set(app.leftUnitAx,'ButtonDownFcn',[]);
     u = str2double(app.LeftUnitDropDown.Value);
     delete(app.lSelection); delete(app.pL); delete(app.pTL);
-    [app.pL, app.pTL, waves] = plotUnitInteractive(app, app.LTitle, app.LeftUnit, u);
+    [app.pL, app.pTL, waves] = plotUnitInteractive(app, app.LTitle, app.leftUnitAx, u);
     if ~isempty(app.spL) && ishandle(app.spL)
         app.spL = plotMultiUnit(app, app.spL, u, waves);
     end
@@ -23,7 +23,7 @@ end
 if updateFlag == 0 || updateFlag == 2
     u = str2double(app.RightUnitDropDown.Value);
     delete(app.pR); delete(app.pTR);
-    [app.pR, app.pTR, waves] = plotUnit(app, app.RTitle, app.RightUnit, u);
+    [app.pR, app.pTR, waves] = plotUnit(app, app.RTitle, app.rightUnitAx, u);
     if ~isempty(app.spR) && ishandle(app.spR)
         app.spR = plotMultiUnit(app, app.spR, u, waves);
     end

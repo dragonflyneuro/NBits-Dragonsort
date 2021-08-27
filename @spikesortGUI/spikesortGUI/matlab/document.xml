@@ -45,7 +45,7 @@
         TMultiButton                  matlab.ui.control.Button
         TTitle                        matlab.ui.control.EditField
         ColourGrid                    matlab.ui.container.GridLayout
-        TracePanel                    matlab.ui.container.Panel
+        dataPanel                     matlab.ui.container.Panel
         ControlTabs                   matlab.ui.container.TabGroup
         GeneralTab                    matlab.ui.container.Tab
         GeneralGrid                   matlab.ui.container.GridLayout
@@ -189,12 +189,12 @@
         %   plot object handles
         pL = []; % left unit waves
         pTL = []; % left unit trace markers
-        spL % left unit subplots
+        spL = []; % left unit subplots
         lSelection = gobjects(1); % temporary objects to show user selection regions
 
         pR = []; % right unit waves
         pTR = []; % right unit trace markers
-        spR % right unit subplots
+        spR = []; % right unit subplots
 
         pAssigned = []; % markers on trace for assigned spikes
         pNospike = []; % shaded areas on trace for manual no-spike regions
@@ -204,16 +204,16 @@
         
         pUnassigned = []; % markers on trace for unassigned spikes
         pSelected = []; % markers on trace for selected unassigned spikes
-        pUnassignedPC = [];
-        pSelectedPC = [];
+        pUnassignedF = [];
+        pSelectedF = [];
 
         figureHandles = [];
 
-        Trace % trace plot
-        tracePC
-        spT % trace subplots
-        LeftUnit
-        RightUnit
+        dataAx
+        dataFeatureAx
+        spT = []; % trace subplots
+        leftUnitAx
+        rightUnitAx
 
         %   keeping track
         historyStack = []; % last state of program for undoing
@@ -353,7 +353,7 @@
             app.LeftUnitDropDown.FontColor = getColour(str2double(app.LeftUnitDropDown.Value));
             app.RightUnitDropDown.FontColor = getColour(str2double(app.RightUnitDropDown.Value));
 
-            app.figureHandles = [app.Trace, app.LeftUnit, app.RightUnit];
+            app.figureHandles = [app.dataAx, app.leftUnitAx, app.rightUnitAx];
             for ii = 1:length(app.figureHandles)
                 hold(app.figureHandles(ii), 'on');
             end
@@ -634,10 +634,10 @@
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
             range = getBatchRange(app);
-            [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
-            orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
+            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
+            unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
 
-            if isempty(orphanSpikes)
+            if isempty(unassignedSpikes)
                 app.StatusLabel.Value = "No unassigned spikes to put in units in this batch!";
                 return;
             end
@@ -662,8 +662,8 @@
             end
 
             % generate units
-            y = app.xi(app.m.mainCh,orphanSpikes-range(1));
-            [ass, candidates] = autoCreateUnits(orphanWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
+            y = app.xi(app.m.mainCh,unassignedSpikes-range(1));
+            [ass, candidates] = autoCreateUnits(unassignedWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
                 str2double(answer{1}), str2double(answer{2}), d, app.FuzzyButton.Value,...
                 app.t.templateCropFactor, app.t.deviationSampleWeights);
 
@@ -675,7 +675,7 @@
             uAss(uAss == 0) = [];
             for ii = uAss
                 I = ass == ii;
-                tempU = unit(orphanSpikes(candidates(I)), orphanWaves(candidates(I),:,:));
+                tempU = unit(unassignedSpikes(candidates(I)), unassignedWaves(candidates(I),:,:));
                 if event.Source.UserData == 1
                     tempU.tags = "Junk";
                 end
@@ -752,29 +752,29 @@
 
             value = str2double(app.LeftUnitDropDown.Value);
 
-            I = app.figureHandles(1).UserData;
+            I = app.figureHandles(1).UserData.selectedUnassigned;
             if isempty(I)
                 return;
             end
 
-            [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
-            orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
-            templateWaves = orphanWaves(I,:,:);
+            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+            unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
+            templateWaves = unassignedWaves(I,:,:);
 
             if event.Source.UserData == 0 % go through deviation matching to add new spikes to unit
                 % add loaded template waves if they exist for this unit
                 if ~isempty(app.unitArray(value).loadedTemplateWaves)
                     templateWaves = [app.unitArray(value).loadedTemplateWaves; templateWaves];
                 end
-                matches = deviationTemplateMatch(orphanWaves, templateWaves, app.m.sRateHz, ...
+                matches = deviationTemplateMatch(unassignedWaves, templateWaves, app.m.sRateHz, ...
                     app.t.add2UnitThr(2), app.FuzzyButton.Value, app.t.templateCropFactor, app.t.deviationSampleWeights);
                 if ~isempty(matches)
-                    app.unitArray = app.unitArray.spikeAdder(value, orphanSpikes(matches), ...
-                        orphanWaves(matches,:,:));
+                    app.unitArray = app.unitArray.spikeAdder(value, unassignedSpikes(matches), ...
+                        unassignedWaves(matches,:,:));
                 end
             elseif event.Source.UserData == 1 % force add spikes to unit - no deviation matching
-                app.unitArray = app.unitArray.spikeAdder(value, orphanSpikes(I), ...
-                    orphanWaves(I,:,:));
+                app.unitArray = app.unitArray.spikeAdder(value, unassignedSpikes(I), ...
+                    unassignedWaves(I,:,:));
             end
 
             standardUpdate(app);
@@ -908,14 +908,14 @@
                     app.readFilter(ii);
                 end
                 r = getBatchRange(app);
-                [orphanSpikes, ~, orphansInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
-                orphanWaves = app.rawSpikeWaves(orphansInBatch,:,:);
+                [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+                unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
 
                 % assign spikes to units, if within deviation threshold
                 templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
                 r = getBatchRange(app, app.currentBatch+templateBatches);
 
-                [devMatrix, ~, thr] = getDevMatrix(app.t.add2UnitThr(1), app.unitArray, orphanWaves, r, ...
+                [devMatrix, ~, thr] = getDevMatrix(app.t.add2UnitThr(1), app.unitArray, unassignedWaves, r, ...
                     app.m.sRateHz, app.SpikesusedEditField.Value, app.FuzzyButton.Value);
 
                 [devMins, devMinIdx] = min(devMatrix,[],2);
@@ -925,8 +925,8 @@
                     assigned = devMins < thr(jj);
                     assignedUnit = assigned.*devMinIdx;
                     I = assignedUnit == jj;
-                    app.unitArray = app.unitArray.spikeAdder(jj, orphanSpikes(I), ...
-                        orphanWaves(I,:,:));
+                    app.unitArray = app.unitArray.spikeAdder(jj, unassignedSpikes(I), ...
+                        unassignedWaves(I,:,:));
                 end
             end
 
@@ -1132,7 +1132,7 @@
         % Menu selected function: TUnselectMenu
         function TUnselectMenuSelected(app, event)
             delete(app.pSelection);
-            app.figureHandles(1).UserData = [];
+            app.figureHandles(1).UserData.selectedUnassigned = [];
             if ~isempty(app.pSelected)
                 for ii = 1:length(app.pSelected)
                     if ishandle(app.pSelected(ii))
@@ -1140,7 +1140,17 @@
                     end
                 end
             end
+            
+            if ~isempty(app.pSelectedF)
+                for ii = 1:length(app.pSelectedF)
+                    if ishandle(app.pSelectedF(ii))
+                        delete(app.pSelectedF(ii));
+                    end
+                end
+            end
+            
             app.pSelected = [];
+            app.pSelectedF = [];
         end
 
         % Menu selected function: LUnselectMenu
@@ -1574,7 +1584,12 @@
 
         % Button pushed function: TPCAButton
         function TPCAButtonPushed(app, event)
-            tracePCASorter(app, app.unitArray);
+            if isempty(app.dataFeatureAx) || ~ishandle(app.dataFeatureAx)
+                dataFeatureSorter(app, app.unitArray);
+            else
+                app.dataFeatureAx.Visible = 'off';
+                app.dataFeatureAx.Visible = 'on';
+            end
         end
     end
 
@@ -2704,11 +2719,11 @@
             app.MainchannelSpinner.Layout.Column = 2;
             app.MainchannelSpinner.Value = 1;
 
-            % Create TracePanel
-            app.TracePanel = uipanel(app.MainGrid);
-            app.TracePanel.BorderType = 'none';
-            app.TracePanel.Layout.Row = 3;
-            app.TracePanel.Layout.Column = [1 3];
+            % Create dataPanel
+            app.dataPanel = uipanel(app.MainGrid);
+            app.dataPanel.BorderType = 'none';
+            app.dataPanel.Layout.Row = 3;
+            app.dataPanel.Layout.Column = [1 3];
 
             % Create ColourGrid
             app.ColourGrid = uigridlayout(app.MainGrid);

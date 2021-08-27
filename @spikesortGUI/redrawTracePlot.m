@@ -1,6 +1,6 @@
 function [] = redrawTracePlot(app)
-ht = app.Trace;
-hl = app.LeftUnit;
+ht = app.dataAx;
+hl = app.leftUnitAx;
 
 c = app.currentBatch;
 bl = app.t.batchLengths;
@@ -11,14 +11,14 @@ app.StatusLabel.Value = "Redrawing data trace...";
 app.pSelected = gobjects(0);
 app.pSelection = gobjects(1);
 app.pEvent = [];
-ht.UserData = []; % Used for storing selected orphans
+ht.UserData.selectedUnassigned = []; % Used for storing selected orphans
 cla(ht);
 
 r = getBatchRange(app);
 numSpikes = nnz(r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2));
-[~, orphansIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+[~, unassignedInSortingIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
 app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
-    string(numSpikes-length(orphansIdx)) + "/" + numSpikes;
+    string(numSpikes-length(unassignedInSortingIdx)) + "/" + numSpikes;
 
 app.pRaw = plotMainData(app,ht,app.m.mainCh);
 set(app.pRaw, 'ButtonDownFcn',{@boxClick,app,ht});
@@ -31,7 +31,8 @@ if app.VieweventmarkersButton.Value == 1
 end
 
 app.pUnassigned = plotUnassignedSpikes(app,ht,app.m.mainCh,1);
- 
+set(app.pUnassigned, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassigned});
+
 app.pAssigned = plotAssignedSpikes(app,ht,app.m.mainCh,hl);
 set(ht,'ButtonDownFcn',{@boxClick,app,ht});
 
@@ -48,6 +49,11 @@ if ~isempty(app.spT) && ishandle(app.spT)
             
         end
     end
+end
+
+if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+    delete(app.dataFeatureAx);
+    dataFeatureSorter(app, app.unitArray);
 end
 
 app.StatusLabel.Value = "Ready";
@@ -86,7 +92,14 @@ else
     drawnow
     
     % store selected orphans in UserData
-    updateUnassignedSelection(app,selectedPoint);
+    [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,selectedPoint);
+    addIdx = selectedPoint;
+    addIdx(IC) = [];
+    updateUnassignedSelection(app, addIdx, removeIdx);
+    if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+        updateUnassignedSelectionF(app, addIdx, removeIdx);
+    end
+    updateUnassignedUD(app, addIdx, removeIdx);
     delete(app.pSelection);
 end
 end

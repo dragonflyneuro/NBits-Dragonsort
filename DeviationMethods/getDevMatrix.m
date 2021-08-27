@@ -1,4 +1,4 @@
-function [devMatrix, templateWavesSet, thr] = getDevMatrix(thr, uA, orphanWaves, range, numTemplates, sRate, fuzzyBool, cropFactor, sampleW)
+function [devMatrix, templateWavesSet, thr] = getDevMatrix(thr, uA, unassignedWaves, range, numTemplates, sRate, fuzzyBool, cropFactor, sampleW)
 % Daniel Ko (dsk13@ic.ac.uk), Huai-Ti Lin [Feb 2020]
 % Finds deviation index matrix of orphan waves with respect to a set of
 % unit templates.
@@ -8,7 +8,7 @@ function [devMatrix, templateWavesSet, thr] = getDevMatrix(thr, uA, orphanWaves,
 % t = Dragonsort unit construction structure
 % templateUnits = subset of c.units to make a devMatrix from in string array
 % templateBatches = batches from which to take unit templates
-% orphanWaves = waves to match to templateWaves
+% unassignedWaves = waves to match to templateWaves
 %		FORMAT rows: observations, columns: time samples, pages: channels
 % sRate = sampling rate
 % numTemplates = number of waves to form a template with from each unit
@@ -22,7 +22,7 @@ function [devMatrix, templateWavesSet, thr] = getDevMatrix(thr, uA, orphanWaves,
 % templateWavsSet = cell of template waveforms used for each unit
 
 templateWavesSet = cell(1,length(uA));
-devMatrix = nan(size(orphanWaves,1),length(uA));
+devMatrix = nan(size(unassignedWaves,1),length(uA));
 
 templateP2p = zeros(1,length(uA));
 thr = ones(1,length(uA))*thr^2;
@@ -44,11 +44,11 @@ for ii = 1:length(uA)
     
     % find deviation and normalise
     if ~isempty(templateWaves)
-        [~,templateMean,deviation] = deviationTemplateMatch(orphanWaves, templateWaves, sRate, thr(ii), 0, cropFactor, sampleW);
+        [~,templateMean,deviation] = deviationTemplateMatch(unassignedWaves, templateWaves, sRate, thr(ii), 0, cropFactor, sampleW);
         templateP2p(ii) = max(peak2peak(templateMean,2));
         devMatrix(:,ii) = deviation/templateP2p(ii); %log deviation normalized to template p2p amplitude
     else
-        devMatrix(1:size(orphanWaves,1),ii)=inf;
+        devMatrix(1:size(unassignedWaves,1),ii)=inf;
     end
     
     % save waveforms used to make templates

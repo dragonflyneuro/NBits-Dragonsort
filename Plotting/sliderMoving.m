@@ -1,5 +1,5 @@
-function sliderMoving(~, e, h)
+function sliderMoving(~, evt, h)
 for ii = 1:length(h.Children)
-    h.Children(ii).SizeData = e.Value;
+    h.Children(ii).SizeData = evt.Value;
 end
 end
