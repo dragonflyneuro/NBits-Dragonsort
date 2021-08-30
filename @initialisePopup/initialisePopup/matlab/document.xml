@@ -30,12 +30,12 @@
         BytespersampleEditFieldLabel  matlab.ui.control.Label
         SpikedetectionTab             matlab.ui.container.Tab
         GridLayout2_2                 matlab.ui.container.GridLayout
+        MainchannelDropDown           matlab.ui.control.DropDown
+        MainchannelDropDownLabel      matlab.ui.control.Label
         SpikewidthEditField           matlab.ui.control.NumericEditField
         SpikewidtheithersideofpeakmsLabel  matlab.ui.control.Label
         Ampthreshold1EditField        matlab.ui.control.NumericEditField
         SpikeamplituderangeuVLabel    matlab.ui.control.Label
-        MainchannelnumberSpinner      matlab.ui.control.Spinner
-        MainchanelnumberSpinnerLabel  matlab.ui.control.Label
         AddtotemplateEditField        matlab.ui.control.NumericEditField
         AddtotemplatethresholdhigherlenientEditFieldLabel  matlab.ui.control.Label
         NewtemplateEditField          matlab.ui.control.NumericEditField
@@ -148,7 +148,9 @@
                 app.BytespersampleEditField.Value = tempM.dbytes;
                 app.nchEditField.Value = tempM.nChans;
                 app.echEditField.Value = parseToArray(num2str(tempM.ech));
-                app.MainchannelnumberSpinner.Value = tempM.mainCh;
+                echArray = tempM.ech;
+                app.MainchannelDropDown.Items = string(echArray);
+                app.MainchannelDropDown.Value = string(echArray(tempM.mainCh));
                 app.SamplingrateHzEditField.Value = tempM.sRateHz;
                 app.FilterLengthEditField.Value = tempM.filterSpec.order;
                 app.CutoffsEditField.Value = parseToArray(num2str(tempM.filterSpec.cutoffs));
@@ -219,7 +221,7 @@
             else
                 app.initm.ech = [];
             end
-            app.initm.mainCh = find(app.initm.ech == round(app.MainchannelnumberSpinner.Value));
+            app.initm.mainCh = find(app.initm.ech == str2double(app.MainchannelDropDown.Value));
             app.initm.sRateHz = app.SamplingrateHzEditField.Value;
             app.initm.filterSpec.order = app.FilterLengthEditField.Value;
             app.initm.filterSpec.cutoffs = eval(app.CutoffsEditField.Value);
@@ -250,16 +252,14 @@
             
         end
 
-        % Value changed function: nchEditField
-        function nchEditFieldValueChanged(app, event)
-            value = app.nchEditField.Value;
-            app.MainchannelnumberSpinner.Limits = [1 value+0.1];
-            
-        end
-
         % Value changed function: echEditField
         function cleanArray(app, event)
             event.Source.Value = parseToArray(event.Source.Value);
+            echArray = eval(event.Source.Value);
+            if ~ismember(str2double(app.MainchannelDropDown.Value),echArray)
+                app.MainchannelDropDown.Value = string(echArray(1));
+            end
+            app.MainchannelDropDown.Items = string(echArray);
             
         end
 
@@ -346,7 +346,6 @@
 
             % Create nchEditField
             app.nchEditField = uieditfield(app.GridLayout2, 'numeric');
-            app.nchEditField.ValueChangedFcn = createCallbackFcn(app, @nchEditFieldValueChanged, true);
             app.nchEditField.Layout.Row = 5;
             app.nchEditField.Layout.Column = 4;
             app.nchEditField.Value = 1;
@@ -521,20 +520,6 @@
             app.AddtotemplateEditField.Layout.Column = 4;
             app.AddtotemplateEditField.Value = 0.8;
 
-            % Create MainchanelnumberSpinnerLabel
-            app.MainchanelnumberSpinnerLabel = uilabel(app.GridLayout2_2);
-            app.MainchanelnumberSpinnerLabel.HorizontalAlignment = 'right';
-            app.MainchanelnumberSpinnerLabel.Layout.Row = 2;
-            app.MainchanelnumberSpinnerLabel.Layout.Column = [2 3];
-            app.MainchanelnumberSpinnerLabel.Text = 'Main chanel number';
-
-            % Create MainchannelnumberSpinner
-            app.MainchannelnumberSpinner = uispinner(app.GridLayout2_2);
-            app.MainchannelnumberSpinner.Limits = [1 4.1];
-            app.MainchannelnumberSpinner.Layout.Row = 2;
-            app.MainchannelnumberSpinner.Layout.Column = 4;
-            app.MainchannelnumberSpinner.Value = 1;
-
             % Create SpikeamplituderangeuVLabel
             app.SpikeamplituderangeuVLabel = uilabel(app.GridLayout2_2);
             app.SpikeamplituderangeuVLabel.HorizontalAlignment = 'right';
@@ -560,6 +545,20 @@
             app.SpikewidthEditField.Layout.Row = 4;
             app.SpikewidthEditField.Layout.Column = 4;
             app.SpikewidthEditField.Value = 0.67;
+
+            % Create MainchannelDropDownLabel
+            app.MainchannelDropDownLabel = uilabel(app.GridLayout2_2);
+            app.MainchannelDropDownLabel.HorizontalAlignment = 'right';
+            app.MainchannelDropDownLabel.Layout.Row = 2;
+            app.MainchannelDropDownLabel.Layout.Column = 3;
+            app.MainchannelDropDownLabel.Text = 'Main channel';
+
+            % Create MainchannelDropDown
+            app.MainchannelDropDown = uidropdown(app.GridLayout2_2);
+            app.MainchannelDropDown.Items = {'1'};
+            app.MainchannelDropDown.Layout.Row = 2;
+            app.MainchannelDropDown.Layout.Column = 4;
+            app.MainchannelDropDown.Value = '1';
 
             % Create FilteringTab
             app.FilteringTab = uitab(app.TabGroup);

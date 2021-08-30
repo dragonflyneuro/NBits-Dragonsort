@@ -3,14 +3,22 @@ function f = dataFeatureSorter(app, u)
 selection = 1:length(u);
 
 waves = cell(length(selection),1);
+r = getBatchRange(app);
+[~,~,unassignedInBatch] = u.getOrphanSpikes(app.t.rawSpikeSample,r);
 
-[~,~,unassignedInBatch] = u.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
 unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:);
 allClust = unassignedWaves;
 
-for ii=1:length(u)
-    waves{ii} = u(selection(ii)).waves(:,:);
-    allClust = cat(1,allClust, u(selection(ii)).waves(:,:));
+if batchBool
+    for ii = 1:length(u)
+        [~, waves{ii}, ~] = u(ii).getAssignedSpikes(r);
+        allClust = cat(1,allClust, waves{ii});
+    end
+else
+    for ii=1:length(u)
+        waves{ii} = u(selection(ii)).waves(:,:);
+        allClust = cat(1,allClust, waves{ii});
+    end
 end
 
 W = pca(allClust);
