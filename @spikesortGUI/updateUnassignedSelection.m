@@ -7,7 +7,7 @@ else
     X = get(app.pUnassigned,'XData');
     Y = get(app.pUnassigned,'YData');
     app.pSelected = plot(h, X,Y, 'ro','MarkerIndices',app.dataAx.UserData.selectedUnassigned);
-    h.Children = h.Children([1:end-length(app.pEvent), 1, end-(length(app.pEvent)+1):end]);
+    h.Children = h.Children([2:(end-length(app.pEvent)), 1, (end-length(app.pEvent)+1):end]);
 end
 
 end

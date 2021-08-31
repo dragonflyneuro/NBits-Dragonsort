@@ -1,15 +1,29 @@
 function [clust, yn] = unitAutoMerger(u, n, idx, yl)
 % crop waves for better PCA
 
-spikeWidth = size(u(1).waves,2);
+spikeWidth = (size(u(n).waves,2)-1)/2;
+% no spikes
+if spikeWidth < 0 || length(idx) < 2
+    clust = [];
+    yn = 0;
+    return;
+end
 
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);
 croppedWaves = u(n).waves(idx,:);
 unitsToMergeTo = setdiff(1:length(u),n);
 [waves, PC] = getPCs(u, unitsToMergeTo);
-for ii=1:length(u)
-    spikePC{ii} = waves{ii}*PC(:,1:3);
+if size(PC,2) == 0
+    return;
+end
+
+for ii=1:length(waves)
+    if ~isempty(waves{ii})
+        spikePC{ii} = waves{ii}*PC(:,1:3);
+    else
+        spikePC{ii} = [];
+    end
 end
 
 % perform PCA and cluster waves
@@ -37,7 +51,7 @@ line(ax(1), -spikeWidth:spikeWidth, u(n).waves(:,:,u(n).mainCh)', 'Color', [0.8,
 yTemp(1,:) = ylim(ax(1));
 
 title(ax(1),"Unit " + string(n) + " losing " + ...
-    string(length(u(n).spikeTimes)-length(idx)) ...
+    string(length(idx)) ...
     + " spikes", 'Color', getColour(n));
 
 cc = 1;

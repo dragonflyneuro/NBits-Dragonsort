@@ -41,8 +41,14 @@ for ii = 1:numROI
     xlabel(labels(views(ii,1)));
     ylabel(labels(views(ii,2)));
 end
+
 for ii = 1:numROI
-    posDataTemp = cellfun(@(x) x(:,views(ii,:)),posData,'UniformOutput',false);
+    posDataTemp = cell(size(posData));
+    for jj = 1:length(posData)
+        if ~isempty(posData{jj})
+            posDataTemp{jj} = posData{jj}(:,views(ii,:));
+        end
+    end
     scatterDK(posDataTemp,ax(ii),colourData,markerData,sizeData);
 end
 

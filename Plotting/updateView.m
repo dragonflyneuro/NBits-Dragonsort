@@ -2,7 +2,12 @@ function scatterH = updateView(h, posData, sel, choice, mSize)
 [caz,cel] = view(h);
 cla(h)
 
-posDataTemp = cellfun(@(x) x(:,choice),posData,'UniformOutput',false);
+posDataTemp = cell(size(posData));
+for ii = 1:length(posData)
+    if ~isempty(posData{ii})
+        posDataTemp{ii} = posData{ii}(:,choice);
+    end
+end
 
 if length(posData) == length(sel)+1
     scatterH = scatterDK(posDataTemp,h,[0,0,0; getColour(sel)],...

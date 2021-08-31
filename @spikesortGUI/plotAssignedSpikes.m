@@ -1,18 +1,12 @@
 function assginedLine = plotAssignedSpikes(app,h,ch)
 assginedLine = [];
 
-c = app.currentBatch;
-bl = app.t.batchLengths;
 r = getBatchRange(app);
 
 d = 1;
 for ii = 1:length(app.unitArray)
     unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(r);
-    if c ~= 1
-        spikes = unitSpikesInBatch - sum(bl(1:c-1)) + app.m.spikeWidth;
-    else
-        spikes = unitSpikesInBatch;
-    end
+    spikes = unitSpikesInBatch - r(1);
     
     if ~isempty(spikes)
         [ms, msSize] = getMarker(ii);

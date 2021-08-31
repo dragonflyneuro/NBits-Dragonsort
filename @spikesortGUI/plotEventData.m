@@ -1,28 +1,26 @@
 function eventLines = plotEventData(app,h)
 
 yl = ylim(h);
-c = app.currentBatch;
-bl = app.t.batchLengths;
 
-offset = sum(bl(1:c-1)); % used for converting samples from beginning of file to beginning of batch
+r = getBatchRange(app); % used for converting samples from beginning of file to beginning of batch
 
 if min(size(app.t.importedEventBounds)) == 1
-    regionInBatch = offset < app.t.importedEventBounds & app.t.importedEventBounds <= sum(bl(1:c));
+    regionInBatch = r(1) < app.t.importedEventBounds & app.t.importedEventBounds <= r(2);
     regionInBatch = find(regionInBatch);
     
     for ii = 1:length(regionInBatch)
-        regionCoord = (app.t.importedEventBounds(regionInBatch(ii))-offset)*app.msConvert;
+        regionCoord = (app.t.importedEventBounds(regionInBatch(ii))-r(1))*app.msConvert;
         xR = [regionCoord, regionCoord];
         yR = [yl(1), yl(2)];
         eventLines(ii) = plot(ht, xR, yR, 'Color', [0.5,0.5,0.5], 'LineStyle',':','LineWidth',1.5);
     end
 else
-    regionInBatch = offset < app.t.importedEventBounds(1,:) & app.t.importedEventBounds(1,:) <= sum(bl(1:c));
-    regionInBatch = regionInBatch | (offset < app.t.importedEventBounds(2,:) & app.t.importedEventBounds(2,:) <= sum(bl(1:c)));
+    regionInBatch = r(1) < app.t.importedEventBounds(1,:) & app.t.importedEventBounds(1,:) <= r(2);
+    regionInBatch = regionInBatch | (r(1) < app.t.importedEventBounds(2,:) & app.t.importedEventBounds(2,:) <= r(2));
     regionInBatch = find(regionInBatch);
     
     for ii = 1:length(regionInBatch)
-        regionCoord = (app.t.importedEventBounds(:,regionInBatch(ii))-offset)*app.msConvert;
+        regionCoord = (app.t.importedEventBounds(:,regionInBatch(ii))-r(1))*app.msConvert;
         xR = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
         yR = [yl(1), yl(2), yl(2), yl(1)];
         pgon = polyshape(xR,yR);

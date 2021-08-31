@@ -38,6 +38,9 @@ if nnz(potentialSpikes) <= length(potentialSpikes)*percentLimit
 end
 
 unassignedWaves = unassignedWaves(potentialSpikes,:,:);
+if size(unassignedWaves,1) < 2
+    return;
+end
 croppedWaves = unassignedWaves(:,ceil(size(unassignedWaves,2)/2) + (round(-0.3*sRate/1000):round(0.3*sRate/1000)),:);
 croppedWaves = croppedWaves(:,:);
 

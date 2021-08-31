@@ -2,7 +2,7 @@ function [] = showImportedTemplates(u,yl)
 % set up subplot function
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
-spikeWidth = size(u(1).waves,2);
+maxNum = 800;
 
 for ii = 1:length(u)
     unitsWTemplates(ii) = ~isempty(u(ii).loadedTemplateWaves);
@@ -24,9 +24,10 @@ for ii = 1:length(unitsWTemplates)
     % plot random selection of up to 600 waveforms in unit
     waves = u(unitNum).waves(:,:,u(unitNum).mainCh);
     if ~isempty(waves)
+        spikeWidth = (size(waves,2)-1)/2;
         rp = randperm(size(waves,1));
-        if length(rp) > 600
-            rp = rp(1:600);
+        if length(rp) > maxNum
+            rp = rp(1:maxNum);
         end
         waves = waves(sort(rp),:,:);
         p = line(ax(2*ii), -spikeWidth:spikeWidth, waves');
@@ -36,6 +37,7 @@ for ii = 1:length(unitsWTemplates)
     % plot all initialiser template waves for the unit
     waves = u(unitNum).loadedTemplateWaves(:,:,u(unitNum).mainCh);
     if ~isempty(waves)
+        spikeWidth = (size(waves,2)-1)/2;
         p = line(ax(2*ii-1), -spikeWidth:spikeWidth, waves');
         set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
     end
@@ -54,10 +56,10 @@ yTemp(~isinf(yl)) = yl(~isinf(yl));
 for ii = 1:length(ax)
     ylim(ax(ii), yTemp);
     ylim(yTemp); %axis square;
-    xlim(ax(ii), [-spikeWidth spikeWidth]);
     yticks(ax(ii), 200*floor(yTemp(1)/200):200:200*ceil(yTemp(2)/200));
     set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
 end
-sgtitle('Units with their imported templates - max 600 random spikes plotted');
+
+sgtitle("Units found - max " + string(maxNum) + " random spikes plotted");
 
 end

@@ -1,12 +1,7 @@
 function xi = getFilteredData(app, c)
 
-bl = app.t.batchLengths;
-
-if c ~= 1
-    x = double(app.t.yscale*app.fid(:,(sum(bl(1:c-1))+1-app.m.spikeWidth):sum(bl(1:c)))); % little endian open
-else
-    x = double(app.t.yscale*app.fid(:,1:bl(1))); % little endian open
-end
+r = getBatchRange(app,c);
+x = double(app.t.yscale*app.fid(:,(r(1)+1):r(2))); % little endian open
 
 if strcmpi(app.m.filterSpec.firstBandMode, 'stop')
     filterVec = fir1(app.m.filterSpec.order,...

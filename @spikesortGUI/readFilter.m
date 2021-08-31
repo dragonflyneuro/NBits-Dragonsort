@@ -5,18 +5,14 @@ app.StatusLabel.Value = "Reading data...";
 drawnow
 app.currentBatch = batchNum;
 c = app.currentBatch;
-bl = app.t.batchLengths;
+r = getBatchRange(app);
 
 app.xi = getFilteredData(app, c);
 
 [~, sTimesOffset] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
 sTimesOffset = sTimesOffset(sTimesOffset > app.m.spikeWidth+1);
 sTimesOffset(app.xi(app.m.mainCh,sTimesOffset) < app.t.detectThr(1)) = [];
-if c ~= 1
-    sTimesReal = sTimesOffset + sum(bl(1:c-1)) - app.m.spikeWidth;
-else
-    sTimesReal = sTimesOffset;
-end
+sTimesReal = sTimesOffset + r(1);
 
 if ~isempty(app.t.noSpikeRange)
     for ii = 1:size(app.t.noSpikeRange,2)
@@ -24,7 +20,6 @@ if ~isempty(app.t.noSpikeRange)
     end
 end
 
-r = getBatchRange(app);
 oldSpikeBool = r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2);
 if length(sTimesReal) ~= sum(oldSpikeBool)
     if isempty(app.t.rawSpikeSample) || r(2) < app.t.rawSpikeSample(1)

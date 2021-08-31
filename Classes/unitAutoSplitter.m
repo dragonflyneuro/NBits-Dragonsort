@@ -1,7 +1,13 @@
 function [clust, yn] = unitAutoSplitter(u, n, idx, numSplit, yl)
 % crop waves for better PCA
 
-spikeWidth = size(u(1).waves,2);
+spikeWidth = (size(u(n).waves,2)-1)/2;
+% no spikes
+if spikeWidth < 0 || length(idx) < 2
+    clust = [];
+    yn = 0;
+    return;
+end
 
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);

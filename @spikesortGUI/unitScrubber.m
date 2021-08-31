@@ -20,7 +20,7 @@ ylim(ax, yl);
 
 % create sliders and buttons to allow unit scrubbing and manipulation
 sldr = uislider(f,'Position',[50 80 700 3], 'Value',1, 'Limits',[1 size(waves,1)],...
-    'ValueChangingFcn',{@sliderMoving, p});
+    'ValueChangingFcn',{@scrubSliderMoving, p});
 uibutton(f, 'Text', 'Split here', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@scrubSplit, app, n, sldr, f});
 uibutton(f, 'Text', 'Remove before', 'Position',[300 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 0});
 uibutton(f, 'Text', 'Remove after', 'Position',[500 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 1});
@@ -30,7 +30,7 @@ end
 
 %% callbacks
 % reveal/hide spike lines as unit timeline is interacted with
-function sliderMoving(~, e, p)
+function scrubSliderMoving(~, e, p)
 set(p(round(e.Value)+1:end), 'Visible', 'off');% delete(p(round(event.Value)+1:end));
 set(p(1:round(e.Value)), 'Visible', 'on');
 end

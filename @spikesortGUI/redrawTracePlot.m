@@ -1,6 +1,5 @@
 function [] = redrawTracePlot(app)
 ht = app.dataAx;
-hl = app.leftUnitAx;
 
 c = app.currentBatch;
 bl = app.t.batchLengths;
@@ -54,7 +53,6 @@ if ~isempty(app.spT) && ishandle(app.spT)
 end
 
 if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
-    delete(app.dataFeatureAx);
     dataFeatureSorter(app, app.unitArray);
 end
 

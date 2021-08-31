@@ -1,6 +1,7 @@
 function [] = updateSpikeWidth(app)
 
 bl = app.t.batchLengths;
+r = getBatchRange(app);
 
 newWaves = cell(length(app.unitArray),1);
 
@@ -14,12 +15,8 @@ for ii = 1:length(bl)
         [sTimes, ~, ~] = app.unitArray(jj).getAssignedSpikes(getBatchRange(app,[ii,ii]));
         
         if ~isempty(sTimes)
-            if ii ~= 1
-                sTimesOffset = sTimes - sum(bl(1:ii-1)) + app.m.spikeWidth;
-            else
-                sTimesOffset = sTimes;
-            end
-
+            sTimesOffset = sTimes - r(1);
+            
             for kk=1:length(sTimes)
                 newWaves{jj}(:,:,end+1) = xi(:, sTimesOffset(kk)+(-app.m.spikeWidth:app.m.spikeWidth));
             end

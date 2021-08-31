@@ -4,15 +4,12 @@ app.t.rawSpikeSample = [];
 
 for ii = 1:length(bl)
     xi = getFilteredData(app, ii);
+    r = getBatchRange(app,ii);
     
-    [~, sTimesOffset] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
+    [~, sTimesOffset] = spike_times2(xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
     sTimesOffset = sTimesOffset(sTimesOffset > app.m.spikeWidth+1);
-    sTimesOffset(app.xi(app.m.mainCh,sTimesOffset) < app.t.detectThr(1)) = [];
-    if ii ~= 1
-        sTimesReal = sTimesOffset + sum(bl(1:ii-1)) - app.m.spikeWidth;
-    else
-        sTimesReal = sTimesOffset;
-    end
+    sTimesOffset(xi(app.m.mainCh,sTimesOffset) < app.t.detectThr(1)) = [];
+    sTimesReal = sTimesOffset + r(1);
     
     if ~isempty(app.t.noSpikeRange)
         for jj = 1:size(app.t.noSpikeRange,2)
@@ -26,7 +23,7 @@ for ii = 1:length(bl)
     wave = cell(length(app.unitArray),1);
     
     for jj = 1:length(app.unitArray)
-        [sTimes, ~, spikesInBatch] = app.unitArray(jj).getAssignedSpikes(getBatchRange(app,[ii,ii]));
+        [sTimes, ~, spikesInBatch] = app.unitArray(jj).getAssignedSpikes(r);
         app.unitArray = app.unitArray.spikeRemover(jj,spikesInBatch,1);
         
         for kk = 1:length(sTimes)

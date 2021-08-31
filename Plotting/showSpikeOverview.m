@@ -4,7 +4,6 @@ function [] = showSpikeOverview(u, selection, yl)
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
 maxNum = 800;
-spikeWidth = (size(u(1).waves,2)-1)/2;
 
 if length(selection) > 6
     numCol = 6;
@@ -28,6 +27,7 @@ for ii=1:length(selection)
 end
 
 for ii=1:length(selection)
+    spikeWidth = (size(waves{ii},2)-1)/2;
     ax(ii) = subplott(sp,numCol,ii);
     p = line(ax(ii), -spikeWidth:spikeWidth, waves{ii}');
     set(p, {'Color'}, num2cell(parula(size(waves{ii},1)),2));
@@ -39,6 +39,7 @@ yTemp = [min(yTemp(:,1)), max(yTemp(:,2))];
 yTemp(~isinf(yl)) = yl(~isinf(yl));
 
 for ii = 1:length(selection)
+    spikeWidth = (size(waves{ii},2)-1)/2;
     iiCmap = getColour(ii);
     ms = getMarker(ii);
     title(ax(ii), 'Unit '+string(selection(ii))+" "+...
@@ -47,11 +48,13 @@ for ii = 1:length(selection)
     ylim(ax(ii), yTemp);
     ylim(yTemp);
     yticks(ax(ii), 200*floor(yTemp(1)/200):200:200*ceil(yTemp(2)/200));
-    xlim(ax(ii), [-spikeWidth spikeWidth]);
+    if spikeWidth > 0
+        xlim(ax(ii), [-spikeWidth spikeWidth]);
+    end
     set(ax(ii),'xTick',[], 'YGrid', 'on', 'XGrid', 'off');
 end
 
-sgtitle("Units found - max" + string(maxNum) + "random spikes plotted");
+sgtitle("Units found - max " + string(maxNum) + " random spikes plotted");
 
 end
 

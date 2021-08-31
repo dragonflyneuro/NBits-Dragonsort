@@ -7,7 +7,7 @@ if ~isempty(app.unitArray(unitNum).spikeTimes) % if there are spikes in the unit
     last3Batches = [0,0,0];
     for jj = 0:2
         if c-jj > 0
-            last3Batches(jj+1) = nnz(app.unitArray(unitNum).getAssignedSpikes(getBatchRange(app,[c-jj,c-jj])));
+            last3Batches(jj+1) = nnz(app.unitArray(unitNum).getAssignedSpikes(getBatchRange(app,c-jj)));
         end
     end
     

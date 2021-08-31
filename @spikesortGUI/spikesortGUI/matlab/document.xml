@@ -254,10 +254,15 @@
                 spec(spec > length(bl)) = length(bl);
                 spec(spec < 1) = 1;
                 spec = sort(spec);
-
-                r = [sum(bl(1:spec(1)-1)), sum(bl(1:spec(2)))];
+                if length(spec) == 1
+                    spec = [spec spec];
+                end
             else
-                r = [sum(bl(1:c-1)), sum(bl(1:c))];
+                spec = [c, c];
+            end
+            r = [sum(bl(1:spec(1)-1)), sum(bl(1:spec(2)))];
+            if spec(1) ~= 1
+                r(1) = r(1) - app.m.spikeWidth;
             end
         end
     end
@@ -810,7 +815,7 @@
             drawnow
 
             % PCA split unit and check if user confirmed
-            [clust, yn] = unitAutoSplitter(app.unitArray, value, app.AutosplitField.Value, I, [app.yLimLowField.Value, app.yLimHighField.Value]);
+            [clust, yn] = unitAutoSplitter(app.unitArray, value, I, app.AutosplitField.Value, [app.yLimLowField.Value, app.yLimHighField.Value]);
             if ~yn
                 return;
             end
@@ -1223,7 +1228,8 @@
             app.StatusLabel.Value = "Changing batch size...";
             drawnow
 
-            currentBatchStart = sum(bl(1:app.currentBatch-1)); % current batch starting sample
+            currentBatchStart = getBatchRange(app); % current batch starting sample
+            currentBatchStart = currentBatchStart(1);
             batchNum = floor(app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans*app.t.batchSize)); % new number of batches in dataset - 1
             app.t.batchLengths = [app.t.batchSize*ones(1, batchNum), app.m.fileSizeBytes/(app.m.dbytes*app.m.nChans)-app.t.batchSize*batchNum];
 
@@ -1585,7 +1591,7 @@
 %             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
             
             app.StatusLabel.Value = "Updating main channel...";
-            app.m.mainCh = app.MainchannelDropDown.Value;
+            app.m.mainCh = str2double(app.MainchannelDropDown.Value);
             
             app.updateMainCh();
 

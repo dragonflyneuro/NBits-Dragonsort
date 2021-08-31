@@ -1,5 +1,13 @@
-function f = dataFeatureSorter(app, u)
+function f = dataFeatureSorter(app, u, varargin)
 
+if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+    f = app.dataFeatureAx.Parent;
+    clf(f);
+else
+    f = uifigure('Name','Batch feature view');
+    set(f, 'Position', [1100, 200, 800, 700]);
+end
+    
 selection = 1:length(u);
 
 waves = cell(length(selection),1);
@@ -22,25 +30,27 @@ end
 % end
 
 W = pca(allClust);
+if size(W,2) == 0
+    return;
+end
 
-spikeF = cell.empty;
 unassignedF = unassignedWaves*W(:,1:6);
 
-if ~all(cellfun(@(x) isempty(x),waves))
-    for ii=1:length(waves)
+for ii=1:length(waves)
+    if ~isempty(waves{ii})
         spikeF{ii}=waves{ii}*W(:,1:6);
+    else
+        spikeF{ii} = [];
     end
 end
 
-%PCA view-interactive
-f = uifigure('Name','Batch feature view');
-set(f, 'Position',  [1100, 200, 800, 700]);
-app.dataFeatureAx = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
-view(app.dataFeatureAx,[-5 2 5]);
-
 % ui elements
+
+app.dataFeatureAx = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
+    view(app.dataFeatureAx,[-5 2 5]);
+    
 labels = "Feature"+string(1:6);
-markerSizeSldr = uislider(f,'Position',[50 90 700 3], 'Value',20, 'Limits',[1 200],...
+markerSizeSldr = uislider(f,'Position',[50 90 700 3], 'Value',10, 'Limits',[1 50],...
     'ValueChangingFcn',{@sliderMoving, app.dataFeatureAx});
 
 for ii = 1:3

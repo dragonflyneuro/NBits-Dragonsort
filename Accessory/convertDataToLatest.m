@@ -82,7 +82,12 @@ data = getBinary(nd);
 bl = nd.t.batchLengths;
 searchArea = 2;
 for ii = 1:length(nd.t.batchLengths)
-    range = sum(bl(1:ii-1)):sum(bl(1:ii));
+    if ii ~= 1
+        range = (sum(bl(1:ii-1))-nd.m.spikeWidth):sum(bl(1:ii));
+    else
+        range = 0:bl(1);
+    end
+    
     x = double(nd.t.yscale*data(:,range(2:end))); % little endian open
     xi = splitconv(x(nd.m.ech,:),filterVec);
     yOffset = prctile(xi,50,2); %yoffset = mean(xi,2);
@@ -92,22 +97,27 @@ for ii = 1:length(nd.t.batchLengths)
     [~, detectedSpikes] = spike_times2(xi(nd.m.mainCh, 1:end-nd.m.spikeWidth), nd.t.detectThr(2), -1); % aligned to negative peak
     detectedSpikes = detectedSpikes(detectedSpikes > nd.m.spikeWidth+1);
     detectedSpikes(xi(nd.m.mainCh,detectedSpikes) < nd.t.detectThr(1)) = [];
-    offsetSpikes = detectedSpikes + sum(bl(1:ii-1));
+    if ii ~= 1
+        realSpikes = detectedSpikes + sum(bl(1:ii-1))-nd.m.spikeWidth;
+    else
+        realSpikes = detectedSpikes;
+    end
+    
     if ~isempty(nd.t.noSpikeRange)
         for jj = 1:size(nd.t.noSpikeRange,2)
-            offsetSpikes(offsetSpikes >= nd.t.noSpikeRange(1,jj) & offsetSpikes <= nd.t.noSpikeRange(2,jj)) = [];
+            realSpikes(realSpikes >= nd.t.noSpikeRange(1,jj) & realSpikes <= nd.t.noSpikeRange(2,jj)) = [];
         end
     end
     
     % for each unit, get updated peak times and waveforms
     oldSpikeBool = range(1) < nd.t.rawSpikeSample & nd.t.rawSpikeSample <= range(end);
-    if any(offsetSpikes) ~= nd.t.rawSpikeSample(oldSpikeBool)
-        log(end+1,1) = "batch "+ii+" "+string(length(offsetSpikes)-sum(oldSpikeBool))+" spikes added";
+    if any(realSpikes) ~= nd.t.rawSpikeSample(oldSpikeBool)
+        log(end+1,1) = "batch "+ii+" "+string(length(realSpikes)-sum(oldSpikeBool))+" spikes added";
         disp(log(end))
         
         for jj = 1:length(nd.unitArray)
             [sTimes, ~, unitIdx] = nd.unitArray(jj).getAssignedSpikes([range(1), range(end)]);
-            matchedSpikes = interp1(offsetSpikes,offsetSpikes,sTimes,'nearest','extrap');
+            matchedSpikes = interp1(realSpikes,realSpikes,sTimes,'nearest','extrap');
             deletedSpikes = abs(sTimes-matchedSpikes) > searchArea;
             sameSpikes = sTimes-matchedSpikes == 0;
 
@@ -149,7 +159,7 @@ for ii = 1:length(nd.t.batchLengths)
                 dupVal(locb(find(locb))) = [];
             end
         end
-        nd.t.rawSpikeSample = [nd.t.rawSpikeSample(1:find(oldSpikeBool,1,'first')), offsetSpikes, ...
+        nd.t.rawSpikeSample = [nd.t.rawSpikeSample(1:find(oldSpikeBool,1,'first')), realSpikes, ...
             nd.t.rawSpikeSample(find(oldSpikeBool,1,'last')+1:end)];
     end
     

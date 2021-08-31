@@ -22,11 +22,12 @@ app.LeftUnitDropDown.Items = app.historyStack(app.counter).LI;
 app.RightUnitDropDown.Items = app.historyStack(app.counter).RI;
 app.LeftUnitDropDown.Value = app.historyStack(app.counter).LV;
 app.RightUnitDropDown.Value = app.historyStack(app.counter).RV;
+app.MainchannelDropDown.Value = string(app.m.mainCh);
+app.SpikewidthEditField.Value = app.m.spikeWidth;
 
 app.savePath = app.historyStack(app.counter).savePath;
 app.SpikeshownField.Value = app.historyStack(app.counter).spikesshown;
 
-%             offset = app.m.nChans*app.m.dbytes*sum(app.t.batchLengths(1:(app.currentBatch-1)));
 app.readFilter(app.currentBatch);
 app.redrawTracePlot();
 app.redrawUnitPlots();
