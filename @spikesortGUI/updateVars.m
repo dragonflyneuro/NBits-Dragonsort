@@ -64,7 +64,8 @@ app.NewField.Value = app.t.add2UnitThr(2);
 app.DetectThr1EditField.Value = app.t.detectThr(1);
 app.DetectThr2EditField.Value = app.t.detectThr(2);
 app.TemplatecropwidthEditField.Value = app.t.templateCropFactor;
-app.MainchannelSpinner.Limits = [1,length(app.m.ech)];
+app.MainchannelDropDown.Items = string(1:length(app.m.ech));
+app.MainchannelDropDown.Value = string(app.m.mainCh);
 
 app.SpikewidthEditField.Value = app.m.spikeWidth;
 app.BinaryEditField.Value = app.m.fN;

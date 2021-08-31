@@ -574,7 +574,6 @@
             % Create UIAxes
             app.UIAxes = uiaxes(app.GridLayout);
             ylabel(app.UIAxes, 'Hz')
-            app.UIAxes.FontName = 'Arial';
             app.UIAxes.Layout.Row = [9 12];
             app.UIAxes.Layout.Column = [2 6];
 

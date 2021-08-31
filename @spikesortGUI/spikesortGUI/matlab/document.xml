@@ -131,8 +131,8 @@
         AdvancedTab                   matlab.ui.container.Tab
         AdvancedGrid                  matlab.ui.container.GridLayout
         MultichannelGrid              matlab.ui.container.GridLayout
-        MainchannelSpinner            matlab.ui.control.Spinner
-        MainchannelSpinner_2Label     matlab.ui.control.Label
+        MainchannelDropDown           matlab.ui.control.DropDown
+        MainchannelDropDownLabel      matlab.ui.control.Label
         MultichannelLabel             matlab.ui.control.Label
         TemplategenerationGrid        matlab.ui.container.GridLayout
         ImportsampleweightsButton     matlab.ui.control.Button
@@ -1280,27 +1280,6 @@
 
         end
 
-        % Value changed function: MainchannelSpinner
-        function MainchannelSpinnerValueChanged(app, event)
-            answer = uiconfirm(app.UIBase,"Changing the main thresholding channel may result will result in the"+...
-                " update of the entire sorting and may result in"+...
-                " spike deletion & changes in sorting dynamics. Continue?","Warning",...
-                'Icon','warning','DefaultOption',2);
-            if strcmpi(answer, "CANCEL")
-                return;
-            end
-            
-%             prompt = 'Number of samples within which a spike will be detected as the same spike';
-%             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
-            
-            app.StatusLabel.Value = "Updating main channel...";
-            app.m.mainch = app.MainchannelSpinner.Value;
-            
-            app.updateMainCh();
-
-            standardUpdate(app);
-        end
-
         % Button pushed function: BinarynamecopyButton
         function BinarynamecopyButtonPushed(app, event)
             % copy loaded binary file save name to clipboard
@@ -1590,6 +1569,28 @@
                 app.dataFeatureAx.Visible = 'off';
                 app.dataFeatureAx.Visible = 'on';
             end
+        end
+
+        % Value changed function: MainchannelDropDown
+        function MainchannelDropDownValueChanged(app, event)
+            answer = uiconfirm(app.UIBase,"Changing the main thresholding channel may result will result in the"+...
+                " update of the entire sorting and may result in"+...
+                " spike deletion & changes in sorting dynamics. Continue?","Warning",...
+                'Icon','warning','DefaultOption',2);
+            if strcmpi(answer, "CANCEL")
+                return;
+            end
+            
+%             prompt = 'Number of samples within which a spike will be detected as the same spike';
+%             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
+            
+            app.StatusLabel.Value = "Updating main channel...";
+            app.m.mainch = app.MainchannelDropDown.Value;
+            
+            app.updateMainCh();
+
+            standardUpdate(app);
+            
         end
     end
 
@@ -2705,20 +2706,20 @@
             app.MultichannelLabel.Layout.Column = [1 2];
             app.MultichannelLabel.Text = 'Multichannel';
 
-            % Create MainchannelSpinner_2Label
-            app.MainchannelSpinner_2Label = uilabel(app.MultichannelGrid);
-            app.MainchannelSpinner_2Label.HorizontalAlignment = 'right';
-            app.MainchannelSpinner_2Label.Layout.Row = 2;
-            app.MainchannelSpinner_2Label.Layout.Column = 1;
-            app.MainchannelSpinner_2Label.Text = 'Main channel';
+            % Create MainchannelDropDownLabel
+            app.MainchannelDropDownLabel = uilabel(app.MultichannelGrid);
+            app.MainchannelDropDownLabel.HorizontalAlignment = 'right';
+            app.MainchannelDropDownLabel.Layout.Row = 2;
+            app.MainchannelDropDownLabel.Layout.Column = 1;
+            app.MainchannelDropDownLabel.Text = 'Main channel';
 
-            % Create MainchannelSpinner
-            app.MainchannelSpinner = uispinner(app.MultichannelGrid);
-            app.MainchannelSpinner.Limits = [1 Inf];
-            app.MainchannelSpinner.ValueChangedFcn = createCallbackFcn(app, @MainchannelSpinnerValueChanged, true);
-            app.MainchannelSpinner.Layout.Row = 2;
-            app.MainchannelSpinner.Layout.Column = 2;
-            app.MainchannelSpinner.Value = 1;
+            % Create MainchannelDropDown
+            app.MainchannelDropDown = uidropdown(app.MultichannelGrid);
+            app.MainchannelDropDown.Items = {'1', ''};
+            app.MainchannelDropDown.ValueChangedFcn = createCallbackFcn(app, @MainchannelDropDownValueChanged, true);
+            app.MainchannelDropDown.Layout.Row = 2;
+            app.MainchannelDropDown.Layout.Column = 2;
+            app.MainchannelDropDown.Value = '1';
 
             % Create dataPanel
             app.dataPanel = uipanel(app.MainGrid);
