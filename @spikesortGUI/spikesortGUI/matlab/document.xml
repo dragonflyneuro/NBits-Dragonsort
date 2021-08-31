@@ -1573,7 +1573,7 @@
 
         % Value changed function: MainchannelDropDown
         function MainchannelDropDownValueChanged(app, event)
-            answer = uiconfirm(app.UIBase,"Changing the main thresholding channel may result will result in the"+...
+            answer = uiconfirm(app.UIBase,"Changing the main thresholding channel will result in the"+...
                 " update of the entire sorting and may result in"+...
                 " spike deletion & changes in sorting dynamics. Continue?","Warning",...
                 'Icon','warning','DefaultOption',2);
@@ -1585,7 +1585,7 @@
 %             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
             
             app.StatusLabel.Value = "Updating main channel...";
-            app.m.mainch = app.MainchannelDropDown.Value;
+            app.m.mainCh = app.MainchannelDropDown.Value;
             
             app.updateMainCh();
 
