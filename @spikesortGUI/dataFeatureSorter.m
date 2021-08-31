@@ -9,25 +9,28 @@ r = getBatchRange(app);
 unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:);
 allClust = unassignedWaves;
 
-if batchBool
-    for ii = 1:length(u)
-        [~, waves{ii}, ~] = u(ii).getAssignedSpikes(r);
-        allClust = cat(1,allClust, waves{ii});
-    end
-else
-    for ii=1:length(u)
-        waves{ii} = u(selection(ii)).waves(:,:);
-        allClust = cat(1,allClust, waves{ii});
-    end
+% if batchBool
+%     for ii = 1:length(u)
+%         [~, waves{ii}, ~] = u(ii).getAssignedSpikes(r);
+%         allClust = cat(1,allClust, waves{ii});
+%     end
+% else
+for ii=1:length(u)
+    waves{ii} = u(selection(ii)).waves(:,:);
+    allClust = cat(1,allClust, waves{ii});
 end
+% end
 
 W = pca(allClust);
 
-for ii=1:length(waves)
-    spikeF{ii}=waves{ii}*W(:,1:6);
-end
-
+spikeF = cell.empty;
 unassignedF = unassignedWaves*W(:,1:6);
+
+if ~all(cellfun(@(x) isempty(x),waves))
+    for ii=1:length(waves)
+        spikeF{ii}=waves{ii}*W(:,1:6);
+    end
+end
 
 %PCA view-interactive
 f = uifigure('Name','Batch feature view');
@@ -75,8 +78,9 @@ for ii = 1:3
     labels(ii) = string(choices(ii).Value);
 end
 
-selectedBool = ROI3D(posData,1,[0,0,0; getColour(1:length(selection))],...
-    [".", getMarker(1:length(selection))],...
+posData{end+1} = posData{1}(app.dataAx.UserData.selectedUnassigned,:);
+selectedBool = ROI3D(posData,1,[0,0,0; getColour(1:length(selection)); 1,0,0],...
+    [".", getMarker(1:length(selection)),'o'],...
     sldr.Value*ones(size(posData)),labels);
 
 addIdx = find(selectedBool{1});
@@ -84,11 +88,12 @@ if ~isempty(addIdx)
     [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,addIdx);
     addIdx(IC) = [];
     
-    updateUnassignedSelection(app, addIdx, removeIdx);
-    if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
-        updateUnassignedSelectionF(app, addIdx, removeIdx);
-    end
     updateUnassignedUD(app, addIdx, removeIdx);
+    updateUnassignedSelection(app);
+    if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+        updateUnassignedSelectionF(app);
+    end
+    
 end
 end
 

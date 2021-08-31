@@ -8,17 +8,10 @@ Y = get(app.pUnassignedF,'YData');
 Z = get(app.pUnassignedF,'ZData');
 
 if ~isempty(Z)
-    for ii = UD
-        app.pSelectedF(end+1) = scatter3(hF, X(ii),Y(ii),Z(ii),'ro');
-    end
+    app.pSelectedF = plot3(hF,X,Y,Z,'ro','MarkerIndices',UD);
 else
-    for ii = UD
-        app.pSelectedF(end+1) = scatter(hF, X(ii),Y(ii),'ro');
-    end
+    app.pSelectedF = plot(hF,X,Y,'ro','MarkerIndices',UD);
 end
-hF.Children = hF.Children([length(UD)+1:end, 1:length(UD)]);
-
-hF.Children = hF.Children([length(UD)+1:end,...
-    1:length(UD)]);
+hF.Children = hF.Children([end-1:end, 1]);
 
 end

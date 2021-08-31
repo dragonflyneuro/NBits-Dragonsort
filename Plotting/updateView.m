@@ -4,8 +4,13 @@ cla(h)
 
 posDataTemp = cellfun(@(x) x(:,choice),posData,'UniformOutput',false);
 
-scatterH = scatterDK(posDataTemp,h,[0,0,0; getColour(sel)],...
-    [".", getMarker(sel)],mSize*ones(size(posDataTemp)));
+if length(posData) == length(sel)+1
+    scatterH = scatterDK(posDataTemp,h,[0,0,0; getColour(sel)],...
+        [".", getMarker(sel)],mSize*ones(size(posDataTemp)));
+else
+    scatterH = scatterDK(posDataTemp,h,getColour(sel),...
+        getMarker(sel),mSize*ones(size(posDataTemp)));
+end
 
 if length(choice) > 2
     if caz == 0 && cel == 90

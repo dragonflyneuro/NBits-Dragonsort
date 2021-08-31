@@ -16,10 +16,11 @@ end
 [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,selectedPoint);
 addIdx = selectedPoint;
 addIdx(IC) = [];
-updateUnassignedSelection(app, addIdx, removeIdx);
-if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
-    updateUnassignedSelectionF(app, addIdx, removeIdx);
-end
+
 updateUnassignedUD(app, addIdx, removeIdx);
+updateUnassignedSelection(app);
+if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+    updateUnassignedSelectionF(app);
+end
 
 end

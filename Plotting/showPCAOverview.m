@@ -33,10 +33,10 @@ axisChoice(1) = uidropdown(f,'Items', labels, 'Value',labels(1),...
     'Position',[100 20 200 22]);
 axisChoice(2) = uidropdown(f,'Items', labels, 'Value',labels(2),...
     'Position',[300 20 200 22]);
-axisChoice(3) = uidropdown(f,'Items', [" ", labels], 'Value',labels(3),...
+axisChoice(3) = uidropdown(f,'Items', [labels, " "], 'Value',labels(3),...
     'Position',[500 20 200 22]);
 for ii = 1:3
-    set(axisChoice(ii),'ValueChangedFcn', {@updateView, spikePC, u, selection, axPC, axisChoice, markerSizeSldr});
+    set(axisChoice(ii),'ValueChangedFcn', {@updateFig, spikePC, selection, axPC, axisChoice, markerSizeSldr});
 end
 
 end
@@ -48,37 +48,24 @@ for ii = 1:length(h.Children)
 end
 end
 
-function updateView(~, ~, clusPC, u, sel, h, axisChoice, sldr)
-[caz,cel] = view(h);
-cla(h)
+function updateFig(~, ~, posData, sel, h, axisChoice, sizeSldr)
 
-for ii=1:length(sel)
-    iiCmap = getColour(ii);
-    ms = getMarker(ii);
-    if ~isempty(u(sel(ii)).waves)
-        if axisChoice(3).Value ~= ' '
-            for jj = 1:length(axisChoice)
-                choice(jj) = sscanf(axisChoice(jj).Value,'PC%d');
-            end
-            scatter3(h, clusPC{ii}(:,choice(1)),clusPC{ii}(:,choice(2)),clusPC{ii}(:,choice(3)),sldr.Value,...
-                repmat(iiCmap,size(clusPC{ii},1),1),"Marker",ms);
-            if caz == 0 && cel == 90
-                view(h,[-5 2 5]);
-            end
-        else
-            for jj = 1:2
-                choice(jj) = sscanf(axisChoice(jj).Value,'PC%d');
-            end
-            scatter(h, clusPC{ii}(:,choice(1)),clusPC{ii}(:,choice(2)),sldr.Value,...
-                repmat(iiCmap,size(clusPC{ii},1),1),"Marker",ms);
-            view(h,2);
-        end
-    end
+for ii = 1:length(axisChoice)
+    choice(ii) = find(strcmp(axisChoice(ii).Value,axisChoice(ii).Items),1,'first');
+end
+if choice(3) ~= length(axisChoice(3).Items)
+    zlabel(h,axisChoice(1).Value);
+else
+    choice(3) = [];
 end
 
-xlabel(h,axisChoice(1).Value); ylabel(h,axisChoice(2).Value);
-if axisChoice(3).Value ~= ' '
-    zlabel(h,axisChoice(3).Value);
-end
+updateView(h, posData, sel, choice, sizeSldr.Value);
+
+sel = sel(cellfun(@(x) ~isempty(x),posData));
+legend(h,"Unit " + sel,'AutoUpdate','off');
+
+xlabel(h,axisChoice(1).Value);
+ylabel(h,axisChoice(1).Value);
+zlabel(h,axisChoice(1).Value);
 
 end

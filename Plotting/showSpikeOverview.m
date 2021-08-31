@@ -4,7 +4,7 @@ function [] = showSpikeOverview(u, selection, yl)
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
 maxNum = 800;
-spikeWidth = size(u(1).waves,2);
+spikeWidth = (size(u(1).waves,2)-1)/2;
 
 if length(selection) > 6
     numCol = 6;

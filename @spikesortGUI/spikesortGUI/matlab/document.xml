@@ -1842,7 +1842,6 @@
 
             % Create LPCAButton
             app.LPCAButton = uibutton(app.LGrid, 'push');
-            app.LPCAButton.Enable = 'off';
             app.LPCAButton.Layout.Row = 1;
             app.LPCAButton.Layout.Column = 3;
             app.LPCAButton.Text = {'PCA'; ''};
@@ -2768,7 +2767,6 @@
             % Create TPCAButton
             app.TPCAButton = uibutton(app.TTitleRowGrid, 'push');
             app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
-            app.TPCAButton.Enable = 'off';
             app.TPCAButton.Layout.Row = 1;
             app.TPCAButton.Layout.Column = 2;
             app.TPCAButton.Text = {'PCA'; ''};

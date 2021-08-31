@@ -30,10 +30,14 @@ if app.VieweventmarkersButton.Value == 1
     end
 end
 
-app.pUnassigned = plotUnassignedSpikes(app,ht,app.m.mainCh,1);
+app.pUnassigned = plotUnassignedSpikes(app,ht,app.m.mainCh);
 set(app.pUnassigned, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassigned});
 
-app.pAssigned = plotAssignedSpikes(app,ht,app.m.mainCh,hl);
+app.pAssigned = plotAssignedSpikes(app,ht,app.m.mainCh);
+for ii = 1:length(app.pAssigned)
+    set(app.pAssigned(ii), 'UserData', ii, 'ButtonDownFcn',{@app.clickedAssigned,app.leftUnitAx});
+end
+
 set(ht,'ButtonDownFcn',{@boxClick,app,ht});
 
 if ~isempty(app.spT) && ishandle(app.spT)
@@ -41,12 +45,10 @@ if ~isempty(app.spT) && ishandle(app.spT)
     for ii = 1:size(app.xi,1)
         cla(ax(ii));
         plotMainData(app,ax(ii),ii);
-        plotUnassignedSpikes(app,ax(ii),ii,0);
+        plotUnassignedSpikes(app,ax(ii),ii);
         plotAssignedSpikes(app,ax(ii),ii);
         if ii ~= size(app.xi,1)
             set(ax(ii),'xtick',[]);
-        else
-            
         end
     end
 end
@@ -95,11 +97,13 @@ else
     [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,selectedPoint);
     addIdx = selectedPoint;
     addIdx(IC) = [];
-    updateUnassignedSelection(app, addIdx, removeIdx);
-    if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
-        updateUnassignedSelectionF(app, addIdx, removeIdx);
-    end
+    
     updateUnassignedUD(app, addIdx, removeIdx);
+    updateUnassignedSelection(app);
+    if ~isempty(app.dataFeatureAx) && ishandle(app.dataFeatureAx)
+        updateUnassignedSelectionF(app);
+    end
+    
     delete(app.pSelection);
 end
 end

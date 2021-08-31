@@ -1,7 +1,4 @@
-function unassignedLine = plotUnassignedSpikes(app,h,ch,interactFlag)
-if ~exist('interactFlag','var') || isempty(interactFlag)
-    interactFlag = 1;
-end
+function unassignedLine = plotUnassignedSpikes(app,h,ch)
 unassignedLine = [];
 
 c = app.currentBatch;
