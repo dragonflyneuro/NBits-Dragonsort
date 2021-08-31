@@ -43,7 +43,9 @@ for ii = 1:length(bl)
             spike{kk}(idxCom) = [];
             wave{kk}(:,:,idxCom) = [];
         end
-        app.unitArray = app.unitArray.refinedSpikeAdder(jj,spike{jj},permute(wave{jj},[3 2 1]));
+        if ~isempty(spike{jj})
+            app.unitArray = app.unitArray.refinedSpikeAdder(jj,spike{jj},permute(wave{jj},[3 2 1]));
+        end
     end
     
 end
