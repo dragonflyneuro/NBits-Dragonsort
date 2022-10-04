@@ -1,6 +1,6 @@
-function clickedAssigned(app,src,evt,h)
+function clickedAssigned(app,src,evt)
 % continue only if selected spike is of the left unit
-if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData))
+if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData.unitNum))
     return;
 end
 if app.interactingFlag(1) ~= 0
@@ -14,19 +14,10 @@ r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
 [~ ,selectedPoint]=min(r);
 
 % continue only if selected spike is plotted in left unit
-[~, foundIdx] = ismember(h.UserData{2}(selectedPoint),app.plottedWavesIdx);
-if foundIdx < 1
-    return;
-end
+selection = cell2mat(get(app.pL,'UserData')) == src.UserData.inUnitIdx(selectedPoint);
 
-if strcmp(app.pL(foundIdx).LineStyle, ':')
-    app.pL(foundIdx).LineStyle = '-';
-    temp = get(h, 'UserData');
-    h.UserData{1} = temp{1}(temp{1} ~= app.plottedWavesIdx(foundIdx));
-else
-    app.pL(foundIdx).LineStyle = ':';
-    temp = get(h, 'UserData');
-    h.UserData{1} = [temp{1} app.plottedWavesIdx(foundIdx)];
+if any(selection)
+    updateAssignedSelection(app, selection)
 end
 
 end

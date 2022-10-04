@@ -5,7 +5,7 @@ r = getBatchRange(app);
 
 d = 1;
 for ii = 1:length(app.unitArray)
-    unitSpikesInBatch = app.unitArray(ii).getAssignedSpikes(r);
+    [unitSpikesInBatch, ~, inUnitIdx] = app.unitArray(ii).getAssignedSpikes(r);
     spikes = unitSpikesInBatch - r(1);
     
     if ~isempty(spikes)
@@ -15,6 +15,8 @@ for ii = 1:length(app.unitArray)
         % waveforms in left unit figure from trace
         assignedLine(d) = line(h, spikes*app.msConvert, app.xi(ch,spikes), ...
             'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', getColour(ii));
+        assignedLine(d).UserData.unitNum = ii;
+        assignedLine(d).UserData.spikeIdx = inUnitIdx;
         d = d+1;
     end
 end

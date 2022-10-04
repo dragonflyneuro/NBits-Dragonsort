@@ -23,17 +23,9 @@ end
 
 unitLines = line(hUnit, -app.m.spikeWidth:app.m.spikeWidth, plottedWaves(:,:,app.m.mainCh)');
 
-if ~isinf(app.yLimLowField.Value)
-    yl(1) = app.yLimLowField.Value;
-else
-    yl(1) = min(min(plottedWaves(:,:,app.m.mainCh)))-50;
-end
-if ~isinf(app.yLimHighField.Value)
-    yl(2) = app.yLimHighField.Value;
-else
-    yl(2) = max(max(plottedWaves(:,:,app.m.mainCh)))+50;
-end
-
+ylTemp = [app.yLimLowField.Value, app.yLimHighField.Value];
+yl = [min(min(plottedWaves(:,:,app.m.mainCh)))-50, max(max(plottedWaves(:,:,app.m.mainCh)))+50];
+yl(~isinf(ylTemp)) = ylTemp(~isinf(ylTemp));
 step = 50*ceil((yl(2) - yl(1))/500);
 ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
 ylim(hUnit,yl);

@@ -1,3 +1,6 @@
+% function to plot a particular style of scatter plot with options to
+% change marker colour, shape and size.
+
 function h = scatterDK(posData, varargin)
 
 if nargin > 5

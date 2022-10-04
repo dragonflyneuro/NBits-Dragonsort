@@ -34,7 +34,7 @@ set(app.pUnassigned, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassigned});
 
 app.pAssigned = plotAssignedSpikes(app,ht,app.m.mainCh);
 for ii = 1:length(app.pAssigned)
-    set(app.pAssigned(ii), 'UserData', ii, 'ButtonDownFcn',{@app.clickedAssigned,app.leftUnitAx});
+    set(app.pAssigned(ii), 'UserData', ii, 'ButtonDownFcn',@app.clickedAssigned);
 end
 
 set(ht,'ButtonDownFcn',{@boxClick,app,ht});

@@ -85,7 +85,7 @@
                 fid = fopen([app.initm.fP app.initm.fN],'r');
                 if fid > 0
                     app.snippet = fread(fid,[app.nchEditField.Value,1e5],"int16",'l');
-                    app.snippet = app.snippet(round(app.MainchannelnumberSpinner.Value),:);
+                    app.snippet = app.snippet(1,:);
                     fclose(fid);
                 else
                     return;
@@ -574,6 +574,10 @@
             % Create UIAxes
             app.UIAxes = uiaxes(app.GridLayout);
             ylabel(app.UIAxes, 'Hz')
+            app.UIAxes.FontName = 'Arial';
+            app.UIAxes.XTickLabelRotation = 0;
+            app.UIAxes.YTickLabelRotation = 0;
+            app.UIAxes.ZTickLabelRotation = 0;
             app.UIAxes.Layout.Row = [9 12];
             app.UIAxes.Layout.Column = [2 6];
 

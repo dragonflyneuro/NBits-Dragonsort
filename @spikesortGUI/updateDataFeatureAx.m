@@ -1,3 +1,5 @@
+
+
 function [] = updateDataFeatureAx(app, axisChoice, sizeSldr, posData, sel)
 h  = app.dataFeatureAx;
 for ii = 1:length(axisChoice)
@@ -18,10 +20,19 @@ else
     legend(h,"Unit " + sel,'AutoUpdate','off');
 end
 
-if ~isempty(scatterH(1)) && ishandle(scatterH(1))
-    app.pUnassignedF = scatterH(1);
-    createUnassignedSelectionF(app);
-    set(app.pUnassignedF, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassignedF});
+if ~strcmpi(app.featureSelectMode,'unit')
+    if ~isempty(scatterH(1)) && ishandle(scatterH(1))
+        app.pUnassignedF = scatterH(1);
+        createAssignedSelectionF(app);
+        set(app.pUnassignedF, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassignedF});
+    end
+else
+    val = str2double(app.LeftUnitDropDown.Value);
+    if ~isempty(scatterH(val+1)) && ishandle(scatterH(val+1))
+        app.pLF = scatterH(val+1);
+        createUnassignedSelectionF(app);
+        set(app.pLF, 'ButtonDownFcn',{@app.clickedUnitLineF,app.pUnassignedF});
+    end
 end
 
 xlabel(h,axisChoice(1).Value);

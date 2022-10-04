@@ -83,9 +83,8 @@ if ~ishandle(app.pSelection)
     end
 else
     % get second line and draw
-    yl = ylim(h);
     x = [app.pSelection.XData(1), app.pSelection.XData(1), u(1,1), u(1,1)];
-    y = [yl(1), yl(2), yl(2), yl(1)];
+    y = [-200, 200, 200, -200];
     pgon = polyshape(x,y);
     
     app.t.noSpikeRange(:,end+1) = sort([app.pSelection.XData(1); u(1,1)])/app.msConvert + offset(1);

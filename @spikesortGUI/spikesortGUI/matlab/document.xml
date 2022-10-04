@@ -110,7 +110,7 @@
         FuzzyButton                   matlab.ui.control.StateButton
         DetectThr1EditField           matlab.ui.control.NumericEditField
         SpikedetectionEditFieldLabel  matlab.ui.control.Label
-        UnitinitialisationLabel       matlab.ui.control.Label
+        UnitinitLabel                 matlab.ui.control.Label
         NewField                      matlab.ui.control.NumericEditField
         OldField                      matlab.ui.control.NumericEditField
         ExistingunitsLabel            matlab.ui.control.Label
@@ -177,7 +177,7 @@
         unitArray = unit();% contains unit_, waves_, clusters, junkNames
         t % contains sorting helper data
 
-        interactingFlag = [0 0];
+        interactingFlag = [0 0]; %figures left right, 2 = pan, 1 = zoom, 0 = none
 
         %   general plotting
         xi % data trace
@@ -190,6 +190,7 @@
         pL = []; % left unit waves
         pTL = []; % left unit trace markers
         spL = []; % left unit subplots
+        pLF = [];
         lSelection = gobjects(1); % temporary objects to show user selection regions
 
         pR = []; % right unit waves
@@ -214,6 +215,7 @@
         spT = []; % trace subplots
         leftUnitAx
         rightUnitAx
+        featureSelectMode = 'unassigned'
 
         %   keeping track
         historyStack = []; % last state of program for undoing
@@ -560,7 +562,7 @@
         end
 
         % Callback function: GotobatchButton, NextbatchButton, 
-        % NextbatchMenu, PreviousbatchButton, PreviousbatchMenu
+        % ...and 3 other components
         function GotobatchButtonPushed(app, event)
             % move to a chosen batch
             bl = app.t.batchLengths;
@@ -635,7 +637,7 @@
         end
 
         % Button pushed function: AutocreatejunkunitsButton, 
-        % AutocreateunitsButton
+        % ...and 1 other component
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
             range = getBatchRange(app);
@@ -714,8 +716,8 @@
 
         end
 
-        % Callback function: MergeButton, MergeMenu, 
-        % RemovespikeButton, RemovespikeMenu, SplitButton, SplitMenu
+        % Callback function: MergeButton, MergeMenu, RemovespikeButton, 
+        % ...and 3 other components
         function basicopsButtonPushed(app, event)
             % unassign currently selected spikes in left unit
             value(1) = str2double(app.LeftUnitDropDown.Value);
@@ -749,15 +751,15 @@
 
         end
 
-        % Callback function: AddspikeButton, AddspikeMenu, 
-        % ForceaddButton, ForceaddMenu
+        % Callback function: AddspikeButton, AddspikeMenu, ForceaddButton, 
+        % ...and 1 other component
         function AddspikeButtonPushed(app, event)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
 
             value = str2double(app.LeftUnitDropDown.Value);
 
-            I = app.figureHandles(1).UserData.selectedUnassigned;
+            I = app.dataAx.UserData.selectedUnassigned;
             if isempty(I)
                 return;
             end
@@ -882,8 +884,7 @@
 
         end
 
-        % Button pushed function: AutosortButton, 
-        % AutosortbatchButton
+        % Button pushed function: AutosortButton, AutosortbatchButton
         function AutosortButtonPushed(app, event)
             % sort unassigned spikes in current and future batches into currently initialised units
 
@@ -1203,8 +1204,7 @@
 
         end
 
-        % Value changed function: FuturebatchesField, 
-        % PastbatchesField
+        % Value changed function: FuturebatchesField, PastbatchesField
         function DrawnbatchesChanged(app, event)
             app.redrawUnitPlots();
 
@@ -1243,8 +1243,7 @@
 
         end
 
-        % Value changed function: DetectThr1EditField, 
-        % DetectThr2EditField
+        % Value changed function: DetectThr1EditField, DetectThr2EditField
         function DetectThrChanged(app, event)
             %             re-detect spikes that are below the new amplitude threshold
             value = sort([app.DetectThr1EditField.Value, app.DetectThr2EditField.Value]);
@@ -1609,7 +1608,7 @@
             % Create UIBase and hide until all components are created
             app.UIBase = uifigure('Visible', 'off');
             app.UIBase.Color = [0.9412 0.9412 0.9412];
-            app.UIBase.Position = [50 50 1700 950];
+            app.UIBase.Position = [50 50 1590 890];
             app.UIBase.Name = 'Spike sorting extraordinaire';
             app.UIBase.CloseRequestFcn = createCallbackFcn(app, @UIBaseCloseRequest, true);
 
@@ -1850,7 +1849,7 @@
             app.LPCAButton = uibutton(app.LGrid, 'push');
             app.LPCAButton.Layout.Row = 1;
             app.LPCAButton.Layout.Column = 3;
-            app.LPCAButton.Text = {'PCA'; ''};
+            app.LPCAButton.Text = 'PCA';
 
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);
@@ -1946,6 +1945,7 @@
             % Create AutosortButton
             app.AutosortButton = uibutton(app.DatascrubGrid, 'push');
             app.AutosortButton.ButtonPushedFcn = createCallbackFcn(app, @AutosortButtonPushed, true);
+            app.AutosortButton.WordWrap = 'on';
             app.AutosortButton.BackgroundColor = [1 0.4118 0.1608];
             app.AutosortButton.Layout.Row = 4;
             app.AutosortButton.Layout.Column = 1;
@@ -1979,6 +1979,7 @@
             % Create GotobatchButton
             app.GotobatchButton = uibutton(app.DatascrubGrid, 'push');
             app.GotobatchButton.ButtonPushedFcn = createCallbackFcn(app, @GotobatchButtonPushed, true);
+            app.GotobatchButton.WordWrap = 'on';
             app.GotobatchButton.BackgroundColor = [1 0.4118 0.1608];
             app.GotobatchButton.Layout.Row = 3;
             app.GotobatchButton.Layout.Column = 1;
@@ -2154,6 +2155,7 @@
             % Create AutocreatejunkunitsButton
             app.AutocreatejunkunitsButton = uibutton(app.MiscGrid, 'push');
             app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
+            app.AutocreatejunkunitsButton.WordWrap = 'on';
             app.AutocreatejunkunitsButton.BackgroundColor = [0.7176 0.2745 1];
             app.AutocreatejunkunitsButton.Layout.Row = [4 5];
             app.AutocreatejunkunitsButton.Layout.Column = 1;
@@ -2358,12 +2360,12 @@
             app.NewField.Layout.Column = 2;
             app.NewField.Value = 1;
 
-            % Create UnitinitialisationLabel
-            app.UnitinitialisationLabel = uilabel(app.ThresholdsGrid);
-            app.UnitinitialisationLabel.HorizontalAlignment = 'right';
-            app.UnitinitialisationLabel.Layout.Row = 3;
-            app.UnitinitialisationLabel.Layout.Column = 1;
-            app.UnitinitialisationLabel.Text = 'Unit initialisation';
+            % Create UnitinitLabel
+            app.UnitinitLabel = uilabel(app.ThresholdsGrid);
+            app.UnitinitLabel.HorizontalAlignment = 'right';
+            app.UnitinitLabel.Layout.Row = 3;
+            app.UnitinitLabel.Layout.Column = 1;
+            app.UnitinitLabel.Text = 'Unit init.';
 
             % Create SpikedetectionEditFieldLabel
             app.SpikedetectionEditFieldLabel = uilabel(app.ThresholdsGrid);

@@ -2,28 +2,26 @@ function [unitLines, traceLine, plottedWaves] = plotUnitInteractive(app, hTitle,
 
 unitLines = [];
 traceLine = [];
-app.plottedWavesIdx = [];
 
 hTitle.Value = getUnitTitle(app, unitNum);
-[app.plottedWavesIdx, plottedWaves] = getPlottableWaves(app, unitNum);
+[plottedWavesIdx, plottedWaves] = getPlottableWaves(app, unitNum);
 if isempty(plottedWaves)
     return;
 end
 
 [unitLines,traceLine,hUnit.UserData{2}] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
+temp = num2cell(plottedWavesIdx);
+[unitLines.UserData] = temp{:};
 
-if ~isempty(app.plottedWavesIdx) % if there are spikes in the unit
-    set(unitLines, 'ButtonDownFcn', {@lineSelected, app, app.plottedWavesIdx, hUnit}) % click on spikes callback
-    set(hUnit,'ButtonDownFcn',{@boxClick,app,app.plottedWavesIdx,hUnit});
+if ~isempty(plottedWavesIdx) % if there are spikes in the unit
+    set(unitLines, 'ButtonDownFcn', {@app.clickedUnitLine}) % click on spikes callback
+    set(hUnit,'ButtonDownFcn',{@boxClick,app,hUnit});
 end
 
 end
 
 %%    callback for selected spikes
-function boxClick(~,evt,app, w, h)
-if isempty(app.pUnassigned)
-    return;
-end
+function boxClick(~,evt,app,h)
 if app.interactingFlag(2) ~= 0
     return;
 end
@@ -43,41 +41,15 @@ else
     X = get(app.pL,'XData');
     Y = get(app.pL,'YData');
     
-    selectedLine = false(size(X));
+    selectedSpike = false(size(X));
     % select orphans inside box
     for ii = 1:length(X)
-        selectedLine(ii) = any(inpolygon(X{ii},Y{ii},xBox,yBox));
+        selectedSpike(ii) = any(inpolygon(X{ii},Y{ii},xBox,yBox));
     end
-    selectedLine = find(selectedLine);
-    selectedSpike = w(selectedLine);
     drawnow
     
-    % store selected spikes in UserData
-    for qq = 1:length(selectedLine)
-        alreadySelectedBool = ismember(h.UserData{1},selectedSpike(qq));
-        if ~any(alreadySelectedBool)
-            app.pL(selectedLine(qq)).LineStyle = ':';
-            h.UserData{1} = [h.UserData{1}, selectedSpike(qq)];
-        else
-            app.pL(selectedLine(qq)).LineStyle = '-';
-            h.UserData{1}(alreadySelectedBool) = [];
-        end
-    end
+    % store selected spikes
+    updateAssignedSelection(app, selectedSpike)
     delete(app.lSelection);
 end
-end
-
-function lineSelected(src, ~, app, w, h)
-if app.interactingFlag(2) ~= 0
-    return;
-end
-selectedSpike = w(app.pL == src);
-if strcmp(src.LineStyle, ':')
-    src.LineStyle = '-';
-    h.UserData{1}(h.UserData{1} ~= selectedSpike) = [];
-else
-    src.LineStyle = ':';
-    h.UserData{1} = [h.UserData{1}, selectedSpike];
-end
-
 end
