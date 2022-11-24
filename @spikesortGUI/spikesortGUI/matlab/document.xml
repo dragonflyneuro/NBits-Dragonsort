@@ -737,7 +737,7 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData{1}; % selected spike index along plotted spikes
+                I = app.figureHandles(2).UserData.SelectedIdx; % selected spike index along plotted spikes
             end
 
             [temp, e] = basicUnitOp(app.unitArray, event.Source.UserData{1}, value, I);
@@ -806,7 +806,7 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData{1}; % selected spike index along plotted spikes
+                I = app.figureHandles(2).UserData.SelectedIdx; % selected spike index along plotted spikes
             end
 
             if isempty(I)
@@ -854,7 +854,7 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData{1}; % selected spike index along plotted spikes
+                I = app.figureHandles(2).UserData.SelectedIdx; % selected spike index along plotted spikes
             end
 
             if isempty(I)
@@ -1162,7 +1162,7 @@
         % Menu selected function: LUnselectMenu
         function LUnselectMenuSelected(app, event)
             delete(app.lSelection);
-            app.figureHandles(2).UserData{1} = [];
+            app.figureHandles(2).UserData.SelectedIdx = [];
             if ~isempty(app.pL)
                 for ii = 1:length(app.pL)
                     if ishandle(app.pL(ii)) && strcmp(app.pL(ii).LineStyle, ':')
