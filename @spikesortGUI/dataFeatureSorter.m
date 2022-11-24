@@ -97,14 +97,14 @@ for ii = 1:3
 end
 
 if strcmpi(app.featureSelectMode,'unit')
-    posData{end+1} = posData{1}(app.LeftUnit.UserData{1},:);
+    posData{end+1} = posData{1}(app.LeftUnit.UserData.selectedIdx,:);
     selectedBool = ROI3D(posData,+1,...
         [0,0,0; getColour(1:length(selection)); 1,0,0],...
         [".", getMarker(1:length(selection)),'o'],...
         sldr.Value*ones(size(posData)),labels);
     addIdx = find(selectedBool{str2double(app.LeftUnitDropDown.Value)});
     if ~isempty(addIdx)
-        [~, removeIdx, IC] = intersect(app.LeftUnit.UserData{1},addIdx);
+        [~, removeIdx, IC] = intersect(app.LeftUnit.UserData.selectedIdx,addIdx);
         addIdx(IC) = [];
         
         updateAssignedUD(app, addIdx, removeIdx);

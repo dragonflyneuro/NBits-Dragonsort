@@ -19,12 +19,12 @@ classdef uiToggleGroup < handle
                 obj.bH(ii) = h(ii);
                 if ~isempty(ud)
                     if iscell(ud)
-                        obj.bH(ii).UserData{1} = ud{ii};
+                        obj.bH(ii).UserData.ud = ud{ii};
                     else
-                        obj.bH(ii).UserData{1} = ud(ii);
+                        obj.bH(ii).UserData.ud = ud(ii);
                     end
                 end
-                obj.bH(ii).UserData{2} = ii;
+                obj.bH(ii).UserData.Idx = ii;
                 obj.bH(ii).Value = false;
                 obj.bH(ii).ValueChangedFcn = @obj.buttonPushed;
             end
@@ -38,11 +38,11 @@ classdef uiToggleGroup < handle
         end
         
         function ud = getUserData(obj)
-            ud = obj.bH([obj.bH.Value]).UserData{1};
+            ud = obj.bH([obj.bH.Value]).UserData.ud;
         end
         
         function [] = buttonPushed(obj, src, ~)
-            num = src.UserData{2};
+            num = src.UserData.Idx;
             tog = false(size(obj.bH));
             tog(num) = obj.bH(num).Value;
             tog = num2cell(tog);

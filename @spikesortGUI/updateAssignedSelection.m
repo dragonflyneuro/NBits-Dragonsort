@@ -10,8 +10,8 @@ if ~islogical(selection)
     selection = temp;
 end
 [app.pL(selection & ~alreadySelectedBool).LineStyle] = deal(':');
-app.pL(selection & alreadySelectedBool).LineStyle = deal('-');
+[app.pL(selection & alreadySelectedBool).LineStyle] = deal('-');
 if ~isempty(app.pLF) && ishandle(app.pLF)
-    
+    app.leftUnitAx.UserData.selectedIdx = selection & ~alreadySelectedBool;
 end
 end

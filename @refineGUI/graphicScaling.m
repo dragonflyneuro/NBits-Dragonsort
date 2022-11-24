@@ -23,8 +23,8 @@ subplott = @(m,n,p) subtightplot (m, n, p, [0.02 0.015], [0.06 0.03], [0.025 0.0
 figs.f = figure;
 set(figs.f, 'MenuBar', 'none');
 set(figs.f, 'ToolBar', 'none');
-figs.f.UserData{1} = app.ScalingTable.Data.Scaling;
-figs.f.UserData{2} = app.d.spikeAssignmentUnit;
+figs.f.UserData.scaling = app.ScalingTable.Data.Scaling;
+figs.f.UserData.assignment = app.d.spikeAssignmentUnit;
 
 width = 1850;
 height = 1000;
@@ -78,7 +78,7 @@ for ii = unitNames
     % plot all lines but make it invisible
     figs.spikeP{ii} = line(figs.spikeAx(ii),1:size(app.w,2),app.w(:,:,app.p.m.mainCh)',...
         'Visible','off');%,'Color',[iiCmap, 0.5]
-    [figs.spikeP{ii}(figs.f.UserData{2}(:,ii)).Visible] = deal('on');
+    [figs.spikeP{ii}(figs.f.UserData.assignment(:,ii)).Visible] = deal('on');
     
     hold(figs.spikeAx(ii),'on');
     
@@ -95,11 +95,11 @@ for ii = unitNames
 %         yticks(figs.spikeAx(ii),[]);
 %     end
     figs.sptitle(ii) = title(figs.spikeAx(ii),"Unit "+ ii +...
-        " - " + string(sum(figs.f.UserData{2}(:,ii))),'Color',iiCmap);
+        " - " + string(sum(figs.f.UserData.assignment(:,ii))),'Color',iiCmap);
     
     if app.ShowtraceButton.Value == 1
         [ms, msSize] = getMarker(ii);
-        wT = app.wTimes(figs.f.UserData{2}(:,ii)) - range(1);
+        wT = app.wTimes(figs.f.UserData.assignment(:,ii)) - range(1);
         if ~isempty(wT)
             figs.assignedOnTrace(ii) = line(figs.trace, wT, app.p.xi(app.p.m.mainCh,wT), ...
                         'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize/2, 'Color', iiCmap);
@@ -107,7 +107,7 @@ for ii = unitNames
     end
             
     % get total number of spikes assigned
-    numAssignedTotal = numAssignedTotal + sum(figs.f.UserData{2}(:,ii));
+    numAssignedTotal = numAssignedTotal + sum(figs.f.UserData.assignment(:,ii));
     grid(figs.spikeAx(ii),'on');
 end
 if ~isinf(app.p.yL(1))
@@ -146,8 +146,8 @@ for ii = unitNames
     yMax = ylim(figs.histosAx(ii));
     yMax = yMax(2);
     
-    figs.userLine(ii) = plot(figs.histosAx(ii),[app.thr^2*figs.f.UserData{1}(ii),...
-        app.thr^2*figs.f.UserData{1}(ii)], [1 yMax],'r'); % default scaling line
+    figs.userLine(ii) = plot(figs.histosAx(ii),[app.thr^2*figs.f.UserData.scaling(ii),...
+        app.thr^2*figs.f.UserData.scaling(ii)], [1 yMax],'r'); % default scaling line
     set(figs.histosAx(ii), 'YScale', 'log')
     xlim(figs.histosAx(ii),[0 2]);
     xticks(figs.histosAx(ii),[]);
@@ -224,15 +224,15 @@ updateFigures(h,app,1);
 numAssignedTotal = 0;
 for ii = find(app.ScalingTable.Data.ShowLock)'
     iiCmap = getColour(ii);
-    numAssignedTotal = numAssignedTotal + sum(h.f.UserData{2}(:,ii));
+    numAssignedTotal = numAssignedTotal + sum(h.f.UserData.assignment(:,ii));
     
     h.sptitle(ii) = title(h.spikeAx(ii),"Unit " + ii +...
-        " - " + string(sum(h.f.UserData{2}(:,ii))),'Color',iiCmap);
+        " - " + string(sum(h.f.UserData.assignment(:,ii))),'Color',iiCmap);
     
     if app.ShowtraceButton.Value == 1
         [ms, msSize] = getMarker(ii);
         range = getBatchRange(app.CallingApp);
-        wT = app.wTimes(h.f.UserData{2}(:,ii)) - range(1);
+        wT = app.wTimes(h.f.UserData.assignment(:,ii)) - range(1);
         delete(h.assignedOnTrace(ii));
         if ~isempty(wT)
             h.assignedOnTrace(ii) = line(h.trace, wT, app.p.xi(app.p.m.mainCh,wT), ...
@@ -263,16 +263,16 @@ mousePoint = mousePoint(1,1);
 if mousePoint <= 0
     mousePoint = eps;
 end
-h.f.UserData{1}(axNum) = mousePoint/app.thr^2;
+h.f.UserData.scaling(axNum) = mousePoint/app.thr^2;
 
 devM = app.d.devMatrix;
 for ii = 1:size(devM,1)
-    if ~any(h.f.UserData{2}(ii,:)) || lAllowed(h.f.UserData{2}(ii,:))
-        h.f.UserData{2}(ii,:) = false;
+    if ~any(h.f.UserData.assignment(ii,:)) || lAllowed(h.f.UserData.assignment(ii,:))
+        h.f.UserData.assignment(ii,:) = false;
         [~, idx] = sort(devM(ii,:));
         for jj = idx
-            if devM(ii,jj) < h.f.UserData{1}(jj)*app.thr^2 && gAllowed(jj)
-                h.f.UserData{2}(ii,jj) = true;
+            if devM(ii,jj) < h.f.UserData.scaling(jj)*app.thr^2 && gAllowed(jj)
+                h.f.UserData.assignment(ii,jj) = true;
                 break;
             end
         end
@@ -285,8 +285,8 @@ else
     range = find(app.ScalingTable.Data.ShowLock)';
 end
 for ii = range
-    [h.spikeP{ii}(h.f.UserData{2}(:,ii)).Visible] = deal('on');
-    [h.spikeP{ii}(~h.f.UserData{2}(:,ii)).Visible] = deal('off');
+    [h.spikeP{ii}(h.f.UserData.assignment(:,ii)).Visible] = deal('on');
+    [h.spikeP{ii}(~h.f.UserData.assignment(:,ii)).Visible] = deal('off');
 end
 
 h.userLine(axNum).XData = [mousePoint,mousePoint];

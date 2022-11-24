@@ -9,7 +9,7 @@ if isempty(plottedWaves)
     return;
 end
 
-[unitLines,traceLine,hUnit.UserData{2}] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
+[unitLines,traceLine,hUnit.UserData.inBatchIdx] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
 temp = num2cell(plottedWavesIdx);
 [unitLines.UserData] = temp{:};
 
