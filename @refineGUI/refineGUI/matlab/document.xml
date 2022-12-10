@@ -105,12 +105,12 @@
         function GraphicalrefineButtonPushed(app, event)
             
             close all
-            [e, newass] = graphicScaling(app);
+            [e, newAssignments] = graphicScaling(app);
             
             if e == 1
                 app.d.prevAssignment = app.d.spikeAssignmentUnit;
-                app.d.spikeAssignmentUnit = newass{2};
-                app.ScalingTable.Data.Scaling = newass{1};
+                app.d.spikeAssignmentUnit = newAssignments.assignment;
+                app.ScalingTable.Data.Scaling = newAssignments.scaling;
                 app.DoneButton.Enable = 'on';
             end
             

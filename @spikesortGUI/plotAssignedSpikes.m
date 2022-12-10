@@ -1,9 +1,9 @@
-function assginedLine = plotAssignedSpikes(app,h,ch)
-assginedLine = [];
+function assignedLine = plotAssignedSpikes(app,h,ch)
+assignedLine = [];
 
 r = getBatchRange(app);
 
-d = 1;
+c = 1;
 for ii = 1:length(app.unitArray)
     [unitSpikesInBatch, ~, inUnitIdx] = app.unitArray(ii).getAssignedSpikes(r);
     spikes = unitSpikesInBatch - r(1);
@@ -13,11 +13,12 @@ for ii = 1:length(app.unitArray)
         
         % set up interactivity with assigned spikes to select
         % waveforms in left unit figure from trace
-        assignedLine(d) = line(h, spikes*app.msConvert, app.xi(ch,spikes), ...
+        assignedLine(c) = line(h, spikes*app.msConvert, app.xi(ch,spikes), ...
             'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', getColour(ii));
-        assignedLine(d).UserData.unitNum = ii;
-        assignedLine(d).UserData.spikeIdx = inUnitIdx;
-        d = d+1;
+        tempStruct.unitNum = ii;
+        tempStruct.spikeIdx = inUnitIdx;
+        set(assignedLine(c),'UserData',tempStruct);
+        c = c+1;
     end
 end
 end

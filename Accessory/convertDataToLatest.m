@@ -1,8 +1,8 @@
 function log = convertDataToLatest(filterSpec)
 %refilter is a cell array:
-%{filter order}
-%{filter cutoffs}
-%{filter firstband pass/stop}
+%{filter order (as scalar)}
+%{filter cutoffs (as vector format)}
+%{filter firstband pass/stop (as char)}
 
 p = uigetdir;
 log = recursiveConvert(p,filterSpec);

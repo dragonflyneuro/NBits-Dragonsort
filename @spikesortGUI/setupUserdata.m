@@ -25,16 +25,27 @@ app.LPanMenu.UserData = 2;
 app.LPointerMenu.UserData = 2;
 
 % basic ops
-app.RemovespikeMenu.UserData = {@spikeRemover, "remove"};
-app.RemovespikeButton.UserData = {@spikeRemover, "remove"};
-app.SplitMenu.UserData = {@unitSplitter, "split"};
-app.SplitButton.UserData = {@unitSplitter, "split"};
-app.MergeMenu.UserData = {@unitMerger, "merge"};
-app.MergeButton.UserData = {@unitMerger, "merge"};
-app.AutosplitMenu.UserData = {@unitSplitter, "split"};
-app.AutosplitButton.UserData = {@unitSplitter, "split"};
-app.AutomergeMenu.UserData = {@unitMerger, "merge"};
-app.AutomergeButton.UserData = {@unitMerger, "merge"};
+app.RemovespikeMenu.UserData.fnc = @spikeRemover;
+app.RemovespikeMenu.UserData.label = "remove";
+app.RemovespikeButton.UserData.fnc = @spikeRemover;
+app.RemovespikeButton.UserData.label = "remove";
+app.SplitMenu.UserData.fnc = @unitSplitter;
+app.SplitMenu.UserData.label ="split";
+app.SplitButton.UserData.fnc = @unitSplitter;
+app.SplitButton.UserData.label ="split";
+app.MergeMenu.UserData.fnc = @unitMerger;
+app.MergeMenu.UserData.label = "merge";
+app.MergeButton.UserData.fnc = @unitMerger;
+app.MergeButton.UserData.label = "merge";
+app.AutosplitMenu.UserData.fnc = @unitSplitter;
+app.AutosplitMenu.UserData.label = "split";
+app.AutosplitButton.UserData.fnc = @unitSplitter;
+app.AutosplitButton.UserData.label = "split";
+app.AutomergeMenu.UserData.fnc = @unitMerger;
+app.AutomergeMenu.UserData.label = "merge";
+app.AutomergeButton.UserData.fnc = @unitMerger;
+app.AutomergeButton.UserData.label = "merge";
+
 
 % sorting ops
 app.AutosortButton.UserData = 0;

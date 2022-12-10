@@ -9,7 +9,8 @@ app.StatusLabel.Value = "Updating unit figures...";
 drawnow
 
 if updateFlag == 0 || updateFlag == 1
-    set(app.leftUnitAx,'UserData', {[],[]}); % reset selected spikes in left unit
+    app.leftUnitAx.UserData.selectedIdx = [];
+    app.leftUnitAx.UserData.inBatchIdx = [];
     set(app.leftUnitAx,'ButtonDownFcn',[]);
     u = str2double(app.LeftUnitDropDown.Value);
     delete(app.lSelection); delete(app.pL); delete(app.pTL);

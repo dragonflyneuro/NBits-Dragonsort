@@ -13,8 +13,8 @@ Y = get(src,'YData');
 r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
 [~ ,selectedPoint]=min(r);
 
-% continue only if selected spike is plotted in left unit
-selection = cell2mat(get(app.pL,'UserData')) == src.UserData.inUnitIdx(selectedPoint);
+% find index of selected point in unit spike time array
+selection = cell2mat(get(app.pL,'UserData')) == src.UserData.spikeIdx(selectedPoint);
 
 if any(selection)
     updateAssignedSelection(app, selection)
