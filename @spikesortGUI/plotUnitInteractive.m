@@ -4,16 +4,16 @@ unitLines = [];
 traceLine = [];
 
 hTitle.Value = getUnitTitle(app, unitNum);
-[plottedWavesIdx, plottedWaves] = getPlottableWaves(app, unitNum);
+[pWI, plottedWaves] = getPlottableWaves(app, unitNum);
 if isempty(plottedWaves)
     return;
 end
 
 [unitLines,traceLine,hUnit.UserData.inBatchIdx] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
-temp = num2cell(plottedWavesIdx);
+temp = num2cell(pWI);
 [unitLines.UserData] = temp{:};
 
-if ~isempty(plottedWavesIdx) % if there are spikes in the unit
+if ~isempty(pWI) % if there are spikes in the unit
     set(unitLines, 'ButtonDownFcn', {@app.clickedUnitLine}) % click on spikes callback
     set(hUnit,'ButtonDownFcn',{@boxClick,app,hUnit});
 end

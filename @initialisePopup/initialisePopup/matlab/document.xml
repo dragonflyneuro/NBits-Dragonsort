@@ -64,6 +64,11 @@
         FilterLengthEditField         matlab.ui.control.NumericEditField
         FilterorderLabel              matlab.ui.control.Label
         UIAxes                        matlab.ui.control.UIAxes
+        MultichannelTab               matlab.ui.container.Tab
+        GridLayout2_3                 matlab.ui.container.GridLayout
+        CommonAverageReferencingCheckBox  matlab.ui.control.CheckBox
+        ThesesettingsarenotrecommendedforsinglechanneldataLabel  matlab.ui.control.Label
+        ChannelwhiteningCheckBox      matlab.ui.control.CheckBox
     end
 
     
@@ -701,6 +706,35 @@
             app.NoneButton.Text = 'None';
             app.NoneButton.Layout.Row = 2;
             app.NoneButton.Layout.Column = 2;
+
+            % Create MultichannelTab
+            app.MultichannelTab = uitab(app.TabGroup);
+            app.MultichannelTab.Title = 'Multichannel';
+
+            % Create GridLayout2_3
+            app.GridLayout2_3 = uigridlayout(app.MultichannelTab);
+            app.GridLayout2_3.ColumnWidth = {'0.1x', '1x', '0.5x', '0.5x', '0.5x', '0.1x'};
+            app.GridLayout2_3.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2_3.ColumnSpacing = 2;
+            app.GridLayout2_3.RowSpacing = 2;
+
+            % Create ChannelwhiteningCheckBox
+            app.ChannelwhiteningCheckBox = uicheckbox(app.GridLayout2_3);
+            app.ChannelwhiteningCheckBox.Text = 'Channel whitening';
+            app.ChannelwhiteningCheckBox.Layout.Row = 2;
+            app.ChannelwhiteningCheckBox.Layout.Column = [3 4];
+
+            % Create ThesesettingsarenotrecommendedforsinglechanneldataLabel
+            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel = uilabel(app.GridLayout2_3);
+            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Row = 1;
+            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Column = [2 5];
+            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Text = 'These settings are not recommended for single channel data';
+
+            % Create CommonAverageReferencingCheckBox
+            app.CommonAverageReferencingCheckBox = uicheckbox(app.GridLayout2_3);
+            app.CommonAverageReferencingCheckBox.Text = 'Common Average Referencing';
+            app.CommonAverageReferencingCheckBox.Layout.Row = 3;
+            app.CommonAverageReferencingCheckBox.Layout.Column = [3 4];
 
             % Create InitialiseButton
             app.InitialiseButton = uibutton(app.SortinginitialiserUIFigure, 'push');

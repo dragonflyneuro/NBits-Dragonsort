@@ -18,14 +18,14 @@ if ~isempty(app.unitArray(unitNum).spikeTimes) % if there are spikes in the unit
     end
     
     if strcmpi("Junk",app.unitArray(unitNum).tags)
-        junkText = "  JUNK UNIT";
+        junkText = " JUNK";
     else
         junkText = "";
     end
     
     txt = nameText + string(length(app.unitArray(unitNum).spikeTimes)) +...
-        " spikes total, " + last3Batches(3) + "/" + last3Batches(2) +...
-        "/" + last3Batches(1) + " spikes -2/-1/0 batches ago" + junkText;
+        " spikes, last 3 batches " + last3Batches(3) + "/" + last3Batches(2) +...
+        "/" + last3Batches(1) + ", meanDev " + string(app.unitArray(unitNum).meanDeviation) + junkText;
     
 elseif ~isempty(app.unitArray(unitNum).loadedTemplateWaves)
     txt = "TEMPLATE SPIKES ONLY";

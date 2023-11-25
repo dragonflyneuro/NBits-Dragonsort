@@ -11,9 +11,9 @@ drawnow
 if updateFlag == 0 || updateFlag == 1
     app.leftUnitAx.UserData.selectedIdx = [];
     app.leftUnitAx.UserData.inBatchIdx = [];
-    set(app.leftUnitAx,'ButtonDownFcn',[]);
+    % set(app.leftUnitAx,'ButtonDownFcn',[]);
     u = str2double(app.LeftUnitDropDown.Value);
-    delete(app.lSelection); delete(app.pL); delete(app.pTL);
+    delete(app.lSelection); delete(app.pL); delete(app.pTL); cla(app.leftUnitAx);
     [app.pL, app.pTL, waves] = plotUnitInteractive(app, app.LTitle, app.leftUnitAx, u);
     if ~isempty(app.spL) && ishandle(app.spL)
         app.spL = plotMultiUnit(app, app.spL, u, waves);

@@ -6,22 +6,22 @@ function included = ROI3D(posData, includable, varargin)
 
 subplott = @(m,n,p) subtightplot (m, n, p, [0.02 0.05], [0.06 0.03], [0.05 0.05]);
 
-if nargin > 6
+if nargin > 5
     labels = varargin{4};
 else
     labels = ["X","Y","Z"];
 end
-if nargin > 5
+if nargin > 4
     sizeData = varargin{3};
 else
     sizeData = 20*ones(size(posData));
 end
-if nargin > 4
+if nargin > 3
     markerData = varargin{2};
 else
     markerData = repmat("*",size(posData));
 end
-if nargin > 3
+if nargin > 2
     colourData = varargin{1};
 else
     colourData = cool(length(posData));

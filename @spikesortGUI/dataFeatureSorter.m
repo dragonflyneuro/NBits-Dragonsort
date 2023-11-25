@@ -134,12 +134,12 @@ end
 end
 
 function changeMode(~,event,app)
-value = event.Value;
-if strcmpi(value,'Left unit')
-    app.featureSelectMode = 'unit';
-    delete(app.pUnassignedF);
-else
-    app.featureSelectMode = 'unassigned';
-    delete(app.pLF);
-end
+% value = event.Value;
+% if strcmpi(value,'Left unit')
+%     app.featureSelectMode = 'unit';
+%     delete(app.pUnassignedF);
+% else
+%     app.featureSelectMode = 'unassigned';
+%     delete(app.pLF);
+% end
 end

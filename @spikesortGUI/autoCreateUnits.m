@@ -22,6 +22,7 @@ function [assignedUnit, potentialSpikes] = autoCreateUnits(unassignedWaves, y, t
 % c = Dragonsort unit-wave structure
 % t = Dragonsort unit construction structure
 % numNewUnits = number of new units created
+
 d = 1;
 assignedUnit = [];
     

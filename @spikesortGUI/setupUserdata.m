@@ -51,5 +51,5 @@ app.AutomergeButton.UserData.label = "merge";
 app.AutosortButton.UserData = 0;
 app.AutosortbatchButton.UserData = 1;
 app.AutocreateunitsButton.UserData = 0;
-app.AutocreatejunkunitsButton.UserData = 1;
+% app.AutocreatejunkunitsButton.UserData = 1;
 end

@@ -1,7 +1,7 @@
-function [] = unitScrubber(app, n)
+function [] = scrubUnit(app, n)
 waves = app.unitArray(n).waves(:,:,app.unitArray(n).mainCh);
 
-f = uifigure;
+f = uifigure('Name','Unit Scrubber');
 set(f, 'Position',  [300, 200, 800, 700]);
 ax = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
 

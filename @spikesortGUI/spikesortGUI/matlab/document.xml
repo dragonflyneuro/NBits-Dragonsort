@@ -50,14 +50,13 @@
         GeneralTab                    matlab.ui.container.Tab
         GeneralGrid                   matlab.ui.container.GridLayout
         MiscGrid                      matlab.ui.container.GridLayout
+        LeftOverviewButton            matlab.ui.control.Button
+        LOverviewDropDown             matlab.ui.control.DropDown
+        AllOverviewButton             matlab.ui.control.Button
         OverviewDropDown              matlab.ui.control.DropDown
         CleanupButton                 matlab.ui.control.Button
-        UnitfreqButton                matlab.ui.control.Button
-        OverviewButton                matlab.ui.control.Button
-        UnitscrubButton               matlab.ui.control.Button
         AutocreateunitsButton         matlab.ui.control.Button
-        AutocreatejunkunitsButton     matlab.ui.control.Button
-        NeatcoolthingsthoLabel        matlab.ui.control.Label
+        AccessoryfunctionsLabel       matlab.ui.control.Label
         ManipulationGrid              matlab.ui.container.GridLayout
         OperationTargetPanel          matlab.ui.container.Panel
         OperationtargetGrid           matlab.ui.container.GridLayout
@@ -75,7 +74,7 @@
         RemovespikeButton             matlab.ui.control.Button
         AddspikeButton                matlab.ui.control.Button
         DeleteunitButton              matlab.ui.control.Button
-        ManipulationLabel             matlab.ui.control.Label
+        UnitmanipulationLabel         matlab.ui.control.Label
         DatascrubGrid                 matlab.ui.container.GridLayout
         GotobatchField                matlab.ui.control.NumericEditField
         GotobatchButton               matlab.ui.control.Button
@@ -110,7 +109,7 @@
         FuzzyButton                   matlab.ui.control.StateButton
         DetectThr1EditField           matlab.ui.control.NumericEditField
         SpikedetectionEditFieldLabel  matlab.ui.control.Label
-        UnitinitLabel                 matlab.ui.control.Label
+        NewunitsLabel                 matlab.ui.control.Label
         NewField                      matlab.ui.control.NumericEditField
         OldField                      matlab.ui.control.NumericEditField
         ExistingunitsLabel            matlab.ui.control.Label
@@ -146,7 +145,9 @@
         ToggletagButton               matlab.ui.control.Button
         TagLabel                      matlab.ui.control.Label
         UnitGrid                      matlab.ui.container.GridLayout
-        UnitLabel                     matlab.ui.control.Label
+        FeatureviewtypeDropDown       matlab.ui.control.DropDown
+        FeatureviewtypeLabel          matlab.ui.control.Label
+        OtherLabel                    matlab.ui.control.Label
         SpikewidthEditField           matlab.ui.control.NumericEditField
         SpikeWidthLabel               matlab.ui.control.Label
         TimelineGrid                  matlab.ui.container.GridLayout
@@ -636,8 +637,7 @@
 
         end
 
-        % Button pushed function: AutocreatejunkunitsButton, 
-        % ...and 1 other component
+        % Button pushed function: AutocreateunitsButton
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
             range = getBatchRange(app);
@@ -737,7 +737,8 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData.selectedIdx; % selected spike index along plotted spikes
+                pWI = cell2mat(get(app.pL,'UserData'));
+                I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
             [temp, e] = basicUnitOp(app.unitArray, event.Source.UserData.fnc, value, I);
@@ -806,7 +807,8 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData.selectedIdx; % selected spike index along plotted spikes
+                pWI = cell2mat(get(app.pL,'UserData'));
+                I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
             if isempty(I)
@@ -854,7 +856,8 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                I = app.figureHandles(2).UserData.selectedIdx; % selected spike index along plotted spikes
+                pWI = cell2mat(get(app.pL,'UserData'));
+                I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
             if isempty(I)
@@ -969,11 +972,8 @@
 
         end
 
-        % Button pushed function: OverviewButton
-        function OverviewButtonButtonPushed(app, event)
-            % plot all units' spikes in a popout figure with their 3D PCA components
-            % for easy visualisation. Can choose to not plot junk units
-
+        % Button pushed function: AllOverviewButton
+        function AllOverviewButtonButtonPushed(app, event)
             unitsToPlot = 1:length(app.unitArray);
             junks = app.unitArray.tagcmpi("Junk");
 
@@ -999,65 +999,42 @@
             app.StatusLabel.Value = "Plotting unit overview...";
             drawnow
 
-            if strcmp(app.OverviewDropDown.Value,'Spike')
+            if strcmp(app.OverviewDropDown.Value,'Waveforms')
                 showSpikeOverview(app.unitArray, unitsToPlot, [app.yLimLowField.Value, app.yLimHighField.Value]);
+            elseif strcmp(app.OverviewDropDown.Value,'Temporal stab.')
+                app.showTemporalStability(unitsToPlot);
             elseif strcmp(app.OverviewDropDown.Value,'PCA')
                 showPCAOverview(app.unitArray, unitsToPlot)
             elseif strcmp(app.OverviewDropDown.Value,'LDA')
                 showLDAOverview(app.unitArray, unitsToPlot)
-            else
-                showDeviationOverview(app, app.unitArray, unitsToPlot)
+            elseif strcmp(app.OverviewDropDown.Value,'Deviation')
+                showDeviationOverview(app.unitArray, unitsToPlot)
+            elseif strcmp(app.OverviewDropDown.Value,'X-correlogram')
+                showXCorr(app.unitArray, unitsToPlot, app.m.sRateHz)
             end
-
+            
             app.StatusLabel.Value = "Ready";
 
         end
 
-        % Callback function: ScrubthroughunitMenu, UnitscrubButton
-        function UnitscrubButtonPushed(app, event)
-            % scrub through the left unit in time to see which spikes were added
-            % when. Also allows unit splitting and spike deletion at a specific
-            % timepoint in the unit
-
+        % Button pushed function: LeftOverviewButton
+        function LeftOverviewButtonPushed(app, event)
             value = str2double(app.LeftUnitDropDown.Value);
-
             if isempty(app.unitArray(value).spikeTimes)
                 app.StatusLabel.Value = "Left unit is empty!";
                 return;
             end
 
-            unitScrubber(app,value);
-
-        end
-
-        % Callback function: UnitfreqButton, UnitfrequencyMenu
-        function UnitfreqButtonPushed(app, event)
-            % plot number of spikes in each unit in each batch
-
-            app.StatusLabel.Value = "Plotting unit time series...";
+            app.StatusLabel.Value = "Plotting unit overview...";
             drawnow
 
-            bl = length(app.t.batchLengths);
-
-            f = figure; ax = axes; set(f, 'Position',  [200, 200, 900, 700]);
-
-            for ii=1:length(app.unitArray)
-                iiCmap = getColour(ii);
-                ms = getMarker(ii);
-                numInBatch = zeros(1,bl); % number of spikes in each unit in each batch
-                for jj = 1:bl
-                    spikesInBatch = app.unitArray(ii).getAssignedSpikes(getBatchRange(app,[jj-1, jj]));
-                    numInBatch(jj) = numel(spikesInBatch); % number of spikes in each unit in each batch
-                end
-                line(ax, 1:bl, numInBatch, 'Color', iiCmap,"Marker",ms);
+            if strcmp(app.LOverviewDropDown.Value,'Waveforms')
+                scrubUnit(app,value);
+            elseif strcmp(app.LOverviewDropDown.Value,'ISI')
+                showISI(app,value)
             end
-
-            xlabel(ax, "Batch number");
-            ylabel(ax, "Frequency");
-            title(ax, 'Spike frequency for each unit over time')
-            legend(ax, "Unit " + string(1:length(app.unitArray)));
+            
             app.StatusLabel.Value = "Ready";
-
         end
 
         % Button pushed function: ShowtemplatesButton
@@ -1609,7 +1586,7 @@
             app.UIBase = uifigure('Visible', 'off');
             app.UIBase.Color = [0.9412 0.9412 0.9412];
             app.UIBase.Position = [50 50 1590 890];
-            app.UIBase.Name = 'Spike sorting extraordinaire';
+            app.UIBase.Name = 'Dragonsort v0.3';
             app.UIBase.CloseRequestFcn = createCallbackFcn(app, @UIBaseCloseRequest, true);
 
             % Create SessionMenu
@@ -1663,12 +1640,10 @@
 
             % Create UnitfrequencyMenu
             app.UnitfrequencyMenu = uimenu(app.TimelineMenu);
-            app.UnitfrequencyMenu.MenuSelectedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
             app.UnitfrequencyMenu.Text = 'Show unit frequency time series';
 
             % Create ScrubthroughunitMenu
             app.ScrubthroughunitMenu = uimenu(app.TimelineMenu);
-            app.ScrubthroughunitMenu.MenuSelectedFcn = createCallbackFcn(app, @UnitscrubButtonPushed, true);
             app.ScrubthroughunitMenu.Text = 'Scrub through unit';
 
             % Create UnitMenu
@@ -1847,9 +1822,10 @@
 
             % Create LPCAButton
             app.LPCAButton = uibutton(app.LGrid, 'push');
+            app.LPCAButton.Enable = 'off';
             app.LPCAButton.Layout.Row = 1;
             app.LPCAButton.Layout.Column = 3;
-            app.LPCAButton.Text = 'PCA';
+            app.LPCAButton.Text = 'Feat.';
 
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);
@@ -2003,13 +1979,13 @@
             app.ManipulationGrid.Layout.Row = 1;
             app.ManipulationGrid.Layout.Column = 2;
 
-            % Create ManipulationLabel
-            app.ManipulationLabel = uilabel(app.ManipulationGrid);
-            app.ManipulationLabel.HorizontalAlignment = 'center';
-            app.ManipulationLabel.FontWeight = 'bold';
-            app.ManipulationLabel.Layout.Row = 1;
-            app.ManipulationLabel.Layout.Column = [1 2];
-            app.ManipulationLabel.Text = 'Manipulation';
+            % Create UnitmanipulationLabel
+            app.UnitmanipulationLabel = uilabel(app.ManipulationGrid);
+            app.UnitmanipulationLabel.HorizontalAlignment = 'center';
+            app.UnitmanipulationLabel.FontWeight = 'bold';
+            app.UnitmanipulationLabel.Layout.Row = 1;
+            app.UnitmanipulationLabel.Layout.Column = [1 2];
+            app.UnitmanipulationLabel.Text = 'Unit manipulation';
 
             % Create DeleteunitButton
             app.DeleteunitButton = uibutton(app.ManipulationGrid, 'push');
@@ -2144,22 +2120,13 @@
             app.MiscGrid.Layout.Row = 2;
             app.MiscGrid.Layout.Column = [1 2];
 
-            % Create NeatcoolthingsthoLabel
-            app.NeatcoolthingsthoLabel = uilabel(app.MiscGrid);
-            app.NeatcoolthingsthoLabel.HorizontalAlignment = 'center';
-            app.NeatcoolthingsthoLabel.FontWeight = 'bold';
-            app.NeatcoolthingsthoLabel.Layout.Row = 1;
-            app.NeatcoolthingsthoLabel.Layout.Column = [1 3];
-            app.NeatcoolthingsthoLabel.Text = 'Neat cool things tho';
-
-            % Create AutocreatejunkunitsButton
-            app.AutocreatejunkunitsButton = uibutton(app.MiscGrid, 'push');
-            app.AutocreatejunkunitsButton.ButtonPushedFcn = createCallbackFcn(app, @AutocreateunitsButtonPushed, true);
-            app.AutocreatejunkunitsButton.WordWrap = 'on';
-            app.AutocreatejunkunitsButton.BackgroundColor = [0.7176 0.2745 1];
-            app.AutocreatejunkunitsButton.Layout.Row = [4 5];
-            app.AutocreatejunkunitsButton.Layout.Column = 1;
-            app.AutocreatejunkunitsButton.Text = 'Autocreate junk units';
+            % Create AccessoryfunctionsLabel
+            app.AccessoryfunctionsLabel = uilabel(app.MiscGrid);
+            app.AccessoryfunctionsLabel.HorizontalAlignment = 'center';
+            app.AccessoryfunctionsLabel.FontWeight = 'bold';
+            app.AccessoryfunctionsLabel.Layout.Row = 1;
+            app.AccessoryfunctionsLabel.Layout.Column = [1 3];
+            app.AccessoryfunctionsLabel.Text = 'Accessory functions';
 
             % Create AutocreateunitsButton
             app.AutocreateunitsButton = uibutton(app.MiscGrid, 'push');
@@ -2169,44 +2136,43 @@
             app.AutocreateunitsButton.Layout.Column = 1;
             app.AutocreateunitsButton.Text = 'Autocreate units';
 
-            % Create UnitscrubButton
-            app.UnitscrubButton = uibutton(app.MiscGrid, 'push');
-            app.UnitscrubButton.ButtonPushedFcn = createCallbackFcn(app, @UnitscrubButtonPushed, true);
-            app.UnitscrubButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.UnitscrubButton.Layout.Row = [4 5];
-            app.UnitscrubButton.Layout.Column = 2;
-            app.UnitscrubButton.Text = 'Scrub through unit';
-
-            % Create OverviewButton
-            app.OverviewButton = uibutton(app.MiscGrid, 'push');
-            app.OverviewButton.ButtonPushedFcn = createCallbackFcn(app, @OverviewButtonButtonPushed, true);
-            app.OverviewButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.OverviewButton.Layout.Row = 2;
-            app.OverviewButton.Layout.Column = 3;
-            app.OverviewButton.Text = 'Sorting overview';
-
-            % Create UnitfreqButton
-            app.UnitfreqButton = uibutton(app.MiscGrid, 'push');
-            app.UnitfreqButton.ButtonPushedFcn = createCallbackFcn(app, @UnitfreqButtonPushed, true);
-            app.UnitfreqButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.UnitfreqButton.Layout.Row = [4 5];
-            app.UnitfreqButton.Layout.Column = 3;
-            app.UnitfreqButton.Text = 'Unit freq time series';
-
             % Create CleanupButton
             app.CleanupButton = uibutton(app.MiscGrid, 'push');
             app.CleanupButton.ButtonPushedFcn = createCallbackFcn(app, @CleanupButtonPushed, true);
-            app.CleanupButton.BackgroundColor = [0.4667 0.6745 0.1882];
-            app.CleanupButton.Layout.Row = [2 3];
-            app.CleanupButton.Layout.Column = 2;
-            app.CleanupButton.Text = 'Nice-fy unit numbers';
+            app.CleanupButton.BackgroundColor = [0.851 0.2824 0.7373];
+            app.CleanupButton.Layout.Row = [4 5];
+            app.CleanupButton.Layout.Column = 1;
+            app.CleanupButton.Text = 'Renumber units';
 
             % Create OverviewDropDown
             app.OverviewDropDown = uidropdown(app.MiscGrid);
-            app.OverviewDropDown.Items = {'Spike', 'PCA', 'LDA', 'Deviation'};
-            app.OverviewDropDown.Layout.Row = 3;
-            app.OverviewDropDown.Layout.Column = 3;
-            app.OverviewDropDown.Value = 'Spike';
+            app.OverviewDropDown.Items = {'Waveforms', 'Temporal stab.', 'Deviation', 'PCA', 'LDA', 'X-correlogram'};
+            app.OverviewDropDown.Layout.Row = [4 5];
+            app.OverviewDropDown.Layout.Column = 2;
+            app.OverviewDropDown.Value = 'Waveforms';
+
+            % Create AllOverviewButton
+            app.AllOverviewButton = uibutton(app.MiscGrid, 'push');
+            app.AllOverviewButton.ButtonPushedFcn = createCallbackFcn(app, @AllOverviewButtonButtonPushed, true);
+            app.AllOverviewButton.BackgroundColor = [0.0588 1 1];
+            app.AllOverviewButton.Layout.Row = [2 3];
+            app.AllOverviewButton.Layout.Column = 2;
+            app.AllOverviewButton.Text = 'All unit overview';
+
+            % Create LOverviewDropDown
+            app.LOverviewDropDown = uidropdown(app.MiscGrid);
+            app.LOverviewDropDown.Items = {'Waveforms', 'ISI'};
+            app.LOverviewDropDown.Layout.Row = [4 5];
+            app.LOverviewDropDown.Layout.Column = 3;
+            app.LOverviewDropDown.Value = 'Waveforms';
+
+            % Create LeftOverviewButton
+            app.LeftOverviewButton = uibutton(app.MiscGrid, 'push');
+            app.LeftOverviewButton.ButtonPushedFcn = createCallbackFcn(app, @LeftOverviewButtonPushed, true);
+            app.LeftOverviewButton.BackgroundColor = [0.0588 1 1];
+            app.LeftOverviewButton.Layout.Row = [2 3];
+            app.LeftOverviewButton.Layout.Column = 3;
+            app.LeftOverviewButton.Text = 'Left unit overview';
 
             % Create ParametersdataTab
             app.ParametersdataTab = uitab(app.ControlTabs);
@@ -2335,7 +2301,7 @@
             app.ThresholdsLabel.FontWeight = 'bold';
             app.ThresholdsLabel.Layout.Row = 1;
             app.ThresholdsLabel.Layout.Column = [1 2];
-            app.ThresholdsLabel.Text = 'Thresholding';
+            app.ThresholdsLabel.Text = 'Deviation thresholding';
 
             % Create ExistingunitsLabel
             app.ExistingunitsLabel = uilabel(app.ThresholdsGrid);
@@ -2360,12 +2326,12 @@
             app.NewField.Layout.Column = 2;
             app.NewField.Value = 1;
 
-            % Create UnitinitLabel
-            app.UnitinitLabel = uilabel(app.ThresholdsGrid);
-            app.UnitinitLabel.HorizontalAlignment = 'right';
-            app.UnitinitLabel.Layout.Row = 3;
-            app.UnitinitLabel.Layout.Column = 1;
-            app.UnitinitLabel.Text = 'Unit init.';
+            % Create NewunitsLabel
+            app.NewunitsLabel = uilabel(app.ThresholdsGrid);
+            app.NewunitsLabel.HorizontalAlignment = 'right';
+            app.NewunitsLabel.Layout.Row = 3;
+            app.NewunitsLabel.Layout.Column = 1;
+            app.NewunitsLabel.Text = 'New units';
 
             % Create SpikedetectionEditFieldLabel
             app.SpikedetectionEditFieldLabel = uilabel(app.ThresholdsGrid);
@@ -2595,13 +2561,28 @@
             app.SpikewidthEditField.Layout.Column = 2;
             app.SpikewidthEditField.Value = 40;
 
-            % Create UnitLabel
-            app.UnitLabel = uilabel(app.UnitGrid);
-            app.UnitLabel.HorizontalAlignment = 'center';
-            app.UnitLabel.FontWeight = 'bold';
-            app.UnitLabel.Layout.Row = 1;
-            app.UnitLabel.Layout.Column = [1 2];
-            app.UnitLabel.Text = 'Unit';
+            % Create OtherLabel
+            app.OtherLabel = uilabel(app.UnitGrid);
+            app.OtherLabel.HorizontalAlignment = 'center';
+            app.OtherLabel.FontWeight = 'bold';
+            app.OtherLabel.Layout.Row = 1;
+            app.OtherLabel.Layout.Column = [1 2];
+            app.OtherLabel.Text = 'Other';
+
+            % Create FeatureviewtypeLabel
+            app.FeatureviewtypeLabel = uilabel(app.UnitGrid);
+            app.FeatureviewtypeLabel.HorizontalAlignment = 'right';
+            app.FeatureviewtypeLabel.WordWrap = 'on';
+            app.FeatureviewtypeLabel.Layout.Row = 3;
+            app.FeatureviewtypeLabel.Layout.Column = 1;
+            app.FeatureviewtypeLabel.Text = 'Feature view type';
+
+            % Create FeatureviewtypeDropDown
+            app.FeatureviewtypeDropDown = uidropdown(app.UnitGrid);
+            app.FeatureviewtypeDropDown.Items = {'PCA', 'LDA'};
+            app.FeatureviewtypeDropDown.Layout.Row = 3;
+            app.FeatureviewtypeDropDown.Layout.Column = 2;
+            app.FeatureviewtypeDropDown.Value = 'PCA';
 
             % Create TaggingGrid
             app.TaggingGrid = uigridlayout(app.AdvancedGrid);
@@ -2694,7 +2675,7 @@
             app.ImportsampleweightsButton.WordWrap = 'on';
             app.ImportsampleweightsButton.Layout.Row = 4;
             app.ImportsampleweightsButton.Layout.Column = 1;
-            app.ImportsampleweightsButton.Text = 'Import custom spike sample weights';
+            app.ImportsampleweightsButton.Text = 'Import custom deviation weights';
 
             % Create MultichannelGrid
             app.MultichannelGrid = uigridlayout(app.AdvancedGrid);
@@ -2777,7 +2758,7 @@
             app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
             app.TPCAButton.Layout.Row = 1;
             app.TPCAButton.Layout.Column = 2;
-            app.TPCAButton.Text = {'PCA'; ''};
+            app.TPCAButton.Text = 'Feat.';
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';

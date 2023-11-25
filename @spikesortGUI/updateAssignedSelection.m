@@ -11,8 +11,8 @@ if ~islogical(selection)
 end
 [app.pL(selection & ~alreadySelectedBool).LineStyle] = deal(':');
 [app.pL(selection & alreadySelectedBool).LineStyle] = deal('-');
-app.leftUnitAx.UserData.selectedIdx = selection & ~alreadySelectedBool;
+app.leftUnitAx.UserData.selectedIdx = xor(selection, alreadySelectedBool);
 if ~isempty(app.pLF) && ishandle(app.pLF)
-    app.leftUnitAx.UserData.selectedIdx = selection & ~alreadySelectedBool;
+    app.leftUnitAx.UserData.selectedIdx = xor(selection, alreadySelectedBool);
 end
 end

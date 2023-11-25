@@ -6,6 +6,7 @@ classdef unit < handle
         tags = string.empty();
         mainCh {mustBeInteger} = 1;
         refineSettings {mustBeNumeric} = 1;
+        meanDeviation {mustBeInteger} = 0;
         loadedTemplateWaves {mustBeNumeric} = [];
         loadedTemplateMapping = struct("originFile", [],...
                     "harvestLocation", [],...
@@ -130,7 +131,7 @@ classdef unit < handle
                 e = "No spikes selected for operation";
                 return;
             elseif ((~islogical(I) && length(I) == length(obj(n).spikeTimes)) || ...
-                    all(I)) && ~force
+                    (islogical(I) && all(I))) && ~force
                 e = "All spikes in unit selected, no changes will be made";
                 return;
             end
