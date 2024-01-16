@@ -14,16 +14,16 @@ ylabel(ax,'Frequency per bin')
 % xticks(ax,0:10:100);
 xlim(ax,[0 100]);
 
-vVal = uieditfield(f,"numeric","Limits",[0 inf], ...
+violationThrField = uieditfield(f,"numeric","Limits",[0 inf], ...
     "Value",1,'Position',[300 20 200 22]);
 uibutton(f, 'Text', 'Autosplit violations below:', 'Position',[300 44 200 22],...
-    'ButtonPushedFcn', {@splitISI, app, n, f, vVal.Value, ISI});
+    'ButtonPushedFcn', {@splitISI, app, n, f, violationThrField, ISI});
 
 end
 %% callbacks
 % split violating spikes
-function splitISI(~, ~, app, n, f, thr, ISI)
-violations = ISI < thr;
+function splitISI(~, ~, app, n, f, v, ISI)
+violations = ISI < v.Value;
 if any(violations)
     I = app.unitArray(n).spikeTimes([0 violations]);
     app.saveLast();

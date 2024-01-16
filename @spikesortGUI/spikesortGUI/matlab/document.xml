@@ -327,7 +327,7 @@
                         app.LeftUnitDropDown.Value = string(str2double(current(2))-1);
                     end
                 end
-
+                
                 app.RightUnitDropDown.Value = app.RightUnitDropDown.Value(1);
             end
         end
@@ -654,10 +654,10 @@
                 prompt = {'Create k units from spikes with peak amplitude MORE -VE than (uV):',...
                     'k (expected units + a couple)'};
                 d = 0;
-            else
-                prompt = {'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):',...
-                    'k (expected units + a couple)'};
-                d = 1;
+            % else
+            %     prompt = {'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):',...
+            %         'k (expected units + a couple)'};
+            %     d = 1;
             end
             answer = inputdlg(prompt, 'Create units', [1 35]);
 
@@ -670,7 +670,7 @@
 
             % generate units
             y = app.xi(app.m.mainCh,unassignedSpikes-range(1));
-            [ass, candidates] = autoCreateUnits(unassignedWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
+            [ass, candidates] = app.autoCreateUnits(unassignedWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
                 str2double(answer{1}), str2double(answer{2}), d, app.FuzzyButton.Value,...
                 app.t.templateCropFactor, app.t.deviationSampleWeights);
 
@@ -678,6 +678,8 @@
                 return;
             end
 
+            app.saveLast();
+            
             uAss = unique(ass);
             uAss(uAss == 0) = [];
             for ii = uAss
@@ -737,7 +739,10 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                pWI = cell2mat(get(app.pL,'UserData'));
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
                 I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
@@ -807,7 +812,10 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                pWI = cell2mat(get(app.pL,'UserData'));
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
                 I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
@@ -856,7 +864,10 @@
             elseif strcmpi(mode, "plotted")
                 I = app.plottedWavesIdx;
             elseif strcmpi(mode, "selected")
-                pWI = cell2mat(get(app.pL,'UserData'));
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
                 I = pWI(app.figureHandles(2).UserData.selectedIdx);
             end
 
@@ -925,7 +936,7 @@
                 r = getBatchRange(app, app.currentBatch+templateBatches);
 
                 [devMatrix, ~, thr] = getDevMatrix(app.t.add2UnitThr(1), app.unitArray, unassignedWaves, r, ...
-                    app.m.sRateHz, app.SpikesusedEditField.Value, app.FuzzyButton.Value);
+                    app.SpikesusedEditField.Value, app.m.sRateHz, app.FuzzyButton.Value);
 
                 [devMins, devMinIdx] = min(devMatrix,[],2);
 

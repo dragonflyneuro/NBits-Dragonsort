@@ -1,6 +1,6 @@
 function [] = undoredo(app,dir)
 
-maxHistory = 10;
+maxHistory = 15;
 
 if app.counter == 1 && dir == -1
     return;

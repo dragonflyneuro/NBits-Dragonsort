@@ -3,7 +3,7 @@ function [] = showXCorr(u, selection, sRate)
 % plot unit waveforms in popout figure
 subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 
-figure('Name','Cross-correlogram'); set(gcf, 'Position',  [200, 200, 900, 700]);
+figure('Name','Cross-correlogram'); set(gcf, 'Position',  [300, 200, 800, 700]);
 ax = gobjects(length(selection),length(selection));
 sgtitle("Cross Correlogram");
 

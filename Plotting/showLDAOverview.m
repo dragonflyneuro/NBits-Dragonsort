@@ -24,7 +24,7 @@ for ii=1:length(selection)
 end
 labels = "W"+string(1:3); %length(selection);
 xlabel(axW,labels(1)); ylabel(axW,labels(2)); zlabel(axW,labels(3));
-title(axW,'Units found - LDA view');
+title(axW,'LDA Overview');
 legend(axW,"Unit " + selection);
 
 markerSizeSldr = uislider(f,'Position',[50 80 700 3], 'Value',20, 'Limits',[1 200],...

@@ -3,17 +3,29 @@ function [unitLines, traceLine, plottedWaves] = plotUnitInteractive(app, hTitle,
 unitLines = [];
 traceLine = [];
 
-hTitle.Value = getUnitTitle(app, unitNum);
+
 [pWI, plottedWaves] = getPlottableWaves(app, unitNum);
+
+if ~isempty(plottedWaves)
+    templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
+    r = getBatchRange(app, app.currentBatch+templateBatches);
+    [dev, ~, ~] = getDevMatrix(1, app.unitArray(unitNum), plottedWaves, r, app.SpikesusedEditField.Value, app.m.sRateHz, 0);
+    app.unitArray(unitNum).meanDeviation = mean(dev);
+else
+    app.unitArray(unitNum).meanDeviation = 0;
+end
+
+hTitle.Value = getUnitTitle(app, unitNum);
+
 if isempty(plottedWaves)
     return;
 end
 
 [unitLines,traceLine,hUnit.UserData.inBatchIdx] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
-temp = num2cell(pWI);
-[unitLines.UserData] = temp{:};
 
 if ~isempty(pWI) % if there are spikes in the unit
+    temp = num2cell(pWI);
+    [unitLines.UserData] = temp{:};
     set(unitLines, 'ButtonDownFcn', {@app.clickedUnitLine}) % click on spikes callback
     set(hUnit,'ButtonDownFcn',{@boxClick,app,hUnit});
 end
