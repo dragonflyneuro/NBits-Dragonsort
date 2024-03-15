@@ -1,4 +1,4 @@
-function [assignedUnit, potentialSpikeIdx] = autoCreateUnits(app,unassignedWaves, y, thr, sRate, cutoff, k, direction, fuzzyBool, cropFactor, sampleW)
+function [] = autoCreateUnits(app, unassignedSpikes, unassignedWaves, y, thr, sRate, cutoff, k, direction, fuzzyBool, cropFactor, sampleW)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Calls template matching function for to generate a new unit and updates
 % Dragonsort structures
@@ -39,6 +39,7 @@ if nnz(potentialSpikesBool) <= length(potentialSpikesBool)*percentLimit
     return;
 end
 
+%% PCA step
 unassignedWavesTrimmed = unassignedWaves(potentialSpikesBool,:,:);
 if size(unassignedWavesTrimmed,1) < 2
     return;
@@ -52,7 +53,7 @@ clust = kmeans(PCwaves',k);
 uniqueClust = unique(clust);
 potentialSpikeIdx = find(potentialSpikesBool);
 
-%% dev matching step
+%% Dev matching step
 devIdx = inf(length(uniqueClust),size(unassignedWavesTrimmed,1));
 for ii = 1:length(uniqueClust)
     templateWaves = unassignedWavesTrimmed(clust == uniqueClust(ii),:,:);
@@ -74,12 +75,8 @@ uniqueAssignedUnit(uniqueAssignedUnit == 0) = [];
 % end
 % [~,I] = sort(meanDev);
 
-%% UI
-maxNum = 800;
-
-numCol = max([length(uniqueAssignedUnit), 6]);
-numRow = ceil(length(uniqueAssignedUnit)/numCol)+1;
-f = uifigure('Name','Autocreated units'); set(f, 'Position',  [200, 200, 900, 700]);
+%% UI and interactive elements
+f = uifigure('Name','Autocreated units'); set(f, 'Position',  [200, 200, 900, 700], 'CloseRequestFcn', {@closeFig, app});
 g = uigridlayout(f);
 g.RowHeight = {'1x',22};
 g.ColumnWidth = {'1x','1x','1x'};
@@ -87,20 +84,25 @@ g.ColumnWidth = {'1x','1x','1x'};
 sel = uieditfield(g,"text","Value",'[]','ValueChangedFcn', @parseToArray);
 sel.Layout.Row = 2; sel.Layout.Column = 1;
 a1 = uibutton(g, 'Text', 'Accept only selected',...
-    'ButtonPushedFcn', {@accepted, app, sel, 1});
+    'ButtonPushedFcn', {@accepted, app, f, assignedUnit, potentialSpikeIdx,unassignedSpikes,unassignedWaves, sel, 1});
 a1.Layout.Row = 2; a1.Layout.Column = 2;
 a2 = uibutton(g, 'Text', 'Accept all and set unselected as junk',...
-    'ButtonPushedFcn', {@accepted, app, sel, 0});
+    'ButtonPushedFcn', {@accepted, app, f, assignedUnit, potentialSpikeIdx,unassignedSpikes,unassignedWaves, sel, 0});
 a2.Layout.Row = 2; a2.Layout.Column = 3;
 pan = uipanel(g,'AutoResizeChildren','off');
 pan.Layout.Row = 1; pan.Layout.Column = [1,3];
 
 
+%% Plot units
+maxNum = 800;
+numCol = max([length(uniqueAssignedUnit), 6]);
+numRow = ceil(length(uniqueAssignedUnit)/numCol)+1;
+
 ax = gobjects(length(uniqueAssignedUnit),1);
 yTemp = zeros(length(uniqueAssignedUnit),2); % to match ylim later
 
 for ii=1:length(uniqueAssignedUnit)
-    waves{ii} = unassignedWavesTrimmed(assignedUnit == uniqueAssignedUnit(ii),:);
+    waves{ii} = unassignedWavesTrimmed(assignedUnit == uniqueAssignedUnit(ii),:,app.m.mainCh);
     if ~isempty(waves{ii}) && size(waves{ii},1) > maxNum
         waves{ii} = waves{ii}(1:maxNum);
     end
@@ -125,7 +127,6 @@ for ii = 1:length(uniqueAssignedUnit)
     iiCmap = getColour(ii);
     title(ax(ii), 'Unit '+string(length(app.unitArray)+ii)+" ("+size(waves{ii},1)+")",'Color',iiCmap);
     ylim(ax(ii), yTemp);
-    ylim(yTemp);
     yticks(ax(ii), 200*floor(yTemp(1)/200):200:200*ceil(yTemp(2)/200));
     if spikeWidth > 0
         xlim(ax(ii), [-spikeWidth spikeWidth]);
@@ -135,7 +136,7 @@ end
 
 sgtitle(pan,"Autocreated units - max " + string(maxNum) + " spikes plotted");
 
-%% simpler method - no checking
+% simpler method - no checking
 % for ii = 1:length(uniqueClust)
 %     numAssigned = sum(clust == uniqueClust(ii));
 %     if numAssigned < 30
@@ -147,7 +148,7 @@ sgtitle(pan,"Autocreated units - max " + string(maxNum) + " spikes plotted");
 
 end
 
-%%
+%% todo: break this out into another file
 function h=parentstp(m,n,p,gap,marg_h,marg_w,parent,varargin)
 %function h=subtightplot(m,n,p,gap,marg_h,marg_w,varargin)
 %
@@ -217,22 +218,38 @@ end
 
 
 %% callbacks
-function accepted(~, ~, app, n, f, thr, ISI)
-violations = ISI < thr;
-if any(violations)
-    I = app.unitArray(n).spikeTimes([0 violations]);
-    app.saveLast();
-    app.unitArray = app.unitArray.unitSplitter(n,I);
+function accepted(~, ~, app, f, ass, candidates, unassignedSpikes, unassignedWaves, sel, flag)
+uAss = unique(ass);
+uAss(uAss == 0) = [];
+for ii = uAss
+    if ismember(ii, eval(sel.Value)-length(app.unitArray))
+        I = ass == ii;
+        tempU = unit(unassignedSpikes(candidates(I)), unassignedWaves(candidates(I),:,:));
+        app.unitArray = [app.unitArray, tempU];
+    elseif ~flag
+        I = ass == ii;
+        tempU = unit(unassignedSpikes(candidates(I)), unassignedWaves(candidates(I),:,:));
+        tempU.tags = "Junk";
+        app.unitArray = [app.unitArray, tempU];
+    end
 end
+
+app.updateDropdown();
+app.standardUpdate;
 close(f)
 end
 
-function v = parseToArray(src, event)
-
-N = regexp(v,'\d*','Match');
+function v = parseToArray(src, ~)
+N = regexp(src.Value,'\d*','Match');
 v = '';
 for ii = 1:length(N)
     v = [v num2str(N{ii}) ','];
 end
-v = ['[' v(1:end-1) ']'];
+src.Value = ['[' v(1:end-1) ']'];
+end
+
+function closeFig(src, ~, app)
+app.switchButtons(1);
+app.switchButtons(3);
+delete(src)
 end

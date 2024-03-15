@@ -1,4 +1,4 @@
-function thr = autoThreshold(thr, metric)
+function thr = autoThreshold(thr, metric, binSize)
 % Daniel Ko (dsk13@ic.ac.uk) [Feb 2020]
 % Adjusts metric's threshold by histogram analysis to find population
 % breakpoints
@@ -9,15 +9,15 @@ function thr = autoThreshold(thr, metric)
 % 
 % OUTPUT
 % thr = adjusted threshold
-binSize = min([0.03, peak2peak(metric)/20]);
 [h, bE] = histcounts(metric,'BinWidth',binSize);
 % histogram(metric,'BinWidth',binSize);
 bC = bE(1:end-1)+binSize/2;
-[~,peaks] = findpeaks(-h,'Threshold',length(metric)/500);
+[~,peaks] = findpeaks(movmean(-h,5));
 if ~isempty(peaks)
-	[A, I] = min(abs(thr - bC(peaks))); % find closest rising slope to initial threshold
-	if abs(thr-A) < thr % do not allow threshold to change by too much
-		thr = bC(peaks(I));
+	[~, I] = min(abs(thr - bC(peaks))); % find closest rising slope to initial threshold
+    troughThr = bC(peaks(I));
+	if abs(thr-troughThr) < abs(0.1*thr) % do not allow threshold to change by too much
+		thr = troughThr;
 	end
 end
 

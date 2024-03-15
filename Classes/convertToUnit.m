@@ -58,6 +58,7 @@ else
         end
     end
 end
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
 % m struct %%%%%%%%%%%%%%
@@ -87,6 +88,14 @@ end
 % no spike zones %%%%%%%%
 if ~isfield(t, 'noSpikeRange')
     t.noSpikeRange = [];
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% flags %%%%%%%%%%%%%%%%%
+if ~isfield(t, 'carFlag')
+    t.carFlag = 0;
+    t.whiteningFlag = 0;
+    t.fuzzyDetFlag = 0;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -105,10 +105,12 @@
         BinaryEditFieldLabel          matlab.ui.control.Label
         BinaryEditField               matlab.ui.control.EditField
         ThresholdsGrid                matlab.ui.container.GridLayout
+        FuzzyDetButton                matlab.ui.control.StateButton
+        SpikeLabel                    matlab.ui.control.Label
         DetectThr2EditField           matlab.ui.control.NumericEditField
         FuzzyButton                   matlab.ui.control.StateButton
         DetectThr1EditField           matlab.ui.control.NumericEditField
-        SpikedetectionEditFieldLabel  matlab.ui.control.Label
+        AmplitudelimitsLabel          matlab.ui.control.Label
         NewunitsLabel                 matlab.ui.control.Label
         NewField                      matlab.ui.control.NumericEditField
         OldField                      matlab.ui.control.NumericEditField
@@ -640,6 +642,10 @@
         % Button pushed function: AutocreateunitsButton
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
+
+            app.switchButtons(0);
+            app.switchButtons(2);
+
             range = getBatchRange(app);
             [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
             unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
@@ -670,30 +676,9 @@
 
             % generate units
             y = app.xi(app.m.mainCh,unassignedSpikes-range(1));
-            [ass, candidates] = app.autoCreateUnits(unassignedWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
+            app.autoCreateUnits(unassignedSpikes, unassignedWaves, y, app.t.add2UnitThr(2), app.m.sRateHz, ...
                 str2double(answer{1}), str2double(answer{2}), d, app.FuzzyButton.Value,...
                 app.t.templateCropFactor, app.t.deviationSampleWeights);
-
-            if isempty(ass)
-                return;
-            end
-
-            app.saveLast();
-            
-            uAss = unique(ass);
-            uAss(uAss == 0) = [];
-            for ii = uAss
-                I = ass == ii;
-                tempU = unit(unassignedSpikes(candidates(I)), unassignedWaves(candidates(I),:,:));
-                if event.Source.UserData == 1
-                    tempU.tags = "Junk";
-                end
-                app.unitArray = [app.unitArray, tempU];
-            end
-
-            app.updateDropdown();
-            app.LeftUnitDropDown.Value = string(str2double(app.LeftUnitDropDown.Value)+1);
-            standardUpdate(app);
 
         end
 
@@ -737,7 +722,11 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value(1)).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                I = app.plottedWavesIdx;
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
+                I = pWI;
             elseif strcmpi(mode, "selected")
                 pWI = get(app.pL,'UserData');
                 if iscell(pWI)
@@ -810,7 +799,11 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                I = app.plottedWavesIdx;
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
+                I = pWI;
             elseif strcmpi(mode, "selected")
                 pWI = get(app.pL,'UserData');
                 if iscell(pWI)
@@ -862,7 +855,11 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                I = app.plottedWavesIdx;
+                pWI = get(app.pL,'UserData');
+                if iscell(pWI)
+                    pWI = cell2mat(pWI);
+                end
+                I = pWI;
             elseif strcmpi(mode, "selected")
                 pWI = get(app.pL,'UserData');
                 if iscell(pWI)
@@ -1229,6 +1226,12 @@
 
             standardUpdate(app);
 
+        end
+
+        % Value changed function: FuzzyDetButton
+        function FuzzyDetButtonValueChanged(app, event)
+            app.t.fuzzyDetFlag = app.FuzzyDetButton.Value;
+            
         end
 
         % Value changed function: DetectThr1EditField, DetectThr2EditField
@@ -2191,7 +2194,7 @@
 
             % Create ParametersGrid
             app.ParametersGrid = uigridlayout(app.ParametersdataTab);
-            app.ParametersGrid.RowHeight = {45, '1x', '0.8x', '0.7x'};
+            app.ParametersGrid.RowHeight = {45, '2x', '0.8x', '0.7x'};
             app.ParametersGrid.ColumnSpacing = 5;
             app.ParametersGrid.RowSpacing = 5;
             app.ParametersGrid.Padding = [3 3 3 3];
@@ -2299,7 +2302,7 @@
 
             % Create ThresholdsGrid
             app.ThresholdsGrid = uigridlayout(app.ParametersGrid);
-            app.ThresholdsGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x'};
+            app.ThresholdsGrid.RowHeight = {20, '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.ThresholdsGrid.ColumnSpacing = 2;
             app.ThresholdsGrid.RowSpacing = 2;
             app.ThresholdsGrid.Padding = [0 0 0 0];
@@ -2344,23 +2347,23 @@
             app.NewunitsLabel.Layout.Column = 1;
             app.NewunitsLabel.Text = 'New units';
 
-            % Create SpikedetectionEditFieldLabel
-            app.SpikedetectionEditFieldLabel = uilabel(app.ThresholdsGrid);
-            app.SpikedetectionEditFieldLabel.HorizontalAlignment = 'right';
-            app.SpikedetectionEditFieldLabel.Layout.Row = [5 6];
-            app.SpikedetectionEditFieldLabel.Layout.Column = 1;
-            app.SpikedetectionEditFieldLabel.Text = 'Spike detection';
+            % Create AmplitudelimitsLabel
+            app.AmplitudelimitsLabel = uilabel(app.ThresholdsGrid);
+            app.AmplitudelimitsLabel.HorizontalAlignment = 'right';
+            app.AmplitudelimitsLabel.Layout.Row = [6 7];
+            app.AmplitudelimitsLabel.Layout.Column = 1;
+            app.AmplitudelimitsLabel.Text = 'Amplitude limits';
 
             % Create DetectThr1EditField
             app.DetectThr1EditField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.DetectThr1EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThrChanged, true);
-            app.DetectThr1EditField.Layout.Row = 6;
+            app.DetectThr1EditField.Layout.Row = 7;
             app.DetectThr1EditField.Layout.Column = 2;
 
             % Create FuzzyButton
             app.FuzzyButton = uibutton(app.ThresholdsGrid, 'state');
-            app.FuzzyButton.Text = 'Fuzzy thresholding';
-            app.FuzzyButton.BackgroundColor = [0 1 0];
+            app.FuzzyButton.Text = 'Fuzzy deviation';
+            app.FuzzyButton.BackgroundColor = [0.9412 0.9412 0.9412];
             app.FuzzyButton.Layout.Row = 4;
             app.FuzzyButton.Layout.Column = [1 2];
             app.FuzzyButton.Value = true;
@@ -2368,8 +2371,25 @@
             % Create DetectThr2EditField
             app.DetectThr2EditField = uieditfield(app.ThresholdsGrid, 'numeric');
             app.DetectThr2EditField.ValueChangedFcn = createCallbackFcn(app, @DetectThrChanged, true);
-            app.DetectThr2EditField.Layout.Row = 5;
+            app.DetectThr2EditField.Layout.Row = 6;
             app.DetectThr2EditField.Layout.Column = 2;
+
+            % Create SpikeLabel
+            app.SpikeLabel = uilabel(app.ThresholdsGrid);
+            app.SpikeLabel.HorizontalAlignment = 'center';
+            app.SpikeLabel.FontWeight = 'bold';
+            app.SpikeLabel.Layout.Row = 5;
+            app.SpikeLabel.Layout.Column = [1 2];
+            app.SpikeLabel.Text = 'Spike detection';
+
+            % Create FuzzyDetButton
+            app.FuzzyDetButton = uibutton(app.ThresholdsGrid, 'state');
+            app.FuzzyDetButton.ValueChangedFcn = createCallbackFcn(app, @FuzzyDetButtonValueChanged, true);
+            app.FuzzyDetButton.Text = 'Fuzzy detection';
+            app.FuzzyDetButton.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.FuzzyDetButton.Layout.Row = 8;
+            app.FuzzyDetButton.Layout.Column = [1 2];
+            app.FuzzyDetButton.Value = true;
 
             % Create InfoGrid
             app.InfoGrid = uigridlayout(app.ParametersGrid);

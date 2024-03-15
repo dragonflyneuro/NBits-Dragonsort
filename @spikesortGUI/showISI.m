@@ -25,11 +25,9 @@ end
 function splitISI(~, ~, app, n, f, v, ISI)
 violations = ISI < v.Value;
 if any(violations)
-    I = app.unitArray(n).spikeTimes([0 violations]);
-    app.saveLast();
-    app.unitArray = app.unitArray.unitSplitter(n,I);
+    app.unitArray = app.unitArray.unitSplitter(n,violations);
 end
-app.redrawTracePlot();
-app.redrawUnitPlots(1);
+app.updateDropdown();
+app.standardUpdate;
 close(f)
 end

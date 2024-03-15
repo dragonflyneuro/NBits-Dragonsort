@@ -63,6 +63,7 @@ app.OldField.Value = app.t.add2UnitThr(1);
 app.NewField.Value = app.t.add2UnitThr(2);
 app.DetectThr1EditField.Value = app.t.detectThr(1);
 app.DetectThr2EditField.Value = app.t.detectThr(2);
+app.FuzzyDetButton.Value = app.t.fuzzyDetFlag;
 app.TemplatecropwidthEditField.Value = app.t.templateCropFactor;
 app.MainchannelDropDown.Items = string(1:length(app.m.ech));
 app.MainchannelDropDown.Value = string(app.m.mainCh);

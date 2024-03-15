@@ -75,7 +75,7 @@ signalDiff = abs(rawWaves-templateMean);
 deviation = sum(signalDiff.*truncWeights./templateSTD,2)/size(templateMean,2); % find summed deviation of rawWaves from templateMean, then average
 deviationIdx = squeeze(sum(deviation.*chWeight,1)); % sum deviation through the channels
 if fuzzyBool
-	threshold = autoThreshold(threshold^2,deviationIdx);
+	threshold = autoThreshold(threshold^2,deviationIdx,0.03);
 else
 	threshold = threshold^2;
 end

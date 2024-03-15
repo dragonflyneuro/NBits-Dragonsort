@@ -32,6 +32,7 @@
         IntegerbytespersampleEditFieldLabel  matlab.ui.control.Label
         SpikedetectionTab               matlab.ui.container.Tab
         GridLayout2_2                   matlab.ui.container.GridLayout
+        FuzzydetectionCheckBox          matlab.ui.control.CheckBox
         MainchannelDropDown             matlab.ui.control.DropDown
         MainchannelDropDownLabel        matlab.ui.control.Label
         SpikewidthEditField             matlab.ui.control.NumericEditField
@@ -69,7 +70,7 @@
         MultichannelTab                 matlab.ui.container.Tab
         GridLayout2_3                   matlab.ui.container.GridLayout
         CommonAverageReferencingCheckBox  matlab.ui.control.CheckBox
-        ThesesettingsarenotrecommendedforsinglechanneldataLabel  matlab.ui.control.Label
+        ThesesettingswillnotbeappliedtosinglechanneldataLabel  matlab.ui.control.Label
         ChannelwhiteningCheckBox        matlab.ui.control.CheckBox
     end
 
@@ -143,6 +144,9 @@
                 app.SplitlengthEditField.Value = tempT.batchSize;
                 app.Ampthreshold1EditField.Value = tempT.detectThr(1);
                 app.Ampthreshold2EditField.Value = tempT.detectThr(2);
+                app.FuzzydetectionCheckBox.Value = tempT.fuzzyDetFlag;
+                app.ChannelwhiteningCheckBox.Value = tempT.whiteningFlag;
+                app.CommonAverageReferencingCheckBox.Value = tempT.carFlag;
             end
 
             if nargin > 2
@@ -241,6 +245,9 @@
             app.initt.yscale = app.ScaleEditField.Value;
             app.initt.batchSize = app.SplitlengthEditField.Value;
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
+            app.initt.whiteningFlag = app.ChannelwhiteningCheckBox.Value;
+            app.initt.carFlag = app.CommonAverageReferencingCheckBox.Value;
+            app.initt.fuzzyDetFlag = app.FuzzydetectionCheckBox.Value;
             if ~isfield(app.initt,'deviationSampleWeights')
                 app.initt.deviationSampleWeights = [];
             end
@@ -509,7 +516,7 @@
             % Create GridLayout2_2
             app.GridLayout2_2 = uigridlayout(app.SpikedetectionTab);
             app.GridLayout2_2.ColumnWidth = {'0.1x', '1x', '0.5x', '0.5x', '0.5x', '0.1x'};
-            app.GridLayout2_2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2_2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout2_2.ColumnSpacing = 2;
             app.GridLayout2_2.RowSpacing = 2;
 
@@ -522,39 +529,39 @@
             % Create LengthofloadeddatablocksamplesEditFieldLabel
             app.LengthofloadeddatablocksamplesEditFieldLabel = uilabel(app.GridLayout2_2);
             app.LengthofloadeddatablocksamplesEditFieldLabel.HorizontalAlignment = 'right';
-            app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Row = 8;
+            app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Row = 9;
             app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Column = [2 3];
             app.LengthofloadeddatablocksamplesEditFieldLabel.Text = 'Length of each batch (samples)';
 
             % Create SplitlengthEditField
             app.SplitlengthEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.SplitlengthEditField.Layout.Row = 8;
+            app.SplitlengthEditField.Layout.Row = 9;
             app.SplitlengthEditField.Layout.Column = 4;
             app.SplitlengthEditField.Value = 12000000;
 
             % Create NewtemplatethresholdhigherlenientEditFieldLabel
             app.NewtemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2_2);
             app.NewtemplatethresholdhigherlenientEditFieldLabel.HorizontalAlignment = 'right';
-            app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 7;
+            app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 8;
             app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Column = [2 3];
             app.NewtemplatethresholdhigherlenientEditFieldLabel.Text = 'New unit threshold (higher = lenient)';
 
             % Create NewtemplateEditField
             app.NewtemplateEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.NewtemplateEditField.Layout.Row = 7;
+            app.NewtemplateEditField.Layout.Row = 8;
             app.NewtemplateEditField.Layout.Column = 4;
             app.NewtemplateEditField.Value = 0.6;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2_2);
             app.AddtotemplatethresholdhigherlenientEditFieldLabel.HorizontalAlignment = 'right';
-            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 6;
+            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 7;
             app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Column = [2 3];
             app.AddtotemplatethresholdhigherlenientEditFieldLabel.Text = 'Add to existing units threshold (higher = lenient)';
 
             % Create AddtotemplateEditField
             app.AddtotemplateEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.AddtotemplateEditField.Layout.Row = 6;
+            app.AddtotemplateEditField.Layout.Row = 7;
             app.AddtotemplateEditField.Layout.Column = 4;
             app.AddtotemplateEditField.Value = 0.8;
 
@@ -597,6 +604,13 @@
             app.MainchannelDropDown.Layout.Row = 2;
             app.MainchannelDropDown.Layout.Column = 4;
             app.MainchannelDropDown.Value = '1';
+
+            % Create FuzzydetectionCheckBox
+            app.FuzzydetectionCheckBox = uicheckbox(app.GridLayout2_2);
+            app.FuzzydetectionCheckBox.Text = 'Fuzzy detection';
+            app.FuzzydetectionCheckBox.Layout.Row = 5;
+            app.FuzzydetectionCheckBox.Layout.Column = [4 5];
+            app.FuzzydetectionCheckBox.Value = true;
 
             % Create FilteringTab
             app.FilteringTab = uitab(app.TabGroup);
@@ -753,15 +767,16 @@
 
             % Create ChannelwhiteningCheckBox
             app.ChannelwhiteningCheckBox = uicheckbox(app.GridLayout2_3);
+            app.ChannelwhiteningCheckBox.Enable = 'off';
             app.ChannelwhiteningCheckBox.Text = 'Channel whitening';
             app.ChannelwhiteningCheckBox.Layout.Row = 2;
             app.ChannelwhiteningCheckBox.Layout.Column = [3 4];
 
-            % Create ThesesettingsarenotrecommendedforsinglechanneldataLabel
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel = uilabel(app.GridLayout2_3);
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Row = 1;
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Column = [2 5];
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Text = 'These settings are not recommended for single channel data';
+            % Create ThesesettingswillnotbeappliedtosinglechanneldataLabel
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel = uilabel(app.GridLayout2_3);
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Layout.Row = 1;
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Layout.Column = [2 5];
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Text = 'These settings will not be applied to single channel data';
 
             % Create CommonAverageReferencingCheckBox
             app.CommonAverageReferencingCheckBox = uicheckbox(app.GridLayout2_3);
