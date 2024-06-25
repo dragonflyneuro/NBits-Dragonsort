@@ -221,8 +221,9 @@ end
 function accepted(~, ~, app, f, ass, candidates, unassignedSpikes, unassignedWaves, sel, flag)
 uAss = unique(ass);
 uAss(uAss == 0) = [];
+selected = eval(sel.Value)-length(app.unitArray);
 for ii = uAss
-    if ismember(ii, eval(sel.Value)-length(app.unitArray))
+    if ismember(ii, selected)
         I = ass == ii;
         tempU = unit(unassignedSpikes(candidates(I)), unassignedWaves(candidates(I),:,:));
         app.unitArray = [app.unitArray, tempU];

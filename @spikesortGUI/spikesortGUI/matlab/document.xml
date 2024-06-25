@@ -40,6 +40,11 @@
         OthersMenu                    matlab.ui.container.Menu
         HelpMenu                      matlab.ui.container.Menu
         MainGrid                      matlab.ui.container.GridLayout
+        MetricGrid                    matlab.ui.container.GridLayout
+        OFLabel                       matlab.ui.control.Label
+        MetricControlGrid             matlab.ui.container.GridLayout
+        MetricDropDown                matlab.ui.control.DropDown
+        MetricPanel                   matlab.ui.container.Panel
         TTitleRowGrid                 matlab.ui.container.GridLayout
         TPCAButton                    matlab.ui.control.Button
         TMultiButton                  matlab.ui.control.Button
@@ -163,11 +168,11 @@
         RPanel                        matlab.ui.container.Panel
         RightUnitDropDown             matlab.ui.control.DropDown
         LGrid                         matlab.ui.container.GridLayout
+        LeftUnitDropDown              matlab.ui.control.DropDown
         LPCAButton                    matlab.ui.control.Button
         LMultiButton                  matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
         LPanel                        matlab.ui.container.Panel
-        LeftUnitDropDown              matlab.ui.control.DropDown
         StatusLabel                   matlab.ui.control.EditField
     end
 
@@ -337,6 +342,7 @@
         function [] = standardUpdate(app)
             app.redrawTracePlot();
             app.redrawUnitPlots();
+            app.redrawMetric();
             app.StatusLabel.Value = "Ready";
             app.addHistory();
         end
@@ -1588,6 +1594,12 @@
             standardUpdate(app);
             
         end
+
+        % Value changed function: MetricDropDown
+        function MetricDropDownValueChanged(app, event)
+            app.redrawMetric();
+            
+        end
     end
 
     % Component initialization
@@ -1599,7 +1611,7 @@
             % Create UIBase and hide until all components are created
             app.UIBase = uifigure('Visible', 'off');
             app.UIBase.Color = [0.9412 0.9412 0.9412];
-            app.UIBase.Position = [50 50 1590 890];
+            app.UIBase.Position = [50 50 1750 984];
             app.UIBase.Name = 'Dragonsort v0.3';
             app.UIBase.CloseRequestFcn = createCallbackFcn(app, @UIBaseCloseRequest, true);
 
@@ -1778,7 +1790,7 @@
 
             % Create MainGrid
             app.MainGrid = uigridlayout(app.UIBase);
-            app.MainGrid.ColumnWidth = {'0.6x', '1x', '1x'};
+            app.MainGrid.ColumnWidth = {'0.6x', '0.2x', '1x', '1x'};
             app.MainGrid.RowHeight = {'1x', 22, '1x', '0.05x'};
             app.MainGrid.ColumnSpacing = 5;
             app.MainGrid.RowSpacing = 5;
@@ -1790,27 +1802,18 @@
             app.StatusLabel.FontColor = [1 1 1];
             app.StatusLabel.BackgroundColor = [0 0 0];
             app.StatusLabel.Layout.Row = 4;
-            app.StatusLabel.Layout.Column = [1 2];
+            app.StatusLabel.Layout.Column = [1 3];
             app.StatusLabel.Value = 'Ready';
 
             % Create LGrid
             app.LGrid = uigridlayout(app.MainGrid);
-            app.LGrid.ColumnWidth = {140, '1x', 50, 50};
+            app.LGrid.ColumnWidth = {60, '1x', 50, 50};
             app.LGrid.RowHeight = {22, '1x'};
             app.LGrid.ColumnSpacing = 2;
             app.LGrid.RowSpacing = 2;
             app.LGrid.Padding = [0 0 0 0];
             app.LGrid.Layout.Row = 1;
-            app.LGrid.Layout.Column = 2;
-
-            % Create LeftUnitDropDown
-            app.LeftUnitDropDown = uidropdown(app.LGrid);
-            app.LeftUnitDropDown.Items = {'1'};
-            app.LeftUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @LeftUnitDropDownValueChanged, true);
-            app.LeftUnitDropDown.FontWeight = 'bold';
-            app.LeftUnitDropDown.Layout.Row = 1;
-            app.LeftUnitDropDown.Layout.Column = 1;
-            app.LeftUnitDropDown.Value = '1';
+            app.LGrid.Layout.Column = 3;
 
             % Create LPanel
             app.LPanel = uipanel(app.LGrid);
@@ -1841,15 +1844,24 @@
             app.LPCAButton.Layout.Column = 3;
             app.LPCAButton.Text = 'Feat.';
 
+            % Create LeftUnitDropDown
+            app.LeftUnitDropDown = uidropdown(app.LGrid);
+            app.LeftUnitDropDown.Items = {'1'};
+            app.LeftUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @LeftUnitDropDownValueChanged, true);
+            app.LeftUnitDropDown.FontWeight = 'bold';
+            app.LeftUnitDropDown.Layout.Row = 1;
+            app.LeftUnitDropDown.Layout.Column = 1;
+            app.LeftUnitDropDown.Value = '1';
+
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);
-            app.RGrid.ColumnWidth = {140, '1x', 50};
+            app.RGrid.ColumnWidth = {60, '1x', 50};
             app.RGrid.RowHeight = {22, '1x'};
             app.RGrid.ColumnSpacing = 2;
             app.RGrid.RowSpacing = 2;
             app.RGrid.Padding = [0 0 0 0];
             app.RGrid.Layout.Row = 1;
-            app.RGrid.Layout.Column = 3;
+            app.RGrid.Layout.Column = 4;
 
             % Create RightUnitDropDown
             app.RightUnitDropDown = uidropdown(app.RGrid);
@@ -1884,7 +1896,7 @@
 
             % Create ControlTabs
             app.ControlTabs = uitabgroup(app.MainGrid);
-            app.ControlTabs.Layout.Row = 1;
+            app.ControlTabs.Layout.Row = [2 3];
             app.ControlTabs.Layout.Column = 1;
 
             % Create GeneralTab
@@ -2744,7 +2756,7 @@
             app.dataPanel = uipanel(app.MainGrid);
             app.dataPanel.BorderType = 'none';
             app.dataPanel.Layout.Row = 3;
-            app.dataPanel.Layout.Column = [1 3];
+            app.dataPanel.Layout.Column = [2 4];
 
             % Create ColourGrid
             app.ColourGrid = uigridlayout(app.MainGrid);
@@ -2754,7 +2766,7 @@
             app.ColourGrid.RowSpacing = 0;
             app.ColourGrid.Padding = [0 0 0 0];
             app.ColourGrid.Layout.Row = 4;
-            app.ColourGrid.Layout.Column = 3;
+            app.ColourGrid.Layout.Column = 4;
 
             % Create TTitleRowGrid
             app.TTitleRowGrid = uigridlayout(app.MainGrid);
@@ -2764,7 +2776,7 @@
             app.TTitleRowGrid.RowSpacing = 2;
             app.TTitleRowGrid.Padding = [0 0 0 0];
             app.TTitleRowGrid.Layout.Row = 2;
-            app.TTitleRowGrid.Layout.Column = [1 3];
+            app.TTitleRowGrid.Layout.Column = [2 4];
 
             % Create TTitle
             app.TTitle = uieditfield(app.TTitleRowGrid, 'text');
@@ -2790,6 +2802,49 @@
             app.TPCAButton.Layout.Row = 1;
             app.TPCAButton.Layout.Column = 2;
             app.TPCAButton.Text = 'Feat.';
+
+            % Create MetricGrid
+            app.MetricGrid = uigridlayout(app.MainGrid);
+            app.MetricGrid.ColumnWidth = {'1x', 30};
+            app.MetricGrid.RowHeight = {22, '1x', 30};
+            app.MetricGrid.ColumnSpacing = 2;
+            app.MetricGrid.RowSpacing = 2;
+            app.MetricGrid.Padding = [0 0 0 0];
+            app.MetricGrid.Layout.Row = 1;
+            app.MetricGrid.Layout.Column = [1 2];
+
+            % Create MetricPanel
+            app.MetricPanel = uipanel(app.MetricGrid);
+            app.MetricPanel.BorderType = 'none';
+            app.MetricPanel.Layout.Row = 2;
+            app.MetricPanel.Layout.Column = [1 2];
+
+            % Create MetricDropDown
+            app.MetricDropDown = uidropdown(app.MetricGrid);
+            app.MetricDropDown.Items = {'None', 'ISI', 'Waveforms'};
+            app.MetricDropDown.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
+            app.MetricDropDown.FontWeight = 'bold';
+            app.MetricDropDown.Layout.Row = 1;
+            app.MetricDropDown.Layout.Column = 1;
+            app.MetricDropDown.Value = 'None';
+
+            % Create MetricControlGrid
+            app.MetricControlGrid = uigridlayout(app.MetricGrid);
+            app.MetricControlGrid.ColumnWidth = {'1x'};
+            app.MetricControlGrid.RowHeight = {'1x'};
+            app.MetricControlGrid.ColumnSpacing = 2;
+            app.MetricControlGrid.RowSpacing = 2;
+            app.MetricControlGrid.Padding = [0 0 0 0];
+            app.MetricControlGrid.Layout.Row = 3;
+            app.MetricControlGrid.Layout.Column = [1 2];
+
+            % Create OFLabel
+            app.OFLabel = uilabel(app.MetricGrid);
+            app.OFLabel.HorizontalAlignment = 'center';
+            app.OFLabel.FontWeight = 'bold';
+            app.OFLabel.Layout.Row = 1;
+            app.OFLabel.Layout.Column = 2;
+            app.OFLabel.Text = 'OF';
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';
