@@ -6,7 +6,7 @@ classdef unit < handle
         tags = string.empty();
         mainCh {mustBeInteger} = 1;
         refineSettings {mustBeNumeric} = 1;
-        meanDeviation {mustBeInteger} = 0;
+        meanDeviation {mustBeNumeric} = 0;
         loadedTemplateWaves {mustBeNumeric} = [];
         loadedTemplateMapping = struct("originFile", [],...
                     "harvestLocation", [],...

@@ -16,6 +16,22 @@ end
 for ii=1:length(waves)
     spikePC{ii}=waves{ii}*PC(:,1:6);
 end
+X = cat(1,spikePC{:});
+
+nClusts = length(spikePC);
+nSpikes = size(X, 1);
+nSpikesPerClust = cellfun(@(x) size(x, 1), spikePC);
+clustAssignments = [];
+for ii = 1:length(spikePC)
+    clustAssignments = cat(1,clustAssignments,ii*ones(nSpikesPerClust(ii),1));
+end
+clustMean = arrayfun(@(i) mean(X(clustAssignments == i, :)), 1:nClusts, 'UniformOutput', false);
+clustMean = cell2mat(clustMean');
+intras = arrayfun(@(i) norm(X(i, :) - clustMean(clustAssignments(i), :)), 1:nSpikes);
+inters = arrayfun(@(i) min(arrayfun(@(j) norm(X(i, :) - clustMean(j, :)), setdiff(1:nClusts, clustAssignments(i)))), 1:nSpikes);
+isos = inters ./ intras;
+clusterIsos = arrayfun(@(i) mean(isos(clustAssignments == i)), 1:nClusts);
+clusterIsos = round(clusterIsos,2);
 
 drawnow
 
@@ -27,10 +43,10 @@ view(axPC,[-5 2 5]);
 
 scatterDK(spikePC,axPC,getColour(selection),getMarker(selection),10); % 3D PCA plot
 
-labels = "PC"+string(1:6);
+labels = "Feature"+string(1:6);
 xlabel(axPC,labels(1)); ylabel(axPC,labels(2)); zlabel(axPC,labels(3));
-title(axPC,'Units found - PCs view');
-legend(axPC,"Unit " + selection);
+title(axPC,'PCA Overview');
+legend(axPC,"Unit " + selection + " isoScore " + clusterIsos);
 
 markerSizeSldr = uislider(f,'Position',[50 80 700 3], 'Value',10, 'Limits',[1 50],...
     'ValueChangingFcn',{@sliderMoving, axPC});

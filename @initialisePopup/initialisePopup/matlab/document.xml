@@ -2,73 +2,76 @@
 
     % Properties that correspond to app components
     properties (Access = public)
-        SortinginitialiserUIFigure    matlab.ui.Figure
-        InitialiseButton              matlab.ui.control.Button
-        TabGroup                      matlab.ui.container.TabGroup
-        LoadingTab                    matlab.ui.container.Tab
-        GridLayout2                   matlab.ui.container.GridLayout
-        Label_7                       matlab.ui.control.Label
-        ScaleEditField                matlab.ui.control.NumericEditField
+        SortinginitialiserUIFigure      matlab.ui.Figure
+        InitialiseButton                matlab.ui.control.Button
+        TabGroup                        matlab.ui.container.TabGroup
+        LoadingTab                      matlab.ui.container.Tab
+        GridLayout2                     matlab.ui.container.GridLayout
+        SampleWeightsLabel              matlab.ui.control.Label
+        Label_8                         matlab.ui.control.Label
+        ChoosesampleweightsButton       matlab.ui.control.Button
+        Label_7                         matlab.ui.control.Label
+        ScaleEditField                  matlab.ui.control.NumericEditField
         MultiplieronyscaleyaxisisinuVLabel  matlab.ui.control.Label
-        SuffixEditField               matlab.ui.control.EditField
+        SuffixEditField                 matlab.ui.control.EditField
         SuffixtoputonsaveddataEditFieldLabel  matlab.ui.control.Label
         ThesevaluescannotbechangedoncesetLabel  matlab.ui.control.Label
-        Label_6                       matlab.ui.control.Label
-        Label_3                       matlab.ui.control.Label
-        Label_2                       matlab.ui.control.Label
-        Label                         matlab.ui.control.Label
-        echEditField                  matlab.ui.control.EditField
-        EphyschannelsarrayformatEditFieldLabel  matlab.ui.control.Label
-        FileLabel                     matlab.ui.control.Label
-        ChoosebinButton               matlab.ui.control.Button
-        DuplexdataCheckBox            matlab.ui.control.CheckBox
-        SamplingrateHzEditField       matlab.ui.control.NumericEditField
-        SamplingrateHzEditFieldLabel  matlab.ui.control.Label
-        nchEditField                  matlab.ui.control.NumericEditField
-        ofchannelsEditFieldLabel      matlab.ui.control.Label
-        BytespersampleEditField       matlab.ui.control.NumericEditField
-        BytespersampleEditFieldLabel  matlab.ui.control.Label
-        SpikedetectionTab             matlab.ui.container.Tab
-        GridLayout2_2                 matlab.ui.container.GridLayout
-        MainchannelDropDown           matlab.ui.control.DropDown
-        MainchannelDropDownLabel      matlab.ui.control.Label
-        SpikewidthEditField           matlab.ui.control.NumericEditField
+        Label_6                         matlab.ui.control.Label
+        Label_3                         matlab.ui.control.Label
+        Label_2                         matlab.ui.control.Label
+        Label                           matlab.ui.control.Label
+        echEditField                    matlab.ui.control.EditField
+        Channelstosortarrayformateg1234Label  matlab.ui.control.Label
+        FileLabel                       matlab.ui.control.Label
+        ChoosebinButton                 matlab.ui.control.Button
+        SamplingrateHzEditField         matlab.ui.control.NumericEditField
+        SamplingrateHzEditFieldLabel    matlab.ui.control.Label
+        nchEditField                    matlab.ui.control.NumericEditField
+        ofchannelsEditFieldLabel        matlab.ui.control.Label
+        IntegerbytespersampleEditField  matlab.ui.control.NumericEditField
+        IntegerbytespersampleEditFieldLabel  matlab.ui.control.Label
+        SpikedetectionTab               matlab.ui.container.Tab
+        GridLayout2_2                   matlab.ui.container.GridLayout
+        FuzzydetectionCheckBox          matlab.ui.control.CheckBox
+        MainchannelDropDown             matlab.ui.control.DropDown
+        MainchannelDropDownLabel        matlab.ui.control.Label
+        SpikewidthEditField             matlab.ui.control.NumericEditField
         SpikewidtheithersideofpeakmsLabel  matlab.ui.control.Label
-        Ampthreshold1EditField        matlab.ui.control.NumericEditField
-        SpikeamplituderangeuVLabel    matlab.ui.control.Label
-        AddtotemplateEditField        matlab.ui.control.NumericEditField
+        Ampthreshold1EditField          matlab.ui.control.NumericEditField
+        SpikeamplituderangeuVLabel      matlab.ui.control.Label
+        AddtotemplateEditField          matlab.ui.control.NumericEditField
         AddtotemplatethresholdhigherlenientEditFieldLabel  matlab.ui.control.Label
-        NewtemplateEditField          matlab.ui.control.NumericEditField
+        NewtemplateEditField            matlab.ui.control.NumericEditField
         NewtemplatethresholdhigherlenientEditFieldLabel  matlab.ui.control.Label
-        SplitlengthEditField          matlab.ui.control.NumericEditField
+        SplitlengthEditField            matlab.ui.control.NumericEditField
         LengthofloadeddatablocksamplesEditFieldLabel  matlab.ui.control.Label
-        Ampthreshold2EditField        matlab.ui.control.NumericEditField
-        FilteringTab                  matlab.ui.container.Tab
-        GridLayout                    matlab.ui.container.GridLayout
-        NoneButton                    matlab.ui.control.StateButton
-        PlotButton                    matlab.ui.control.Button
-        LowpassButton                 matlab.ui.control.StateButton
-        SetButton                     matlab.ui.control.Button
-        Cutoffs2EditField             matlab.ui.control.NumericEditField
-        Cutoffs1EditField             matlab.ui.control.NumericEditField
-        CutoffsHzEditFieldLabel_2     matlab.ui.control.Label
-        FirstbandCheckBox             matlab.ui.control.CheckBox
-        HelpLabel                     matlab.ui.control.Label
-        CustomLabel                   matlab.ui.control.Label
-        CutoffsEditField              matlab.ui.control.EditField
-        CutoffsHzEditFieldLabel       matlab.ui.control.Label
-        NotchButton                   matlab.ui.control.StateButton
-        BandpassButton                matlab.ui.control.StateButton
-        HighpassButton                matlab.ui.control.StateButton
-        PresetsLabel                  matlab.ui.control.Label
-        FilterLengthEditField         matlab.ui.control.NumericEditField
-        FilterorderLabel              matlab.ui.control.Label
-        UIAxes                        matlab.ui.control.UIAxes
-        MultichannelTab               matlab.ui.container.Tab
-        GridLayout2_3                 matlab.ui.container.GridLayout
+        Ampthreshold2EditField          matlab.ui.control.NumericEditField
+        FilteringTab                    matlab.ui.container.Tab
+        GridLayout                      matlab.ui.container.GridLayout
+        NoneButton                      matlab.ui.control.StateButton
+        PlotButton                      matlab.ui.control.Button
+        LowpassButton                   matlab.ui.control.StateButton
+        SetButton                       matlab.ui.control.Button
+        Cutoffs2EditField               matlab.ui.control.NumericEditField
+        Cutoffs1EditField               matlab.ui.control.NumericEditField
+        CutoffsHzEditFieldLabel_2       matlab.ui.control.Label
+        FirstbandCheckBox               matlab.ui.control.CheckBox
+        HelpLabel                       matlab.ui.control.Label
+        CustomLabel                     matlab.ui.control.Label
+        CutoffsEditField                matlab.ui.control.EditField
+        CutoffsHzEditFieldLabel         matlab.ui.control.Label
+        NotchButton                     matlab.ui.control.StateButton
+        BandpassButton                  matlab.ui.control.StateButton
+        HighpassButton                  matlab.ui.control.StateButton
+        PresetsLabel                    matlab.ui.control.Label
+        FilterLengthEditField           matlab.ui.control.NumericEditField
+        FilterorderLabel                matlab.ui.control.Label
+        UIAxes                          matlab.ui.control.UIAxes
+        MultichannelTab                 matlab.ui.container.Tab
+        GridLayout2_3                   matlab.ui.container.GridLayout
         CommonAverageReferencingCheckBox  matlab.ui.control.CheckBox
-        ThesesettingsarenotrecommendedforsinglechanneldataLabel  matlab.ui.control.Label
-        ChannelwhiteningCheckBox      matlab.ui.control.CheckBox
+        ThesesettingswillnotbeappliedtosinglechanneldataLabel  matlab.ui.control.Label
+        ChannelwhiteningCheckBox        matlab.ui.control.CheckBox
     end
 
     
@@ -99,12 +102,7 @@
             
             temp = app.snippet;
             if ~isempty(eval(app.CutoffsEditField.Value))
-                if app.DuplexdataCheckBox.Value
-                    r = app.SamplingrateHzEditField.Value;
-                else
-                    r = app.SamplingrateHzEditField.Value/2;
-                end
-    
+                r = app.SamplingrateHzEditField.Value/2;
                 if ~app.FirstbandCheckBox.Value
                     f = fir1(app.FilterLengthEditField.Value,...
                         eval(app.CutoffsEditField.Value)./r,'DC-0');
@@ -146,11 +144,14 @@
                 app.SplitlengthEditField.Value = tempT.batchSize;
                 app.Ampthreshold1EditField.Value = tempT.detectThr(1);
                 app.Ampthreshold2EditField.Value = tempT.detectThr(2);
+                app.FuzzydetectionCheckBox.Value = tempT.fuzzyDetFlag;
+                app.ChannelwhiteningCheckBox.Value = tempT.whiteningFlag;
+                app.CommonAverageReferencingCheckBox.Value = tempT.carFlag;
             end
 
             if nargin > 2
                 tempM = varargin{1};
-                app.BytespersampleEditField.Value = tempM.dbytes;
+                app.IntegerbytespersampleEditField.Value = tempM.dbytes;
                 app.nchEditField.Value = tempM.nChans;
                 app.echEditField.Value = parseToArray(num2str(tempM.ech));
                 echArray = tempM.ech;
@@ -164,7 +165,6 @@
                 elseif all(tempM.filterSpec.firstBandMode == 'stop')
                     app.FirstbandCheckBox.Value = 0;
                 end
-                app.DuplexdataCheckBox.Value = 0;
                 app.SamplingrateHzEditField.Value = tempM.sRateHz;
                 app.SpikewidthEditField.Value = tempM.spikeWidth*1000/tempM.sRateHz;
             end
@@ -216,7 +216,7 @@
             app.CallingApp.loadPath = app.initm.fP;
             app.CallingApp.savePath = app.initm.fP;
                     
-            app.initm.dbytes = app.BytespersampleEditField.Value;
+            app.initm.dbytes = app.IntegerbytespersampleEditField.Value;
             app.initm.nChans = app.nchEditField.Value;
             if ~isempty(app.echEditField.Value)
                 app.initm.ech = eval(app.echEditField.Value);
@@ -236,11 +236,7 @@
                 app.initm.filterSpec.firstBandMode = 'stop';
             end
             
-            if app.DuplexdataCheckBox.Value
-                app.initm.sRateHz = 2*app.SamplingrateHzEditField.Value;
-            else
-                app.initm.sRateHz = app.SamplingrateHzEditField.Value;
-            end
+            app.initm.sRateHz = app.SamplingrateHzEditField.Value;
             app.initm.spikeWidth = round(app.SpikewidthEditField.Value*app.initm.sRateHz/1000);
             
             app.initt.add2UnitThr(1) = app.AddtotemplateEditField.Value;
@@ -249,6 +245,12 @@
             app.initt.yscale = app.ScaleEditField.Value;
             app.initt.batchSize = app.SplitlengthEditField.Value;
             app.initt.detectThr = [app.Ampthreshold1EditField.Value app.Ampthreshold2EditField.Value];
+            app.initt.whiteningFlag = app.ChannelwhiteningCheckBox.Value;
+            app.initt.carFlag = app.CommonAverageReferencingCheckBox.Value;
+            app.initt.fuzzyDetFlag = app.FuzzydetectionCheckBox.Value;
+            if ~isfield(app.initt,'deviationSampleWeights')
+                app.initt.deviationSampleWeights = [];
+            end
             
             updateVars(app.CallingApp, app.initm, app.initt, []);
             switchButtons(app.CallingApp,1);
@@ -261,10 +263,10 @@
         function cleanArray(app, event)
             event.Source.Value = parseToArray(event.Source.Value);
             echArray = eval(event.Source.Value);
+            app.MainchannelDropDown.Items = string(echArray);
             if ~ismember(str2double(app.MainchannelDropDown.Value),echArray)
                 app.MainchannelDropDown.Value = string(echArray(1));
             end
-            app.MainchannelDropDown.Items = string(echArray);
             
         end
 
@@ -300,6 +302,30 @@
             updateFig(app)
             
         end
+
+        % Button pushed function: ChoosesampleweightsButton
+        function ChoosesampleweightsButtonPushed(app, event)
+            [fN, fP] = uigetfile([app.CallingApp.loadPath '*.mat'],'Pick *.mat file to load');
+            if fN ~= 0
+                try
+                    temp = load([fP fN]);
+                    fields = fieldnames(temp);
+                    app.initt.deviationSampleWeights = temp.(fields{1});
+                catch
+                    app.SampleWeightsLabel.Text = "Could not open file! (Optional)";
+                    app.SampleWeightsLabel.FontColor = [255 0 0];
+                end
+
+                if isa(app.initt.deviationSampleWeights,'double') && min(size(app.initt.deviationSampleWeights)) == 1
+                    app.SampleWeightsLabel.Text = fN;
+                    app.SampleWeightsLabel.FontColor = [0 0 0];
+                else
+                    app.initt.deviationSampleWeights = [];
+                    app.SampleWeightsLabel.Text = "Wrong format! (Optional)";
+                    app.SampleWeightsLabel.FontColor = [255 0 0];
+                end
+            end
+        end
     end
 
     % Component initialization
@@ -329,18 +355,18 @@
             app.GridLayout2.ColumnSpacing = 2;
             app.GridLayout2.RowSpacing = 2;
 
-            % Create BytespersampleEditFieldLabel
-            app.BytespersampleEditFieldLabel = uilabel(app.GridLayout2);
-            app.BytespersampleEditFieldLabel.HorizontalAlignment = 'right';
-            app.BytespersampleEditFieldLabel.Layout.Row = 4;
-            app.BytespersampleEditFieldLabel.Layout.Column = [2 3];
-            app.BytespersampleEditFieldLabel.Text = 'Bytes per sample';
+            % Create IntegerbytespersampleEditFieldLabel
+            app.IntegerbytespersampleEditFieldLabel = uilabel(app.GridLayout2);
+            app.IntegerbytespersampleEditFieldLabel.HorizontalAlignment = 'right';
+            app.IntegerbytespersampleEditFieldLabel.Layout.Row = 4;
+            app.IntegerbytespersampleEditFieldLabel.Layout.Column = [2 3];
+            app.IntegerbytespersampleEditFieldLabel.Text = 'Integer bytes per sample';
 
-            % Create BytespersampleEditField
-            app.BytespersampleEditField = uieditfield(app.GridLayout2, 'numeric');
-            app.BytespersampleEditField.Layout.Row = 4;
-            app.BytespersampleEditField.Layout.Column = 4;
-            app.BytespersampleEditField.Value = 2;
+            % Create IntegerbytespersampleEditField
+            app.IntegerbytespersampleEditField = uieditfield(app.GridLayout2, 'numeric');
+            app.IntegerbytespersampleEditField.Layout.Row = 4;
+            app.IntegerbytespersampleEditField.Layout.Column = 4;
+            app.IntegerbytespersampleEditField.Value = 2;
 
             % Create ofchannelsEditFieldLabel
             app.ofchannelsEditFieldLabel = uilabel(app.GridLayout2);
@@ -368,18 +394,11 @@
             app.SamplingrateHzEditField.Layout.Column = 4;
             app.SamplingrateHzEditField.Value = 30000;
 
-            % Create DuplexdataCheckBox
-            app.DuplexdataCheckBox = uicheckbox(app.GridLayout2);
-            app.DuplexdataCheckBox.Text = 'Duplex data?';
-            app.DuplexdataCheckBox.Layout.Row = 7;
-            app.DuplexdataCheckBox.Layout.Column = 5;
-            app.DuplexdataCheckBox.Value = true;
-
             % Create ChoosebinButton
             app.ChoosebinButton = uibutton(app.GridLayout2, 'push');
             app.ChoosebinButton.ButtonPushedFcn = createCallbackFcn(app, @ChoosebinButtonPushed, true);
             app.ChoosebinButton.Layout.Row = 2;
-            app.ChoosebinButton.Layout.Column = 4;
+            app.ChoosebinButton.Layout.Column = [4 5];
             app.ChoosebinButton.Text = 'Choose .bin';
 
             % Create FileLabel
@@ -389,12 +408,12 @@
             app.FileLabel.Layout.Column = [2 3];
             app.FileLabel.Text = 'None';
 
-            % Create EphyschannelsarrayformatEditFieldLabel
-            app.EphyschannelsarrayformatEditFieldLabel = uilabel(app.GridLayout2);
-            app.EphyschannelsarrayformatEditFieldLabel.HorizontalAlignment = 'right';
-            app.EphyschannelsarrayformatEditFieldLabel.Layout.Row = 6;
-            app.EphyschannelsarrayformatEditFieldLabel.Layout.Column = [2 3];
-            app.EphyschannelsarrayformatEditFieldLabel.Text = 'Ephys channels (array format)';
+            % Create Channelstosortarrayformateg1234Label
+            app.Channelstosortarrayformateg1234Label = uilabel(app.GridLayout2);
+            app.Channelstosortarrayformateg1234Label.HorizontalAlignment = 'right';
+            app.Channelstosortarrayformateg1234Label.Layout.Row = 6;
+            app.Channelstosortarrayformateg1234Label.Layout.Column = [2 3];
+            app.Channelstosortarrayformateg1234Label.Text = 'Channels to sort (array format e.g. [1,2,3,4]) ';
 
             % Create echEditField
             app.echEditField = uieditfield(app.GridLayout2, 'text');
@@ -469,6 +488,27 @@
             app.Label_7.Layout.Column = 1;
             app.Label_7.Text = '*';
 
+            % Create ChoosesampleweightsButton
+            app.ChoosesampleweightsButton = uibutton(app.GridLayout2, 'push');
+            app.ChoosesampleweightsButton.ButtonPushedFcn = createCallbackFcn(app, @ChoosesampleweightsButtonPushed, true);
+            app.ChoosesampleweightsButton.Layout.Row = 3;
+            app.ChoosesampleweightsButton.Layout.Column = [4 5];
+            app.ChoosesampleweightsButton.Text = 'Choose sample weights';
+
+            % Create Label_8
+            app.Label_8 = uilabel(app.GridLayout2);
+            app.Label_8.HorizontalAlignment = 'center';
+            app.Label_8.Layout.Row = 2;
+            app.Label_8.Layout.Column = 1;
+            app.Label_8.Text = '*';
+
+            % Create SampleWeightsLabel
+            app.SampleWeightsLabel = uilabel(app.GridLayout2);
+            app.SampleWeightsLabel.HorizontalAlignment = 'right';
+            app.SampleWeightsLabel.Layout.Row = 3;
+            app.SampleWeightsLabel.Layout.Column = [2 3];
+            app.SampleWeightsLabel.Text = 'None (Optional)';
+
             % Create SpikedetectionTab
             app.SpikedetectionTab = uitab(app.TabGroup);
             app.SpikedetectionTab.Title = 'Spike detection';
@@ -476,7 +516,7 @@
             % Create GridLayout2_2
             app.GridLayout2_2 = uigridlayout(app.SpikedetectionTab);
             app.GridLayout2_2.ColumnWidth = {'0.1x', '1x', '0.5x', '0.5x', '0.5x', '0.1x'};
-            app.GridLayout2_2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.GridLayout2_2.RowHeight = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
             app.GridLayout2_2.ColumnSpacing = 2;
             app.GridLayout2_2.RowSpacing = 2;
 
@@ -489,39 +529,39 @@
             % Create LengthofloadeddatablocksamplesEditFieldLabel
             app.LengthofloadeddatablocksamplesEditFieldLabel = uilabel(app.GridLayout2_2);
             app.LengthofloadeddatablocksamplesEditFieldLabel.HorizontalAlignment = 'right';
-            app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Row = 8;
+            app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Row = 9;
             app.LengthofloadeddatablocksamplesEditFieldLabel.Layout.Column = [2 3];
             app.LengthofloadeddatablocksamplesEditFieldLabel.Text = 'Length of each batch (samples)';
 
             % Create SplitlengthEditField
             app.SplitlengthEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.SplitlengthEditField.Layout.Row = 8;
+            app.SplitlengthEditField.Layout.Row = 9;
             app.SplitlengthEditField.Layout.Column = 4;
             app.SplitlengthEditField.Value = 12000000;
 
             % Create NewtemplatethresholdhigherlenientEditFieldLabel
             app.NewtemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2_2);
             app.NewtemplatethresholdhigherlenientEditFieldLabel.HorizontalAlignment = 'right';
-            app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 7;
+            app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 8;
             app.NewtemplatethresholdhigherlenientEditFieldLabel.Layout.Column = [2 3];
-            app.NewtemplatethresholdhigherlenientEditFieldLabel.Text = 'New template threshold (higher = lenient)';
+            app.NewtemplatethresholdhigherlenientEditFieldLabel.Text = 'New unit threshold (higher = lenient)';
 
             % Create NewtemplateEditField
             app.NewtemplateEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.NewtemplateEditField.Layout.Row = 7;
+            app.NewtemplateEditField.Layout.Row = 8;
             app.NewtemplateEditField.Layout.Column = 4;
-            app.NewtemplateEditField.Value = 0.7;
+            app.NewtemplateEditField.Value = 0.6;
 
             % Create AddtotemplatethresholdhigherlenientEditFieldLabel
             app.AddtotemplatethresholdhigherlenientEditFieldLabel = uilabel(app.GridLayout2_2);
             app.AddtotemplatethresholdhigherlenientEditFieldLabel.HorizontalAlignment = 'right';
-            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 6;
+            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Row = 7;
             app.AddtotemplatethresholdhigherlenientEditFieldLabel.Layout.Column = [2 3];
-            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Text = 'Add to template threshold (higher = lenient)';
+            app.AddtotemplatethresholdhigherlenientEditFieldLabel.Text = 'Add to existing units threshold (higher = lenient)';
 
             % Create AddtotemplateEditField
             app.AddtotemplateEditField = uieditfield(app.GridLayout2_2, 'numeric');
-            app.AddtotemplateEditField.Layout.Row = 6;
+            app.AddtotemplateEditField.Layout.Row = 7;
             app.AddtotemplateEditField.Layout.Column = 4;
             app.AddtotemplateEditField.Value = 0.8;
 
@@ -565,6 +605,13 @@
             app.MainchannelDropDown.Layout.Column = 4;
             app.MainchannelDropDown.Value = '1';
 
+            % Create FuzzydetectionCheckBox
+            app.FuzzydetectionCheckBox = uicheckbox(app.GridLayout2_2);
+            app.FuzzydetectionCheckBox.Text = 'Fuzzy detection';
+            app.FuzzydetectionCheckBox.Layout.Row = 5;
+            app.FuzzydetectionCheckBox.Layout.Column = [4 5];
+            app.FuzzydetectionCheckBox.Value = true;
+
             % Create FilteringTab
             app.FilteringTab = uitab(app.TabGroup);
             app.FilteringTab.Title = 'Filtering';
@@ -597,7 +644,7 @@
             app.FilterLengthEditField = uieditfield(app.GridLayout, 'numeric');
             app.FilterLengthEditField.Layout.Row = 5;
             app.FilterLengthEditField.Layout.Column = 3;
-            app.FilterLengthEditField.Value = 400;
+            app.FilterLengthEditField.Value = 4;
 
             % Create PresetsLabel
             app.PresetsLabel = uilabel(app.GridLayout);
@@ -637,7 +684,7 @@
             app.CutoffsEditField.ValueChangedFcn = createCallbackFcn(app, @CutoffsEditFieldValueChanged, true);
             app.CutoffsEditField.Layout.Row = 6;
             app.CutoffsEditField.Layout.Column = [3 4];
-            app.CutoffsEditField.Value = '[300,15000]';
+            app.CutoffsEditField.Value = '[300,10000]';
 
             % Create CustomLabel
             app.CustomLabel = uilabel(app.GridLayout);
@@ -677,7 +724,7 @@
             app.Cutoffs2EditField = uieditfield(app.GridLayout, 'numeric');
             app.Cutoffs2EditField.Layout.Row = 3;
             app.Cutoffs2EditField.Layout.Column = 4;
-            app.Cutoffs2EditField.Value = 15000;
+            app.Cutoffs2EditField.Value = 10000;
 
             % Create SetButton
             app.SetButton = uibutton(app.GridLayout, 'push');
@@ -720,15 +767,16 @@
 
             % Create ChannelwhiteningCheckBox
             app.ChannelwhiteningCheckBox = uicheckbox(app.GridLayout2_3);
+            app.ChannelwhiteningCheckBox.Enable = 'off';
             app.ChannelwhiteningCheckBox.Text = 'Channel whitening';
             app.ChannelwhiteningCheckBox.Layout.Row = 2;
             app.ChannelwhiteningCheckBox.Layout.Column = [3 4];
 
-            % Create ThesesettingsarenotrecommendedforsinglechanneldataLabel
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel = uilabel(app.GridLayout2_3);
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Row = 1;
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Layout.Column = [2 5];
-            app.ThesesettingsarenotrecommendedforsinglechanneldataLabel.Text = 'These settings are not recommended for single channel data';
+            % Create ThesesettingswillnotbeappliedtosinglechanneldataLabel
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel = uilabel(app.GridLayout2_3);
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Layout.Row = 1;
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Layout.Column = [2 5];
+            app.ThesesettingswillnotbeappliedtosinglechanneldataLabel.Text = 'These settings will not be applied to single channel data';
 
             % Create CommonAverageReferencingCheckBox
             app.CommonAverageReferencingCheckBox = uicheckbox(app.GridLayout2_3);

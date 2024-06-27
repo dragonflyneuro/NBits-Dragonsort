@@ -5,12 +5,8 @@ subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05])
 
 maxNum = 800;
 
-if length(selection) > 6
-    numCol = 6;
-else
-    numCol = length(selection);
-end
-sp = ceil(length(selection)/numCol);
+numCol = min([length(selection), 6]);
+numRow = ceil(length(selection)/numCol);
 figure('Name','Spike Overview'); set(gcf, 'Position',  [200, 200, 900, 700]);
 ax = gobjects(length(selection),1);
 yTemp = zeros(length(selection),2); % to match ylim later
@@ -28,9 +24,11 @@ end
 
 for ii=1:length(selection)
     spikeWidth = (size(waves{ii},2)-1)/2;
-    ax(ii) = subplott(sp,numCol,ii);
-    p = line(ax(ii), -spikeWidth:spikeWidth, waves{ii}');
-    set(p, {'Color'}, num2cell(parula(size(waves{ii},1)),2));
+    ax(ii) = subplott(numRow,numCol,ii);
+    if ~isempty(waves{ii})
+        p = line(ax(ii), -spikeWidth:spikeWidth, waves{ii}');
+        set(p, {'Color'}, num2cell(parula(size(waves{ii},1)),2));
+    end
     yTemp(ii,:) = ylim(ax(ii));
 end
 

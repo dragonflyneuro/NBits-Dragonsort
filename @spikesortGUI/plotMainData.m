@@ -1,5 +1,5 @@
 function mainLine = plotMainData(app,h,ch)
-mainLine = plotBig(h, app.msConvert*(1:size(app.xi,2)), app.xi(ch,:),'Color','b');
+mainLine = line(h, app.msConvert*(1:size(app.xi,2)), app.xi(ch,:),'Color','b'); %plotBig
 
 xlim(h, [0 app.msConvert*size(app.xi,2)]);
 ylim(h, 'auto');

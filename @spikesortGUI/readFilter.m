@@ -9,7 +9,28 @@ r = getBatchRange(app);
 
 app.xi = getFilteredData(app, c);
 
-[~, sTimesOffset] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), app.t.detectThr(2), -1); % aligned to negative peak
+% common median referencing for multichannel
+if app.t.carFlag && length(app.m.ech) > 1
+    app.xi = app.xi-median(app.xi);
+end
+
+% if app.t.whiteningFlag
+%   todo: rewrite getWhitenedCh for new method
+% end
+
+%   todo: rewrite better auto artifact rejection to work with noisy data
+
+% fuzzy thresholding
+if app.t.fuzzyDetFlag
+    [~, sTimesOffset] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), ...
+        app.t.detectThr(2)*0.8, -1);
+    sTimesOffset(app.xi(app.m.mainCh,sTimesOffset) > ...
+        autoThreshold(app.t.detectThr(2), app.xi(app.m.mainCh,sTimesOffset),1)) = [];
+else
+    [~, sTimesOffset] = spike_times2(app.xi(app.m.mainCh, 1:end-app.m.spikeWidth), ...
+        app.t.detectThr(2), -1); % aligned to negative peak
+end
+
 sTimesOffset = sTimesOffset(sTimesOffset > app.m.spikeWidth+1);
 sTimesOffset(app.xi(app.m.mainCh,sTimesOffset) < app.t.detectThr(1)) = [];
 sTimesReal = sTimesOffset + r(1);

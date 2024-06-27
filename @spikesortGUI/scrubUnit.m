@@ -1,17 +1,17 @@
 function [] = scrubUnit(app, n)
+app.MetricGrid.RowHeight = {22,'1x',80};
+app.MetricControlGrid.RowHeight = {'1x',22};
+app.MetricControlGrid.ColumnWidth = {'1x','1x','1x'};
+ax = axes('Parent',app.MetricPanel);
+% ax.Position = [0.1, 0.1, 0.85, 0.86];
+
 waves = app.unitArray(n).waves(:,:,app.unitArray(n).mainCh);
-
-f = uifigure('Name','Unit Scrubber');
-set(f, 'Position',  [300, 200, 800, 700]);
-ax = uiaxes(f, 'Position', [50 100 700 550], 'NextPlot', 'Add');
-
 p = line(ax, -floor(size(waves,2)/2):floor(size(waves,2)/2), waves');
 set(p, {'Color'}, num2cell(parula(size(waves,1)),2));
 if length(p) > 1 % make future spikes invisible for now
     set(p(2:end),'Visible', 'off');
 end
 
-title(ax, "Unit "+n,'Color',getColour(n));
 xlabel(ax, "Samples")
 ylabel(ax, "Amplitude (uV)")
 
@@ -19,11 +19,20 @@ yl(1) = min(min(waves))-50; yl(2) = max(max(waves))+50;
 ylim(ax, yl);
 
 % create sliders and buttons to allow unit scrubbing and manipulation
-sldr = uislider(f,'Position',[50 80 700 3], 'Value',1, 'Limits',[1 size(waves,1)],...
+slider = uislider(app.MetricControlGrid, 'Value',1, 'Limits',[1 size(waves,1)],...
     'ValueChangingFcn',{@scrubSliderMoving, p});
-uibutton(f, 'Text', 'Split here', 'Position',[100 20 200 22], 'ButtonPushedFcn', {@scrubSplit, app, n, sldr, f});
-uibutton(f, 'Text', 'Remove before', 'Position',[300 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 0});
-uibutton(f, 'Text', 'Remove after', 'Position',[500 20 200 22], 'ButtonPushedFcn', {@scrubRemove, app, n, sldr, f, 1});
+splitButton = uibutton(app.MetricControlGrid, 'Text', 'Split here', 'ButtonPushedFcn', {@scrubSplit, app, n, slider});
+removeBeforeButton = uibutton(app.MetricControlGrid, 'Text', 'Remove before', 'ButtonPushedFcn', {@scrubRemove, app, n, slider, 0});
+removeAfterButton = uibutton(app.MetricControlGrid, 'Text', 'Remove after', 'ButtonPushedFcn', {@scrubRemove, app, n, slider, 1});
+
+slider.Layout.Row = 1;
+slider.Layout.Column = [1 3];
+splitButton.Layout.Row = 2;
+splitButton.Layout.Column = 1;
+removeBeforeButton.Layout.Row = 2;
+removeBeforeButton.Layout.Column = 2;
+removeAfterButton.Layout.Row = 2;
+removeAfterButton.Layout.Column = 3;
 
 app.StatusLabel.Value = "Ready";
 end
@@ -37,20 +46,20 @@ end
 
 
 % split spikes before/after set timepoint in unit scrubbing window
-function scrubSplit(~, ~, app, n, sld, h)
-app.saveLast();
+function scrubSplit(~, ~, app, n, sld)
+app.addHistory();
 tU = app.unitArray(n).spikeTimes;
 I = round(sld.Value)+1:length(tU);
 app.unitArray = app.unitArray.unitSplitter(n,I);
 app.redrawTracePlot();
 app.redrawUnitPlots(1);
-close(h)
+app.redrawMetric();
 end
 
 
 % remove spikes before/after set timepoint in unit scrubbing window
-function scrubRemove(~, ~, app, n, sld, h, o)
-app.saveLast();
+function scrubRemove(~, ~, app, n, sld, o)
+app.addHistory();
 tU = app.unitArray(n).spikeTimes;
 if o % choose before/after
     I = round(sld.Value)+1:length(tU);
@@ -60,5 +69,5 @@ end
 app.unitArray = app.unitArray.spikeRemover(n,I);
 app.redrawTracePlot();
 app.redrawUnitPlots(1);
-close(h)
+app.redrawMetric();
 end

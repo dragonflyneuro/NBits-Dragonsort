@@ -75,7 +75,7 @@ devMatrix = devMatrix.*median(templateP2p(templateP2p ~= 0)); %complete the devi
 for ii = 1:length(uA)
     if templateP2p(ii) > 0
         if fuzzyBool
-            thr(ii) = autoThreshold(thr(ii)*median(templateP2p(templateP2p ~= 0))/templateP2p(ii),devMatrix(:,ii));
+            thr(ii) = autoThreshold(thr(ii)*median(templateP2p(templateP2p ~= 0))/templateP2p(ii),devMatrix(:,ii),0.03);
         else
             thr(ii) = thr(ii)/templateP2p(ii);
         end
