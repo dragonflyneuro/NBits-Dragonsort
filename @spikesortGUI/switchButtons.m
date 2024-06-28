@@ -37,7 +37,6 @@ app.RemovespikeButton,...
 app.AutosortbatchButton,...
 app.SavenamecopyButton,...
 app.AllOverviewButton,...
-app.LeftOverviewButton,...
 app.SplitButton,...
 app.AutosortButton,...
 app.ToggletagButton,...
@@ -56,23 +55,25 @@ multiChanButtons = [app.TMultiButton,...
     app.RMultiButton];
 
 switch opt
-    case 0
+    case 'menuOff'
         [initialMenus.Enable] = deal('off');
-    case 1
+    case 'menuOn'
         [initialMenus.Enable] = deal('on');
-    case 2
+    case 'opsOff'
         [opsMenus.Enable] = deal('off');
         [opsButtons.Enable] = deal('off');
         [opsStateButtons.Enable] = deal('off');
         [opsDropDowns.Enable] = deal('off');
-    case 3
+        [app.Metrics.dropDownArr.Enable] = deal('off');
+    case 'opsOn'
         [opsMenus.Enable] = deal('on');
         [opsButtons.Enable] = deal('on');
         [opsStateButtons.Enable] = deal('on');
         [opsDropDowns.Enable] = deal('on');
-    case 4
+        [app.Metrics.dropDownArr.Enable] = deal('on');
+    case 'multiOff'
         [multiChanButtons.Enable] = deal('off');
-    case 5
+    case 'multiOn'
         [multiChanButtons.Enable] = deal('on');
 end
 end

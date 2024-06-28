@@ -1,9 +1,9 @@
-function [clust, yn] = unitAutoSplitter(u, n, idx, numSplit, yl)
+function [clust, yn] = unitAutoSplitter(u, uIdx, wIdx, numSplit, yl)
 % crop waves for better PCA
 
-spikeWidth = (size(u(n).waves,2)-1)/2;
+spikeWidth = (size(u(uIdx).waves,2)-1)/2;
 % no spikes
-if spikeWidth < 0 || length(idx) < 2
+if spikeWidth < 0 || length(wIdx) < 2
     clust = [];
     yn = 0;
     return;
@@ -11,7 +11,7 @@ end
 
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);
-croppedWaves = u(n).waves(idx,:);
+croppedWaves = u(uIdx).waves(wIdx,:);
 
 % perform PCA and cluster waves
 PC = pca(croppedWaves);
@@ -29,18 +29,18 @@ yTemp = zeros(numClust,2);
 for ii = 1:numClust
     if sum(clust==ii) ~= 0
         ax(ii) = subplot(ceil(numClust/4),4,ii,'Parent',f);
-        line(ax(ii), -spikeWidth:spikeWidth, u(n).waves(:,:,u(n).mainCh)', 'Color', [0.8, 0.8, 0.8]);
-        line(ax(ii), -spikeWidth:spikeWidth, u(n).waves(clust==ii,:,u(n).mainCh)');
+        line(ax(ii), -spikeWidth:spikeWidth, u(uIdx).waves(:,:,u(uIdx).mainCh)', 'Color', [0.8, 0.8, 0.8]);
+        line(ax(ii), -spikeWidth:spikeWidth, u(uIdx).waves(clust==ii,:,u(uIdx).mainCh)');
         %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
         yTemp(ii,:) = ylim(ax(ii));
 
         if ii == 1
-            title(ax(ii),"Unit " + string(n) + " " + ...
-                 sum(clust==ii) + " spikes", 'Color', getColour(n));
+            title(ax(ii),"Unit " + string(uIdx) + " " + ...
+                 sum(clust==ii) + " spikes", 'Color', getColour(uIdx));
         else
-            uN = length(u)+ii;
-            title(ax(ii),"New unit " + string(uN) + " " + ...
-                sum(clust==ii) + " spikes", 'Color', getColour(uN));
+            newIdx = length(u)+ii;
+            title(ax(ii),"New unit " + string(newIdx) + " " + ...
+                sum(clust==ii) + " spikes", 'Color', getColour(newIdx));
         end
     end
 end

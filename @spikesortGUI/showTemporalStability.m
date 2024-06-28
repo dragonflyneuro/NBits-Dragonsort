@@ -1,10 +1,14 @@
-function [] = showTemporalStability(app, selection)
+function [] = showTemporalStability(app, uiPos)
+delete(app.Metrics.panelArr(uiPos).Children);
+delete(app.Metrics.controlGridArr(uiPos).Children);
+app.Metrics.gridArr(uiPos).RowHeight = {22,'1x',0};
+ax = axes('Parent',app.Metrics.panelArr(uiPos));
+
 % plot number of spikes in each unit in each batch
 bl = length(app.t.batchLengths);
+selection = find(~app.unitArray.tagcmpi("Junk"));
 
-f = figure; ax = axes; set(f, 'Position',  [300, 200, 800, 700]);
-
-for ii=selection
+for ii = selection
     iiCmap = getColour(ii);
     ms = getMarker(ii);
     numInBatch = zeros(1,bl); % number of spikes in each unit in each batch
@@ -16,8 +20,7 @@ for ii=selection
 end
 
 xlabel(ax, "Batch number (each " + mean(app.t.batchLengths)/app.m.sRateHz + "s long)");
-ylabel(ax, "Occurance");
-title(ax, 'Number of spikes for each unit over time')
+ylabel(ax, "Number of spikes");
 legend(ax, "Unit " + string(1:length(app.unitArray)));
 
 end

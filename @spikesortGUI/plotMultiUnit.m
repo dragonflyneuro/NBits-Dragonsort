@@ -1,4 +1,4 @@
-function hMulti = plotMultiUnit(app, hMulti, unitNum, plottedWaves)
+function hMulti = plotMultiUnit(app, hMulti, uIdx, plottedWaves)
 
 % subplott = @(m,n,p) subtightplot (m, n, p, [0.03 0.03], [0.05 0.1], [0.05 0.05]);
 

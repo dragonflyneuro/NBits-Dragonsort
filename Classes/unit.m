@@ -77,29 +77,29 @@ classdef unit < handle
             unassignedSpikes = allTimes(inSortingIdx); % unassigned spike sample from beginning of batch
         end
 
-        function [obj, e] = spikeAdder(obj,n,a,b)
+        function [obj, e] = spikeAdder(obj,uIdx,a,b)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
-            n = n(1);
+            uIdx = uIdx(1);
             if length(a) == size(b,1)
-                obj(n).spikeTimes = [obj(n).spikeTimes, a];
-                obj(n).waves = [obj(n).waves; b];
+                obj(uIdx).spikeTimes = [obj(uIdx).spikeTimes, a];
+                obj(uIdx).waves = [obj(uIdx).waves; b];
                 obj = obj.unitSorter();
             end
             e = [];
         end
         
-        function [obj, e] = refinedSpikeAdder(obj,n,a,b)
+        function [obj, e] = refinedSpikeAdder(obj,uIdx,a,b)
             % pick out spikes manually and add them to a unit either by
             % deviation matching or by force
-            n = n(1);
-            obj(n).spikeTimes = [obj(n).spikeTimes, a];
-            obj(n).waves = cat(1,obj(n).waves, b);
+            uIdx = uIdx(1);
+            obj(uIdx).spikeTimes = [obj(uIdx).spikeTimes, a];
+            obj(uIdx).waves = cat(1,obj(uIdx).waves, b);
             e = [];
         end
         
-        function [obj, e] = spikeRemover(obj,n,I,varargin)
-            n = n(1);
+        function [obj, e] = spikeRemover(obj,uIdx,I,varargin)
+            uIdx = uIdx(1);
             if nargin > 3
                 force = varargin{1};
             else
@@ -109,18 +109,18 @@ classdef unit < handle
             if isempty(I)
                 e = "No spikes selected for operation";
                 return;
-            elseif isempty(setdiff(1:length(obj(n).spikeTimes),I)) && ~force
+            elseif isempty(setdiff(1:length(obj(uIdx).spikeTimes),I)) && ~force
                 e = "All spikes in unit selected, no changes will be made";
                 return;
             end
             
-            obj(n).spikeTimes(I) = [];
-            obj(n).waves(I,:,:) = [];
+            obj(uIdx).spikeTimes(I) = [];
+            obj(uIdx).waves(I,:,:) = [];
             e = [];
         end
 
-        function [obj, e] = unitSplitter(obj,n,I, varargin)
-            n = n(1);
+        function [obj, e] = unitSplitter(obj,uIdx,I, varargin)
+            uIdx = uIdx(1);
             if nargin > 3
                 force = varargin{1};
             else
@@ -130,47 +130,47 @@ classdef unit < handle
             if isempty(I)
                 e = "No spikes selected for operation";
                 return;
-            elseif ((~islogical(I) && length(I) == length(obj(n).spikeTimes)) || ...
+            elseif ((~islogical(I) && length(I) == length(obj(uIdx).spikeTimes)) || ...
                     (islogical(I) && all(I))) && ~force
                 e = "All spikes in unit selected, no changes will be made";
                 return;
             end
-            newObj = unit(obj(n).spikeTimes(I),obj(n).waves(I,:,:),obj(n).mainCh);
+            newObj = unit(obj(uIdx).spikeTimes(I),obj(uIdx).waves(I,:,:),obj(uIdx).mainCh);
             
-            obj(n).spikeTimes(I) = [];
-            obj(n).waves(I,:,:) = [];
+            obj(uIdx).spikeTimes(I) = [];
+            obj(uIdx).waves(I,:,:) = [];
             
-            newObj.loadedTemplateWaves = obj(n).loadedTemplateWaves;
-            newObj.loadedTemplateMapping = obj(n).loadedTemplateMapping;
+            newObj.loadedTemplateWaves = obj(uIdx).loadedTemplateWaves;
+            newObj.loadedTemplateMapping = obj(uIdx).loadedTemplateMapping;
             
             obj = [obj newObj];
             e = [];
         end
         
-        function [obj, e] = unitMerger(obj,n,I)
+        function [obj, e] = unitMerger(obj,uIdx,I)
             % merge the left unit into the right unit
             % remove left unit and merge with right
-            if n(1) == n(2)
+            if uIdx(1) == uIdx(2)
                 e = "Left and right units are the same";
                 return;
             end
             if isempty(I)
-                I = 1:length(obj(n(1)).spikeTimes);
+                I = 1:length(obj(uIdx(1)).spikeTimes);
             end
             
-            mergedUnit = cat(2,obj(n(1)).spikeTimes(I),obj(n(2)).spikeTimes);
-            [obj(n(2)).spikeTimes, order] = sort(mergedUnit);
-            mergedWaves = cat(1,obj(n(1)).waves(I,:,:),obj(n(2)).waves);
-            obj(n(2)).waves = mergedWaves(order,:,:);
-            obj(n(2)).refineSettings = 1;
+            mergedUnit = cat(2,obj(uIdx(1)).spikeTimes(I),obj(uIdx(2)).spikeTimes);
+            [obj(uIdx(2)).spikeTimes, order] = sort(mergedUnit);
+            mergedWaves = cat(1,obj(uIdx(1)).waves(I,:,:),obj(uIdx(2)).waves);
+            obj(uIdx(2)).waves = mergedWaves(order,:,:);
+            obj(uIdx(2)).refineSettings = 1;
             
-            obj(n(1)).spikeTimes(I) = [];
-            obj(n(1)).waves(I,:,:) = [];
+            obj(uIdx(1)).spikeTimes(I) = [];
+            obj(uIdx(1)).waves(I,:,:) = [];
             
-            obj(n(2)) = obj(n(2)).tagToggler("Junk",0);
+            obj(uIdx(2)) = obj(uIdx(2)).tagToggler("Junk",0);
             
-            if isempty(obj(n(1)).spikeTimes)
-                obj(n(1)) = [];
+            if isempty(obj(uIdx(1)).spikeTimes)
+                obj(uIdx(1)) = [];
             end
             e = [];
         end

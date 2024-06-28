@@ -3,16 +3,16 @@ if app.interactingFlag(2) ~= 0
     return;
 end
 
-alreadySelectedBool = ismember(get(app.pL,'LineStyle'),':');
+alreadySelectedBool = ismember(get(app.leftUnitLines,'LineStyle'),':');
 if ~islogical(selection)
     temp = false(size(alreadySelectedBool));
     temp(selection) = true;
     selection = temp;
 end
-[app.pL(selection & ~alreadySelectedBool).LineStyle] = deal(':');
-[app.pL(selection & alreadySelectedBool).LineStyle] = deal('-');
+[app.leftUnitLines(selection & ~alreadySelectedBool).LineStyle] = deal(':');
+[app.leftUnitLines(selection & alreadySelectedBool).LineStyle] = deal('-');
 app.leftUnitAx.UserData.selectedIdx = xor(selection, alreadySelectedBool);
-if ~isempty(app.pLF) && ishandle(app.pLF)
+if ~isempty(app.leftUnitFeatureMarkers) && ishandle(app.leftUnitFeatureMarkers)
     app.leftUnitAx.UserData.selectedIdx = xor(selection, alreadySelectedBool);
 end
 end

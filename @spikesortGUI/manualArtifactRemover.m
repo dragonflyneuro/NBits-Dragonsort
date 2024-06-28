@@ -1,25 +1,25 @@
 function [] = manualArtifactRemover(app, h)
 app.StatusLabel.Value = "ARTIFACT REMOVER ON! TURN OFF FOR NORMAL OPERATION."+...
     " Click on 2 points in the trace to denote region of spike elimination. Click on a region to remove it.";
-switchButtons(app,0);
-switchButtons(app,2);
+app.switchButtons('menuOff');
+app.switchButtons('opsOff');
 drawnow
 
-if ~isempty(app.pAssigned)
-    for ii = 1:length(app.pAssigned)
-        if ishandle(app.pAssigned(ii))
-            set(app.pAssigned(ii), 'ButtonDownFcn',[]);
+if ~isempty(app.assignedSpikeMarkers)
+    for ii = 1:length(app.assignedSpikeMarkers)
+        if ishandle(app.assignedSpikeMarkers(ii))
+            set(app.assignedSpikeMarkers(ii), 'ButtonDownFcn',[]);
         end
     end
 end
-for ii = 1:length(app.pEvent)
-    delete(app.pEvent(ii));
+for ii = 1:length(app.eventMarkerArr)
+    delete(app.eventMarkerArr(ii));
 end
 
 set(h,'ButtonDownFcn',{@selectTimeblock,app,h});
-set(app.pRaw, 'ButtonDownFcn',{@selectTimeblock,app,h});
-if ~isempty(app.pUnassigned)
-    set(app.pUnassigned, 'ButtonDownFcn',[]);
+set(app.dataLine, 'ButtonDownFcn',{@selectTimeblock,app,h});
+if ~isempty(app.unassignedSpikeMarkers)
+    set(app.unassignedSpikeMarkers, 'ButtonDownFcn',[]);
 end
 
 
@@ -35,8 +35,8 @@ if ~isempty(app.t.noSpikeRange)
         x = [regionCoord(1), regionCoord(1), regionCoord(2), regionCoord(2)];
         y = [yl(1), yl(2), yl(2), yl(1)];
         pgon = polyshape(x,y);
-        app.pNospike(ii) = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
-        set(app.pNospike(ii),'ButtonDownFcn',{@selectTimeblock,app,h});
+        app.artifactMarkerArr(ii) = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
+        set(app.artifactMarkerArr(ii),'ButtonDownFcn',{@selectTimeblock,app,h});
     end
 end
 end
@@ -52,7 +52,7 @@ u = evt.IntersectionPoint;
 offset = getBatchRange(app); % used for converting samples from beginning of file to beginning of batch
 
 % if time range not defined yet
-if ~ishandle(app.pSelection)
+if ~ishandle(app.selectionBox)
     q = 0;
     % if first click is within an already defined region,
     % delete said region
@@ -68,8 +68,8 @@ if ~ishandle(app.pSelection)
             inRegion = app.t.noSpikeRange(1,regionInBatch(jj))-offset(1) <= v(1,1) &...
                 v(1,1) <= app.t.noSpikeRange(2,regionInBatch(jj))-offset(1);
             if inRegion
-                delete(app.pNospike(jj));
-                app.pNospike(jj) = [];
+                delete(app.artifactMarkerArr(jj));
+                app.artifactMarkerArr(jj) = [];
                 app.t.noSpikeRange(:,regionInBatch(jj)) = [];
                 q = 1;
                 break;
@@ -79,20 +79,20 @@ if ~ishandle(app.pSelection)
     
     % get first line and draw
     if q == 0
-        app.pSelection = plot(h, [u(1,1),u(1,1)], ylim(h), 'r');
+        app.selectionBox = plot(h, [u(1,1),u(1,1)], ylim(h), 'r');
     end
 else
     % get second line and draw
-    x = [app.pSelection.XData(1), app.pSelection.XData(1), u(1,1), u(1,1)];
+    x = [app.selectionBox.XData(1), app.selectionBox.XData(1), u(1,1), u(1,1)];
     y = [-200, 200, 200, -200];
     pgon = polyshape(x,y);
     
-    app.t.noSpikeRange(:,end+1) = sort([app.pSelection.XData(1); u(1,1)])/app.msConvert + offset(1);
-    delete(app.pSelection);
+    app.t.noSpikeRange(:,end+1) = sort([app.selectionBox.XData(1); u(1,1)])/app.msConvert + offset(1);
+    delete(app.selectionBox);
     
-    app.pSelection = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
-    app.pNospike(end+1) = app.pSelection;
-    set(app.pNospike(end),'ButtonDownFcn',{@selectTimeblock,app});
-    app.pSelection = gobjects(1);
+    app.selectionBox = plot(h, pgon, 'FaceColor','r','FaceAlpha',0.2,'LineStyle','none');
+    app.artifactMarkerArr(end+1) = app.selectionBox;
+    set(app.artifactMarkerArr(end),'ButtonDownFcn',{@selectTimeblock,app});
+    app.selectionBox = gobjects(1);
 end
 end

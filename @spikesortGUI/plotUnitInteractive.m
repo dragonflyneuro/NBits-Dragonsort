@@ -1,27 +1,27 @@
-function [unitLines, traceLine, plottedWaves] = plotUnitInteractive(app, hTitle, hUnit, unitNum)
+function [unitLines, traceLine, plottedWaves] = plotUnitInteractive(app, hTitle, hUnit, uIdx)
 
 unitLines = [];
 traceLine = [];
 
 
-[pWI, plottedWaves] = getPlottableWaves(app, unitNum);
+[pWI, plottedWaves] = getPlottableWaves(app, uIdx);
 
 if ~isempty(plottedWaves)
     templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
     r = getBatchRange(app, app.currentBatch+templateBatches);
-    [dev, ~, ~] = getDevMatrix(1, app.unitArray(unitNum), plottedWaves, r, app.SpikesusedEditField.Value, app.m.sRateHz, 0);
-    app.unitArray(unitNum).meanDeviation = mean(dev);
+    [dev, ~, ~] = getDevMatrix(1, app.unitArray(uIdx), plottedWaves, r, app.SpikesusedEditField.Value, app.m.sRateHz, 0);
+    app.unitArray(uIdx).meanDeviation = mean(dev);
 else
-    app.unitArray(unitNum).meanDeviation = 0;
+    app.unitArray(uIdx).meanDeviation = 0;
 end
 
-hTitle.Value = getUnitTitle(app, unitNum);
+hTitle.Value = getUnitTitle(app, uIdx);
 
 if isempty(plottedWaves)
     return;
 end
 
-[unitLines,traceLine,hUnit.UserData.inBatchIdx] = drawUnitLines(app, hUnit, unitNum, plottedWaves, "<");
+[unitLines,traceLine,hUnit.UserData.inBatchIdx] = drawUnitLines(app, hUnit, uIdx, plottedWaves, "<");
 
 if ~isempty(pWI) % if there are spikes in the unit
     temp = num2cell(pWI);
@@ -40,18 +40,18 @@ end
 % get clicked coordinates
 u = evt.IntersectionPoint;
 % if box corner not defined yet
-if ~ishandle(app.lSelection)
+if ~ishandle(app.leftUnitSelectionBox)
     % get first box corner and draw crosshair
-    app.lSelection = plot(h, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
+    app.leftUnitSelectionBox = plot(h, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
 else
     % get second box corner and draw box
-    xBox = [app.lSelection.XData, u(1,1), u(1,1), app.lSelection.XData, app.lSelection.XData];
-    yBox = [app.lSelection.YData, app.lSelection.YData, u(1,2), u(1,2), app.lSelection.YData];
-    delete(app.lSelection);
-    app.lSelection = plot(h, xBox, yBox, 'r');
+    xBox = [app.leftUnitSelectionBox.XData, u(1,1), u(1,1), app.leftUnitSelectionBox.XData, app.leftUnitSelectionBox.XData];
+    yBox = [app.leftUnitSelectionBox.YData, app.leftUnitSelectionBox.YData, u(1,2), u(1,2), app.leftUnitSelectionBox.YData];
+    delete(app.leftUnitSelectionBox);
+    app.leftUnitSelectionBox = plot(h, xBox, yBox, 'r');
     
-    X = get(app.pL,'XData');
-    Y = get(app.pL,'YData');
+    X = get(app.leftUnitLines,'XData');
+    Y = get(app.leftUnitLines,'YData');
     
     selectedSpike = false(size(X));
     % select orphans inside box
@@ -62,6 +62,6 @@ else
     
     % store selected spikes
     updateAssignedSelection(app, selectedSpike)
-    delete(app.lSelection);
+    delete(app.leftUnitSelectionBox);
 end
 end

@@ -13,7 +13,7 @@ else
     r = sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
 end
 [~ ,selectedPoint] = min(r);
-[~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,selectedPoint);
+[~, removeIdx, IC] = intersect(app.traceAx.UserData.selectedUnassigned,selectedPoint);
 addIdx = selectedPoint;
 addIdx(IC) = [];
 

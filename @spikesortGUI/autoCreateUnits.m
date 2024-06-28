@@ -250,7 +250,7 @@ src.Value = ['[' v(1:end-1) ']'];
 end
 
 function closeFig(src, ~, app)
-app.switchButtons(1);
-app.switchButtons(3);
+app.switchButtons('menuOn');
+app.switchButtons('opsOn');
 delete(src)
 end

@@ -15,14 +15,12 @@ app.PreviousbatchButton.UserData = -1;
 app.GotobatchButton.UserData = 0;
 
 % figures
-app.TZoomMenu.UserData = 1;
-app.TResetMenu.UserData = 1;
-app.TPanMenu.UserData = 1;
-app.TPointerMenu.UserData = 1;
-app.LZoomMenu.UserData = 2;
-app.LResetMenu.UserData = 2;
-app.LPanMenu.UserData = 2;
-app.LPointerMenu.UserData = 2;
+app.TZoomMenu.UserData = 't';
+app.TPanMenu.UserData = 't';
+app.TPointerMenu.UserData = 't';
+app.LZoomMenu.UserData = 'l';
+app.LPanMenu.UserData = 'l';
+app.LPointerMenu.UserData = 'l';
 
 % basic ops
 app.RemovespikeMenu.UserData.fnc = @spikeRemover;

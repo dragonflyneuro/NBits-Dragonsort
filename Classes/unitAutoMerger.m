@@ -1,9 +1,9 @@
-function [clust, yn] = unitAutoMerger(u, n, idx, yl)
+function [clust, yn] = unitAutoMerger(u, uIdx, wIdx, yl)
 % crop waves for better PCA
 
-spikeWidth = (size(u(n).waves,2)-1)/2;
+spikeWidth = (size(u(uIdx).waves,2)-1)/2;
 % no spikes
-if spikeWidth < 0 || length(idx) < 2
+if spikeWidth < 0 || length(wIdx) < 2
     clust = [];
     yn = 0;
     return;
@@ -11,8 +11,8 @@ end
 
 % croppedWaves = u.waves(idx,ceil(size(u.waves,2)/2) + (round(-0.2/app.msConvert):round(0.15/app.msConvert)),:);
 % croppedWaves = reshape(croppedWaves, length(idx), []);
-croppedWaves = u(n).waves(idx,:);
-unitsToMergeTo = setdiff(1:length(u),n);
+croppedWaves = u(uIdx).waves(wIdx,:);
+unitsToMergeTo = setdiff(1:length(u),uIdx);
 [waves, PC] = getPCs(u, unitsToMergeTo);
 if size(PC,2) == 0
     return;
@@ -47,12 +47,12 @@ ax = gobjects(numClust,1);
 yTemp = zeros(numClust,2);
 
 ax(1) = subplot(ceil((numClust+1)/4),4,1,'Parent',f);
-line(ax(1), -spikeWidth:spikeWidth, u(n).waves(:,:,u(n).mainCh)', 'Color', [0.8, 0.8, 0.8]);
+line(ax(1), -spikeWidth:spikeWidth, u(uIdx).waves(:,:,u(uIdx).mainCh)', 'Color', [0.8, 0.8, 0.8]);
 yTemp(1,:) = ylim(ax(1));
 
-title(ax(1),"Unit " + string(n) + " losing " + ...
-    string(length(idx)) ...
-    + " spikes", 'Color', getColour(n));
+title(ax(1),"Unit " + string(uIdx) + " losing " + ...
+    string(length(wIdx)) ...
+    + " spikes", 'Color', getColour(uIdx));
 
 cc = 1;
 for ii = unitsToMergeTo
@@ -60,7 +60,7 @@ for ii = unitsToMergeTo
         cc = cc+1;
         ax(cc) = subplot(ceil((numClust+1)/4),4,cc,'Parent',f);
         line(ax(cc), -spikeWidth:spikeWidth, u(ii).waves(:,:,u(ii).mainCh)', 'Color', [0.8, 0.8, 0.8]);
-        line(ax(cc), -spikeWidth:spikeWidth, u(n).waves(idx(clust==ii),:,u(n).mainCh)');
+        line(ax(cc), -spikeWidth:spikeWidth, u(uIdx).waves(wIdx(clust==ii),:,u(uIdx).mainCh)');
         %                 xlabel(ax(ii), "Samples"); ylabel(ax(ii), "Amplitude (uV)");
         yTemp(ii,:) = ylim(ax(cc));
         

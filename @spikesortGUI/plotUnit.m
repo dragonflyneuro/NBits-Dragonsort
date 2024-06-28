@@ -1,25 +1,25 @@
-function [unitLines, traceLine, plottedWaves] = plotUnit(app, hTitle, hUnit, unitNum)
+function [unitLines, traceLine, plottedWaves] = plotUnit(app, hTitle, hUnit, uIdx)
 
 unitLines = [];
 traceLine = [];
 
-[~, plottedWaves] = getPlottableWaves(app, unitNum);
+[~, plottedWaves] = getPlottableWaves(app, uIdx);
 
 if ~isempty(plottedWaves)
     templateBatches = [-app.PastbatchesTField.Value, app.FuturebatchesTField.Value];  % batches to make templates from
     r = getBatchRange(app, app.currentBatch+templateBatches);
-    [dev, ~, ~] = getDevMatrix(1, app.unitArray(unitNum), plottedWaves, r, app.SpikesusedEditField.Value, app.m.sRateHz, 0);
-    app.unitArray(unitNum).meanDeviation = mean(dev);
+    [dev, ~, ~] = getDevMatrix(1, app.unitArray(uIdx), plottedWaves, r, app.SpikesusedEditField.Value, app.m.sRateHz, 0);
+    app.unitArray(uIdx).meanDeviation = mean(dev);
 else
-    app.unitArray(unitNum).meanDeviation = 0;
+    app.unitArray(uIdx).meanDeviation = 0;
 end
 
-hTitle.Value = getUnitTitle(app, unitNum);
+hTitle.Value = getUnitTitle(app, uIdx);
 
 if isempty(plottedWaves)
     return;
 end
 
-[unitLines,traceLine,~] = drawUnitLines(app, hUnit, unitNum, plottedWaves, ">");
+[unitLines,traceLine,~] = drawUnitLines(app, hUnit, uIdx, plottedWaves, ">");
 
 end

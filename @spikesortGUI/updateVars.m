@@ -82,9 +82,9 @@ app.VieweventmarkersButton.Value = 0;
 app.readFilter(app.currentBatch)
 
 if length(app.m.ech)>1
-    switchButtons(app,5);
+    app.switchButtons('multiOn');
 end
-switchButtons(app,3)
+app.switchButtons('opsOn')
 
 [app.colourButtons.Enable] = deal('on');
 

@@ -15,7 +15,7 @@ for ii = 1:length(app.unitArray)
         % waveforms in left unit figure from trace
         assignedLine(c) = line(h, spikes*app.msConvert, app.xi(ch,spikes), ...
             'LineStyle', 'none', 'Marker', ms, 'MarkerSize', msSize, 'Color', getColour(ii));
-        tempStruct.unitNum = ii;
+        tempStruct.uIdx = ii;
         tempStruct.spikeIdx = inUnitIdx;
         set(assignedLine(c),'UserData',tempStruct);
         c = c+1;

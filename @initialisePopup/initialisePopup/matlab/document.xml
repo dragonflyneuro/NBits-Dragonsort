@@ -202,7 +202,7 @@
 
         % Close request function: SortinginitialiserUIFigure
         function SortinginitialiserUIFigureCloseRequest(app, event)
-            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,'menuOn');
             
             % Delete the dialog box
             delete(app)
@@ -211,7 +211,7 @@
 
         % Button pushed function: InitialiseButton
         function OKButtonPushed(app, event)
-            switchButtons(app.CallingApp,0);
+            switchButtons(app.CallingApp,'menuOff');
             
             app.CallingApp.loadPath = app.initm.fP;
             app.CallingApp.savePath = app.initm.fP;
@@ -253,7 +253,7 @@
             end
             
             updateVars(app.CallingApp, app.initm, app.initt, []);
-            switchButtons(app.CallingApp,1);
+            switchButtons(app.CallingApp,'menuOn');
             
             delete(app)
             

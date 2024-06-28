@@ -20,16 +20,16 @@ end
 
 if ~strcmpi(app.featureSelectMode,'unit')
     if ~isempty(scatterH(1)) && ishandle(scatterH(1))
-        app.pUnassignedF = scatterH(1);
+        app.unassignedFeatureMarkers = scatterH(1);
         app.createUnassignedSelectionF();
-        set(app.pUnassignedF, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassignedF});
+        set(app.unassignedFeatureMarkers, 'ButtonDownFcn',{@app.clickedUnassigned,app.unassignedFeatureMarkers});
     end
 else
     val = str2double(app.LeftUnitDropDown.Value);
     if ~isempty(scatterH(val+1)) && ishandle(scatterH(val+1))
-        app.pLF = scatterH(val+1);
+        app.leftUnitFeatureMarkers = scatterH(val+1);
         app.createUnassignedSelectionF();
-        set(app.pLF, 'ButtonDownFcn',{@app.clickedUnitLineF,app.pUnassignedF});
+        set(app.leftUnitFeatureMarkers, 'ButtonDownFcn',{@app.clickedUnitLineF,app.unassignedFeatureMarkers});
     end
 end
 

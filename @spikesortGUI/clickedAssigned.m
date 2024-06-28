@@ -1,6 +1,6 @@
 function clickedAssigned(app,src,evt)
 % continue only if selected spike is of the left unit
-if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData.unitNum))
+if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData.uIdx))
     return;
 end
 if app.interactingFlag(1) ~= 0
@@ -14,7 +14,7 @@ r=sqrt((u(1,1)-X).^2+(u(1,2)-Y).^2);
 [~ ,selectedPoint]=min(r);
 
 % find index of selected point in unit spike time array
-selection = cell2mat(get(app.pL,'UserData')) == src.UserData.spikeIdx(selectedPoint);
+selection = cell2mat(get(app.leftUnitLines,'UserData')) == src.UserData.spikeIdx(selectedPoint);
 
 if any(selection)
     updateAssignedSelection(app, selection)

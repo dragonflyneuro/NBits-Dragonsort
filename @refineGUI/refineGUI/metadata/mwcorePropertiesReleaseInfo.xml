@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Version information for MathWorks R2022b Release -->
+<!-- Version information for MathWorks R2023b Release -->
 <MathWorks_version_info>
-  <version>9.13.0.2105380</version>
-  <release>R2022b</release>
-  <description>Update 2</description>
-  <date>Oct 26 2022</date>
-  <checksum>1300562185</checksum>
+  <version>23.2.0.2459199</version>
+  <release>R2023b</release>
+  <description>Update 5</description>
+  <date>Nov 28 2023</date>
+  <checksum>871413816</checksum>
 </MathWorks_version_info>

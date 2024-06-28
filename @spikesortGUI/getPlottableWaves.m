@@ -1,4 +1,4 @@
-function [wavesIdx,validWaves] = getPlottableWaves(app, unitNum)
+function [wavesIdx,validWaves] = getPlottableWaves(app, uIdx)
 
 wavesIdx = [];
 validWaves = [];
@@ -6,15 +6,15 @@ validWaves = [];
 c = app.currentBatch;
 bl = app.t.batchLengths;
 
-if ~isempty(app.unitArray(unitNum).spikeTimes) % if there are spikes in the unit
+if ~isempty(app.unitArray(uIdx).spikeTimes) % if there are spikes in the unit
     %    find spikes in viewing batches
     plotBatch = c + [-round(app.PastbatchesField.Value), min([round(app.FuturebatchesField.Value), length(bl)-c])];
-    [~,~,unitSpikesInPlotIdx] = app.unitArray(unitNum).getAssignedSpikes(getBatchRange(app,plotBatch));
-    validWaves = app.unitArray(unitNum).waves(unitSpikesInPlotIdx,:,:);
+    [~,~,unitSpikesInPlotIdx] = app.unitArray(uIdx).getAssignedSpikes(getBatchRange(app,plotBatch));
+    validWaves = app.unitArray(uIdx).waves(unitSpikesInPlotIdx,:,:);
     wavesIdx = unitSpikesInPlotIdx;
     
-elseif ~isempty(app.unitArray(unitNum).loadedTemplateWaves)
-    validWaves = app.unitArray(unitNum).loadedTemplateWaves;
+elseif ~isempty(app.unitArray(uIdx).loadedTemplateWaves)
+    validWaves = app.unitArray(uIdx).loadedTemplateWaves;
     
 else
     return;

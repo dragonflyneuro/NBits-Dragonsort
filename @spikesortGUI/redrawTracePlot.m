@@ -1,5 +1,5 @@
 function [] = redrawTracePlot(app)
-ht = app.dataAx;
+ht = app.traceAx;
 
 c = app.currentBatch;
 bl = app.t.batchLengths;
@@ -7,9 +7,9 @@ bl = app.t.batchLengths;
 %   spikes
 app.StatusLabel.Value = "Redrawing data trace...";
 
-app.pSelected = gobjects(0);
-app.pSelection = gobjects(1);
-app.pEvent = [];
+app.selectedSpikeMarkers = gobjects(0);
+app.selectionBox = gobjects(1);
+app.eventMarkerArr = [];
 ht.UserData.selectedUnassigned = []; % Used for storing selected orphans
 cla(ht);
 
@@ -19,28 +19,28 @@ numSpikes = nnz(r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2));
 app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
     string(numSpikes-length(unassignedInSortingIdx)) + "/" + numSpikes;
 
-app.pRaw = plotMainData(app,ht,app.m.mainCh);
-set(app.pRaw, 'ButtonDownFcn',{@boxClick,app,ht});
+app.dataLine = plotMainData(app,ht,app.m.mainCh);
+set(app.dataLine, 'ButtonDownFcn',{@boxClick,app,ht});
 
 if app.VieweventmarkersButton.Value == 1
-    app.pEvent = plotEventData(app,ht);
-    for ii = 1:length(app.pEvent)
-        set(app.pEvent(ii),'ButtonDownFcn',{@boxClick,app,ht});
+    app.eventMarkerArr = plotEventData(app,ht);
+    for ii = 1:length(app.eventMarkerArr)
+        set(app.eventMarkerArr(ii),'ButtonDownFcn',{@boxClick,app,ht});
     end
 end
 
-app.pUnassigned = plotUnassignedSpikes(app,ht,app.m.mainCh);
-set(app.pUnassigned, 'ButtonDownFcn',{@app.clickedUnassigned,app.pUnassigned});
+app.unassignedSpikeMarkers = plotUnassignedSpikes(app,ht,app.m.mainCh);
+set(app.unassignedSpikeMarkers, 'ButtonDownFcn',{@app.clickedUnassigned,app.unassignedSpikeMarkers});
 
-app.pAssigned = plotAssignedSpikes(app,ht,app.m.mainCh);
-for ii = 1:length(app.pAssigned)
-    set(app.pAssigned(ii),'ButtonDownFcn',@app.clickedAssigned);
+app.assignedSpikeMarkers = plotAssignedSpikes(app,ht,app.m.mainCh);
+for ii = 1:length(app.assignedSpikeMarkers)
+    set(app.assignedSpikeMarkers(ii),'ButtonDownFcn',@app.clickedAssigned);
 end
 
 set(ht,'ButtonDownFcn',{@boxClick,app,ht});
 
-if ~isempty(app.spT) && ishandle(app.spT)
-    ax = app.spT.Children.Children;
+if ~isempty(app.dataAllChAx) && ishandle(app.dataAllChAx)
+    ax = app.dataAllChAx.Children.Children;
     for ii = 1:size(app.xi,1)
         cla(ax(ii));
         plotMainData(app,ax(ii),ii);
@@ -64,7 +64,7 @@ end
 
 % allow box selection of orphans
 function boxClick(~,evt,app,h)
-if isempty(app.pUnassigned)
+if isempty(app.unassignedSpikeMarkers)
     return;
 end
 if app.interactingFlag(1) ~= 0
@@ -73,18 +73,18 @@ end
 % get clicked coordinates
 u = evt.IntersectionPoint;
 % if box corner not defined yet
-if ~ishandle(app.pSelection)
+if ~ishandle(app.selectionBox)
     % get first box corner and draw crosshair
-    app.pSelection = plot(h, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
+    app.selectionBox = plot(h, u(1,1), u(1,2), 'r+', 'MarkerSize', 20);
 else
     % get second box corner and draw box
-    xBox = [app.pSelection.XData, u(1,1), u(1,1), app.pSelection.XData, app.pSelection.XData];
-    yBox = [app.pSelection.YData, app.pSelection.YData, u(1,2), u(1,2), app.pSelection.YData];
-    delete(app.pSelection);
-    app.pSelection = plot(h, xBox, yBox, 'r');
+    xBox = [app.selectionBox.XData, u(1,1), u(1,1), app.selectionBox.XData, app.selectionBox.XData];
+    yBox = [app.selectionBox.YData, app.selectionBox.YData, u(1,2), u(1,2), app.selectionBox.YData];
+    delete(app.selectionBox);
+    app.selectionBox = plot(h, xBox, yBox, 'r');
     
-    X = get(app.pUnassigned,'XData');
-    Y = get(app.pUnassigned,'YData');
+    X = get(app.unassignedSpikeMarkers,'XData');
+    Y = get(app.unassignedSpikeMarkers,'YData');
     
     % select orphans inside box
     selectedPoint = inpolygon(X,Y,xBox,yBox);
@@ -92,7 +92,7 @@ else
     drawnow
     
     % store selected orphans in UserData
-    [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,selectedPoint);
+    [~, removeIdx, IC] = intersect(app.traceAx.UserData.selectedUnassigned,selectedPoint);
     addIdx = selectedPoint;
     addIdx(IC) = [];
     
@@ -102,6 +102,6 @@ else
         updateUnassignedSelectionF(app);
     end
     
-    delete(app.pSelection);
+    delete(app.selectionBox);
 end
 end

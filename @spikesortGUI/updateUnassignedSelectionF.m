@@ -1,5 +1,5 @@
 function [] = updateUnassignedSelectionF(app)
 
-app.pSelectedF.MarkerIndices = app.dataAx.UserData.selectedUnassigned;
+app.selectedFeatureMarkers.MarkerIndices = app.traceAx.UserData.selectedUnassigned;
 
 end

@@ -175,8 +175,8 @@
                 app.d.scaleArray = app.ScalingTable.Data.Scaling';
                 updateUnits(app.CallingApp, app.d, app.LockoriginalButton.Value);
             end
-            switchButtons(app.CallingApp,1);
-            switchButtons(app.CallingApp,3);
+            switchButtons(app.CallingApp,'menuOn');
+            switchButtons(app.CallingApp,'opsOn');
             close all
             delete(app)
             
@@ -184,19 +184,10 @@
 
         % Close request function: SortingrefinerUIFigure
         function SortingrefinerUIFigureCloseRequest(app, event)
-            switchButtons(app.CallingApp,1);
-            switchButtons(app.CallingApp,3);
+            switchButtons(app.CallingApp,'menuOn');
+            switchButtons(app.CallingApp,'opsOn');
             close all
             delete(app)
-            
-        end
-
-        % Callback function
-        function xlim1EditFieldValueChanged(app, event)
-            value = [app.xlim1EditField.Value app.xlim2EditField.Value];
-            value = sort(value);
-            app.xlim1EditField.Value = value(1);
-            app.xlim2EditField.Value = value(2);
             
         end
 

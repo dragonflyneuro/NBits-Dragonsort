@@ -114,14 +114,14 @@ if strcmpi(app.featureSelectMode,'unit')
         end
     end
 else
-    posData{end+1} = posData{1}(app.dataAx.UserData.selectedUnassigned,:);
+    posData{end+1} = posData{1}(app.traceAx.UserData.selectedUnassigned,:);
     selectedBool = ROI3D(posData,1,[0,0,0; getColour(1:length(selection)); 1,0,0],...
         [".", getMarker(1:length(selection)),'o'],...
         sldr.Value*ones(size(posData)),labels);
     
     addIdx = find(selectedBool{1});
     if ~isempty(addIdx)
-        [~, removeIdx, IC] = intersect(app.dataAx.UserData.selectedUnassigned,addIdx);
+        [~, removeIdx, IC] = intersect(app.traceAx.UserData.selectedUnassigned,addIdx);
         addIdx(IC) = [];
         
         updateUnassignedUD(app, addIdx, removeIdx);
@@ -137,9 +137,9 @@ function changeMode(~,event,app)
 % value = event.Value;
 % if strcmpi(value,'Left unit')
 %     app.featureSelectMode = 'unit';
-%     delete(app.pUnassignedF);
+%     delete(app.unassignedFeatureMarkers);
 % else
 %     app.featureSelectMode = 'unassigned';
-%     delete(app.pLF);
+%     delete(app.leftUnitFeatureMarkers);
 % end
 end

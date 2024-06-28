@@ -15,14 +15,14 @@ ax = gobjects(length(unitsWTemplates)*2,1);
 yTemp = zeros(length(unitsWTemplates)*2,2); % to align y axis limits later
 
 for ii = 1:length(unitsWTemplates)
-    unitNum = unitsWTemplates(ii);
+    uIdx = unitsWTemplates(ii);
     ax(2*ii-1) = subplott(sp,4,2*ii-1);
     ax(2*ii) = subplott(sp,4,2*ii);
-    ms = getMarker(unitNum);
-    iiCmap = getColour(unitNum);
+    ms = getMarker(uIdx);
+    iiCmap = getColour(uIdx);
     
     % plot random selection of up to 600 waveforms in unit
-    waves = u(unitNum).waves(:,:,u(unitNum).mainCh);
+    waves = u(uIdx).waves(:,:,u(uIdx).mainCh);
     if ~isempty(waves)
         spikeWidth = (size(waves,2)-1)/2;
         rp = randperm(size(waves,1));
@@ -35,7 +35,7 @@ for ii = 1:length(unitsWTemplates)
     end
     
     % plot all initialiser template waves for the unit
-    waves = u(unitNum).loadedTemplateWaves(:,:,u(unitNum).mainCh);
+    waves = u(uIdx).loadedTemplateWaves(:,:,u(uIdx).mainCh);
     if ~isempty(waves)
         spikeWidth = (size(waves,2)-1)/2;
         p = line(ax(2*ii-1), -spikeWidth:spikeWidth, waves');
@@ -44,8 +44,8 @@ for ii = 1:length(unitsWTemplates)
     
     yTemp(2*ii,:) = ylim(ax(2*ii));
     yTemp(2*ii-1,:) = ylim(ax(2*ii-1));
-    title(ax(2*ii), 'Unit '+string(unitNum)+" "+ ms +...
-        " ("+length(u(unitNum).spikeTimes)+")",'Color',iiCmap);
+    title(ax(2*ii), 'Unit '+string(uIdx)+" "+ ms +...
+        " ("+length(u(uIdx).spikeTimes)+")",'Color',iiCmap);
     title(ax(2*ii-1), 'Template '+ string(ii));
 end
 

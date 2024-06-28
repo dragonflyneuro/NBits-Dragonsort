@@ -1,22 +1,22 @@
-function [unitLines,traceLine,unitSpikesInBatchIdx] = drawUnitLines(app, hUnit, unitNum, plottedWaves, markerStyle)
+function [unitLines,traceLine,unitSpikesInBatchIdx] = drawUnitLines(app, hUnit, uIdx, plottedWaves, markerStyle)
 
 r = getBatchRange(app);
 traceLine = [];
 unitSpikesInBatchIdx = [];
 
-if ~isempty(app.unitArray(unitNum).spikeTimes) % if there are spikes in the unit
+if ~isempty(app.unitArray(uIdx).spikeTimes) % if there are spikes in the unit
         %   find spikes in current batch for trace selection
-    [unitSpikesInBatch,~,unitSpikesInBatchIdx] = app.unitArray(unitNum).getAssignedSpikes(getBatchRange(app));
+    [unitSpikesInBatch,~,unitSpikesInBatchIdx] = app.unitArray(uIdx).getAssignedSpikes(getBatchRange(app));
     inBatchSpikeTimes = unitSpikesInBatch - r(1);
     
-    traceLine = line(app.dataAx, inBatchSpikeTimes*app.msConvert, app.xi(app.m.mainCh,inBatchSpikeTimes),...
-        'LineStyle', 'none', 'Marker', markerStyle, 'Color', getColour(unitNum));
-    app.dataAx.Children = app.dataAx.Children([2:(end-length(app.pEvent)), 1, (end-length(app.pEvent)+1):end]);
-    if ~isempty(app.spT) && ishandle(app.spT)
-        ax = app.spT.Children.Children;
+    traceLine = line(app.traceAx, inBatchSpikeTimes*app.msConvert, app.xi(app.m.mainCh,inBatchSpikeTimes),...
+        'LineStyle', 'none', 'Marker', markerStyle, 'Color', getColour(uIdx));
+    app.traceAx.Children = app.traceAx.Children([2:(end-length(app.eventMarkerArr)), 1, (end-length(app.eventMarkerArr)+1):end]);
+    if ~isempty(app.dataAllChAx) && ishandle(app.dataAllChAx)
+        ax = app.dataAllChAx.Children.Children;
         for jj = 1:size(app.xi,1)
             line(ax(jj), -inBatchSpikeTimes*app.msConvert, app.xi(jj,inBatchSpikeTimes),...
-                'LineStyle', 'none', 'Marker', markerStyle, 'Color', getColour(unitNum));
+                'LineStyle', 'none', 'Marker', markerStyle, 'Color', getColour(uIdx));
         end
     end
 end

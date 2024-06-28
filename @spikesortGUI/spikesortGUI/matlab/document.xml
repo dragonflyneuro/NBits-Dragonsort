@@ -10,22 +10,8 @@
         AddtimestampMenu              matlab.ui.container.Menu
         UndoMenu                      matlab.ui.container.Menu
         RedoMenu                      matlab.ui.container.Menu
-        TimelineMenu                  matlab.ui.container.Menu
-        PreviousbatchMenu             matlab.ui.container.Menu
-        NextbatchMenu                 matlab.ui.container.Menu
-        UnitfrequencyMenu             matlab.ui.container.Menu
-        ScrubthroughunitMenu          matlab.ui.container.Menu
-        UnitMenu                      matlab.ui.container.Menu
-        NewunitMenu                   matlab.ui.container.Menu
-        AddspikeMenu                  matlab.ui.container.Menu
-        ForceaddMenu                  matlab.ui.container.Menu
-        RemovespikeMenu               matlab.ui.container.Menu
-        SplitMenu                     matlab.ui.container.Menu
-        MergeMenu                     matlab.ui.container.Menu
-        AutosplitMenu                 matlab.ui.container.Menu
-        AutomergeMenu                 matlab.ui.container.Menu
-        RefinebatchMenu               matlab.ui.container.Menu
-        FigureshortcutsMenu           matlab.ui.container.Menu
+        PanelsMenu                    matlab.ui.container.Menu
+        ViewmetricsrowMenu            matlab.ui.container.Menu
         LZoomMenu                     matlab.ui.container.Menu
         LResetMenu                    matlab.ui.container.Menu
         LPanMenu                      matlab.ui.container.Menu
@@ -37,26 +23,51 @@
         TPointerMenu                  matlab.ui.container.Menu
         TUnselectMenu                 matlab.ui.container.Menu
         MatchunityaxisMenu            matlab.ui.container.Menu
+        TimelineMenu                  matlab.ui.container.Menu
+        PreviousbatchMenu             matlab.ui.container.Menu
+        NextbatchMenu                 matlab.ui.container.Menu
+        UnitfrequencyMenu             matlab.ui.container.Menu
+        ScrubthroughunitMenu          matlab.ui.container.Menu
+        SortingMenu                   matlab.ui.container.Menu
+        NewunitMenu                   matlab.ui.container.Menu
+        AddspikeMenu                  matlab.ui.container.Menu
+        ForceaddMenu                  matlab.ui.container.Menu
+        RemovespikeMenu               matlab.ui.container.Menu
+        SplitMenu                     matlab.ui.container.Menu
+        MergeMenu                     matlab.ui.container.Menu
+        AutosplitMenu                 matlab.ui.container.Menu
+        AutomergeMenu                 matlab.ui.container.Menu
+        RefinebatchMenu               matlab.ui.container.Menu
         OthersMenu                    matlab.ui.container.Menu
         HelpMenu                      matlab.ui.container.Menu
         MainGrid                      matlab.ui.container.GridLayout
-        MetricGrid                    matlab.ui.container.GridLayout
-        OFLabel                       matlab.ui.control.Label
-        MetricControlGrid             matlab.ui.container.GridLayout
-        MetricDropDown                matlab.ui.control.DropDown
-        MetricPanel                   matlab.ui.container.Panel
-        TTitleRowGrid                 matlab.ui.container.GridLayout
-        TPCAButton                    matlab.ui.control.Button
-        TMultiButton                  matlab.ui.control.Button
-        TTitle                        matlab.ui.control.EditField
-        ColourGrid                    matlab.ui.container.GridLayout
+        MetricGrid_4                  matlab.ui.container.GridLayout
+        MetricControlGrid_4           matlab.ui.container.GridLayout
+        MetricDropDown_4              matlab.ui.control.DropDown
+        MetricPanel_4                 matlab.ui.container.Panel
+        MetricGrid_3                  matlab.ui.container.GridLayout
+        MetricControlGrid_3           matlab.ui.container.GridLayout
+        MetricDropDown_3              matlab.ui.control.DropDown
+        MetricPanel_3                 matlab.ui.container.Panel
+        MetricGrid_2                  matlab.ui.container.GridLayout
+        MetricDropDown_2              matlab.ui.control.DropDown
+        MetricControlGrid_2           matlab.ui.container.GridLayout
+        MetricPanel_2                 matlab.ui.container.Panel
+        GridLayout                    matlab.ui.container.GridLayout
         dataPanel                     matlab.ui.container.Panel
+        GridLayout2                   matlab.ui.container.GridLayout
+        TMultiButton                  matlab.ui.control.Button
+        TPCAButton                    matlab.ui.control.Button
+        TTitle                        matlab.ui.control.EditField
+        MetricGrid_1                  matlab.ui.container.GridLayout
+        MetricControlGrid_1           matlab.ui.container.GridLayout
+        MetricDropDown_1              matlab.ui.control.DropDown
+        MetricPanel_1                 matlab.ui.container.Panel
+        ColourGrid                    matlab.ui.container.GridLayout
         ControlTabs                   matlab.ui.container.TabGroup
         GeneralTab                    matlab.ui.container.Tab
         GeneralGrid                   matlab.ui.container.GridLayout
         MiscGrid                      matlab.ui.container.GridLayout
-        LeftOverviewButton            matlab.ui.control.Button
-        LOverviewDropDown             matlab.ui.control.DropDown
         AllOverviewButton             matlab.ui.control.Button
         OverviewDropDown              matlab.ui.control.DropDown
         CleanupButton                 matlab.ui.control.Button
@@ -163,15 +174,17 @@
         ImporteventmarkerdataButton   matlab.ui.control.Button
         ManualartifactremoverButton   matlab.ui.control.StateButton
         RGrid                         matlab.ui.container.GridLayout
+        GridLayout3                   matlab.ui.container.GridLayout
         RMultiButton                  matlab.ui.control.Button
         RTitle                        matlab.ui.control.EditField
-        RPanel                        matlab.ui.container.Panel
         RightUnitDropDown             matlab.ui.control.DropDown
+        RPanel                        matlab.ui.container.Panel
         LGrid                         matlab.ui.container.GridLayout
-        LeftUnitDropDown              matlab.ui.control.DropDown
-        LPCAButton                    matlab.ui.control.Button
+        GridLayout3_2                 matlab.ui.container.GridLayout
         LMultiButton                  matlab.ui.control.Button
+        LPCAButton                    matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
+        LeftUnitDropDown              matlab.ui.control.DropDown
         LPanel                        matlab.ui.container.Panel
         StatusLabel                   matlab.ui.control.EditField
     end
@@ -185,8 +198,6 @@
         unitArray = unit();% contains unit_, waves_, clusters, junkNames
         t % contains sorting helper data
 
-        interactingFlag = [0 0]; %figures left right, 2 = pan, 1 = zoom, 0 = none
-
         %   general plotting
         xi % data trace
         msConvert % sample space to time conversion
@@ -195,34 +206,36 @@
         plottedWavesIdx = []; % indices along left unit for waves plotted in left unit
 
         %   plot object handles
-        pL = []; % left unit waves
-        pTL = []; % left unit trace markers
-        spL = []; % left unit subplots
-        pLF = [];
-        lSelection = gobjects(1); % temporary objects to show user selection regions
+        leftUnitLines = []; % left unit waves
+        leftUnitSpikeMarkers = []; % left unit trace markers
+        leftUnitAllChAx = []; % left unit subplots
+        leftUnitFeatureMarkers = [];
+        leftUnitSelectionBox = gobjects(1); % temporary objects to show user selection regions
 
-        pR = []; % right unit waves
-        pTR = []; % right unit trace markers
-        spR = []; % right unit subplots
+        rightUnitLines = []; % right unit waves
+        rightUnitSpikeMarkers = []; % right unit trace markers
+        rightUnitAllChAx = []; % right unit subplots
 
-        pAssigned = []; % markers on trace for assigned spikes
-        pNospike = []; % shaded areas on trace for manual no-spike regions
-        pSelection = gobjects(1); % temporary objects to show user selection regions
-        pEvent = []; % shaded areas on trace for event marker regions
-        pRaw = []; % raw data trace
+        assignedSpikeMarkers = []; % markers on trace for assigned spikes
+        artifactMarkerArr = []; % shaded areas on trace for manual no-spike regions
+        selectionBox = gobjects(1); % temporary objects to show user selection regions
+        eventMarkerArr = []; % shaded areas on trace for event marker regions
+        dataLine = []; % raw data trace
         
-        pUnassigned = []; % markers on trace for unassigned spikes
-        pSelected = []; % markers on trace for selected unassigned spikes
-        pUnassignedF = [];
-        pSelectedF = [];
+        unassignedSpikeMarkers = []; % markers on trace for unassigned spikes
+        selectedSpikeMarkers = []; % markers on trace for selected unassigned spikes
+        unassignedFeatureMarkers = [];
+        selectedFeatureMarkers = [];
 
         figureHandles = [];
-
-        dataAx
+        
         dataFeatureAx
-        spT = []; % trace subplots
+        dataAllChAx = []; % trace subplots
+        traceAx
         leftUnitAx
         rightUnitAx
+        Metrics = struct();
+
         featureSelectMode = 'unassigned'
 
         %   keeping track
@@ -245,6 +258,7 @@
     properties (Access = public)
         savePath = []; % path used when saving sorting
         loadPath = [];
+
     end
 
     methods (Access = public)
@@ -293,7 +307,7 @@
         %% unit manipulation
 
         % reassign s.unit_ and s.waves_ structures
-        unitReassigner(app, n, u, w)
+        % unitReassigner(app, uIdx, u, w)
 
 
         %% callbacks
@@ -355,21 +369,22 @@
 
         % Code that executes after component creation
         function startupFcn(app)
+            app.traceAx = axes('Parent',app.dataPanel);
+            app.leftUnitAx = axes('Parent',app.LPanel);
+            app.rightUnitAx = axes('Parent',app.RPanel);
+
             app.parseConfig();
             app.UIBase.KeyPressFcn = @app.hotkeyPress;
             setupUserdata(app);
-            setupHotkeys(app);
-
-            switchButtons(app, 2);
-
             setupFigures(app);
+            app.switchButtons('opsOff');
 
             % initialise sorting variables
             app.updateDropdown();
             app.LeftUnitDropDown.FontColor = getColour(str2double(app.LeftUnitDropDown.Value));
             app.RightUnitDropDown.FontColor = getColour(str2double(app.RightUnitDropDown.Value));
 
-            app.figureHandles = [app.dataAx, app.leftUnitAx, app.rightUnitAx];
+            app.figureHandles = [app.traceAx, app.leftUnitAx, app.rightUnitAx];
             for ii = 1:length(app.figureHandles)
                 hold(app.figureHandles(ii), 'on');
             end
@@ -381,6 +396,12 @@
             app.colourButtons = app.createColourCodes();
             [app.colourButtons.Enable] = deal('off');
 
+            app.Metrics.gridArr = [app.MetricGrid_1, app.MetricGrid_2, app.MetricGrid_3, app.MetricGrid_4];
+            app.Metrics.controlGridArr = [app.MetricControlGrid_1, app.MetricControlGrid_2, app.MetricControlGrid_3, app.MetricControlGrid_4];
+            app.Metrics.dropDownArr = [app.MetricDropDown_1, app.MetricDropDown_2, app.MetricDropDown_3, app.MetricDropDown_4];
+            app.Metrics.panelArr = [app.MetricPanel_1, app.MetricPanel_2, app.MetricPanel_3, app.MetricPanel_4];
+            app.Metrics.axArr = gobjects(4);
+            
         end
 
         % Menu selected function: InitialiseMenu
@@ -388,7 +409,7 @@
             % load dataset and initialise sorting session. See
             % initialisePopup for more info
 
-            app.switchButtons(0);
+            app.switchButtons('menuOff');
             if isfield(app.m,'sRateHz')
                 app.initialisePop = initialisePopup(app,app.m,app.t);
             else
@@ -403,7 +424,7 @@
 
             app.StatusLabel.Value = "Loading...";
             drawnow
-            app.switchButtons(1)
+            app.switchButtons('menuOn')
 
             [fN, fP] = uigetfile([app.loadPath '*.mat'],'Pick *.mat file to load');
             if fN < 1
@@ -455,7 +476,7 @@
             app.StatusLabel.Value = "Loading...";
             drawnow
 
-            app.switchButtons(1)
+            app.switchButtons('menuOn')
 
             % load .mat file of a previous sorting
             [fN, fP] = uigetfile([app.loadPath '*.mat'],'Pick *.mat file to import as templates');
@@ -561,12 +582,18 @@
         % Value changed function: LeftUnitDropDown
         function LeftUnitDropDownValueChanged(app, event)
             app.redrawUnitPlots(1);
+            selection = contains({app.Metrics.dropDownArr.Value},'(right)')...
+                | contains({app.Metrics.dropDownArr.Value},'(global)');
+            app.redrawMetric(find(~selection))
 
         end
 
         % Value changed function: RightUnitDropDown
         function RightUnitDropDownValueChanged(app, event)
             app.redrawUnitPlots(2);
+            selection = contains({app.Metrics.dropDownArr.Value},'(left)')...
+                | contains({app.Metrics.dropDownArr.Value},'(global)');
+            app.redrawMetric(find(~selection))
 
         end
 
@@ -649,8 +676,8 @@
         function AutocreateunitsButtonPushed(app, event)
             % auto-generates units using PCA then deviation index thresholding
 
-            app.switchButtons(0);
-            app.switchButtons(2);
+            app.switchButtons('menuOff');
+            app.switchButtons('opsOff');
 
             range = getBatchRange(app);
             [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
@@ -728,17 +755,17 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value(1)).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
                 I = pWI;
             elseif strcmpi(mode, "selected")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
-                I = pWI(app.figureHandles(2).UserData.selectedIdx);
+                I = pWI(app.leftUnitAx.UserData.selectedIdx);
             end
 
             [temp, e] = basicUnitOp(app.unitArray, event.Source.UserData.fnc, value, I);
@@ -760,7 +787,7 @@
 
             value = str2double(app.LeftUnitDropDown.Value);
 
-            I = app.dataAx.UserData.selectedUnassigned;
+            I = app.traceAx.UserData.selectedUnassigned;
             if isempty(I)
                 return;
             end
@@ -805,17 +832,17 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
                 I = pWI;
             elseif strcmpi(mode, "selected")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
-                I = pWI(app.figureHandles(2).UserData.selectedIdx);
+                I = pWI(app.leftUnitAx.UserData.selectedIdx);
             end
 
             if isempty(I)
@@ -861,17 +888,17 @@
             if strcmpi(mode, "batch")
                 [~,~,I] = app.unitArray(value).getAssignedSpikes(getBatchRange(app));
             elseif strcmpi(mode, "plotted")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
                 I = pWI;
             elseif strcmpi(mode, "selected")
-                pWI = get(app.pL,'UserData');
+                pWI = get(app.leftUnitLines,'UserData');
                 if iscell(pWI)
                     pWI = cell2mat(pWI);
                 end
-                I = pWI(app.figureHandles(2).UserData.selectedIdx);
+                I = pWI(app.leftUnitAx.UserData.selectedIdx);
             end
 
             if isempty(I)
@@ -963,8 +990,8 @@
             % them. See refineGUI for more information
 
             % stop user from interacting with main GUI while refining
-            app.switchButtons(0);
-            app.switchButtons(2);
+            app.switchButtons('menuOff');
+            app.switchButtons('opsOff');
 
             % input variables to refineGUI
             r = getBatchRange(app);
@@ -1015,8 +1042,6 @@
 
             if strcmp(app.OverviewDropDown.Value,'Waveforms')
                 showSpikeOverview(app.unitArray, unitsToPlot, [app.yLimLowField.Value, app.yLimHighField.Value]);
-            elseif strcmp(app.OverviewDropDown.Value,'Temporal stab.')
-                app.showTemporalStability(unitsToPlot);
             elseif strcmp(app.OverviewDropDown.Value,'PCA')
                 showPCAOverview(app.unitArray, unitsToPlot)
             elseif strcmp(app.OverviewDropDown.Value,'LDA')
@@ -1029,26 +1054,6 @@
             
             app.StatusLabel.Value = "Ready";
 
-        end
-
-        % Button pushed function: LeftOverviewButton
-        function LeftOverviewButtonPushed(app, event)
-            value = str2double(app.LeftUnitDropDown.Value);
-            if isempty(app.unitArray(value).spikeTimes)
-                app.StatusLabel.Value = "Left unit is empty!";
-                return;
-            end
-
-            app.StatusLabel.Value = "Plotting unit overview...";
-            drawnow
-
-            if strcmp(app.LOverviewDropDown.Value,'Waveforms')
-                scrubUnit(app,value);
-            elseif strcmp(app.LOverviewDropDown.Value,'ISI')
-                showISI(app,value)
-            end
-            
-            app.StatusLabel.Value = "Ready";
         end
 
         % Button pushed function: ShowtemplatesButton
@@ -1070,94 +1075,112 @@
 
         % Menu selected function: LZoomMenu, TZoomMenu
         function ZoomMenuSelected(app, event)
-            if app.interactingFlag(event.Source.UserData) == 2
-                pan(app.figureHandles(event.Source.UserData),'off');
-                zoom(app.figureHandles(event.Source.UserData),'on');
-                app.interactingFlag(event.Source.UserData) = 1;
-            elseif app.interactingFlag(event.Source.UserData) == 1
-                zoom(app.figureHandles(event.Source.UserData),'off');
-                app.interactingFlag(event.Source.UserData) = 0;
+            if event.Source.UserData == 'l'
+                src = app.leftUnitAx;
             else
-                zoom(app.figureHandles(event.Source.UserData),'on');
-                app.interactingFlag(event.Source.UserData) = 1;
+                src = app.traceAx;
+            end
+
+            if src.UserData.interactionType == 'p'
+                pan(src,'off');
+                zoom(src,'on');
+                src.UserData.interactionType = 'z';
+            elseif src.UserData.interactionType == 'z'
+                zoom(src,'off');
+                src.UserData.interactionType = 'n';
+            else
+                zoom(src,'on');
+                src.UserData.interactionType = 'z';
             end
 
         end
 
         % Menu selected function: LPanMenu, TPanMenu
         function PanMenuSelected(app, event)
-            if app.interactingFlag(event.Source.UserData) == 2
-                pan(app.figureHandles(event.Source.UserData),'off');
-                app.interactingFlag(event.Source.UserData) = 0;
-            elseif app.interactingFlag(event.Source.UserData) == 1
-                zoom(app.figureHandles(event.Source.UserData),'off');
-                pan(app.figureHandles(event.Source.UserData),'on');
-                app.interactingFlag(event.Source.UserData) = 2;
+            if event.Source.UserData == 'l'
+                src = app.leftUnitAx;
             else
-                pan(app.figureHandles(event.Source.UserData),'on');
-                app.interactingFlag(event.Source.UserData) = 2;
+                src = app.traceAx;
+            end
+            
+            if src.UserData.interactionType == 'p'
+                pan(src,'off');
+                src.UserData.interactionType = 'n';
+            elseif src.UserData.interactionType == 'z'
+                zoom(src,'off');
+                pan(src,'on');
+                src.UserData.interactionType = 'p';
+            else
+                pan(src,'on');
+                src.UserData.interactionType = 'p';
             end
 
         end
 
         % Menu selected function: LPointerMenu, TPointerMenu
         function PointerMenuSelected(app, event)
-            zoom(app.figureHandles(event.Source.UserData),'off');
-            pan(app.figureHandles(event.Source.UserData),'off');
-            app.interactingFlag(event.Source.UserData) = 0;
+            if event.Source.UserData == 'l'
+                src = app.leftUnitAx;
+            else
+                src = app.traceAx;
+            end
+            
+            zoom(src,'off');
+            pan(src,'off');
+            src.UserData.interactionType = 'n';
 
         end
 
         % Menu selected function: TResetMenu
         function TResetMenuSelected(app, event)
-            ylim(app.figureHandles(event.Source.UserData), [app.yLimLowField.Value, app.yLimHighField.Value]);
+            ylim(app.traceAx, [app.yLimLowField.Value, app.yLimHighField.Value]);
             if isempty(app.msConvert*size(app.xi,2))
-                xlim(app.figureHandles(event.Source.UserData), [0 1]);
+                xlim(app.traceAx, [0 1]);
             else
-                xlim(app.figureHandles(event.Source.UserData), [0 app.msConvert*size(app.xi,2)]);
+                xlim(app.traceAx, [0 app.msConvert*size(app.xi,2)]);
             end
 
         end
 
         % Menu selected function: LResetMenu
         function LResetMenuSelected(app, event)
-            ylim(app.figureHandles(event.Source.UserData), [-inf inf]);
-            xlim(app.figureHandles(event.Source.UserData), [-inf inf]);
+            ylim(app.leftUnitAx, [-inf inf]);
+            xlim(app.leftUnitAx, [-inf inf]);
 
         end
 
         % Menu selected function: TUnselectMenu
         function TUnselectMenuSelected(app, event)
-            delete(app.pSelection);
-            app.figureHandles(1).UserData.selectedUnassigned = [];
-            if ~isempty(app.pSelected)
-                for ii = 1:length(app.pSelected)
-                    if ishandle(app.pSelected(ii))
-                        delete(app.pSelected(ii));
+            delete(app.selectionBox);
+            app.traceAx.UserData.selectedUnassigned = [];
+            if ~isempty(app.selectedSpikeMarkers)
+                for ii = 1:length(app.selectedSpikeMarkers)
+                    if ishandle(app.selectedSpikeMarkers(ii))
+                        delete(app.selectedSpikeMarkers(ii));
                     end
                 end
             end
             
-            if ~isempty(app.pSelectedF)
-                for ii = 1:length(app.pSelectedF)
-                    if ishandle(app.pSelectedF(ii))
-                        delete(app.pSelectedF(ii));
+            if ~isempty(app.selectedFeatureMarkers)
+                for ii = 1:length(app.selectedFeatureMarkers)
+                    if ishandle(app.selectedFeatureMarkers(ii))
+                        delete(app.selectedFeatureMarkers(ii));
                     end
                 end
             end
             
-            app.pSelected = [];
-            app.pSelectedF = [];
+            app.selectedSpikeMarkers = [];
+            app.selectedFeatureMarkers = [];
         end
 
         % Menu selected function: LUnselectMenu
         function LUnselectMenuSelected(app, event)
-            delete(app.lSelection);
-            app.figureHandles(2).UserData.selectedIdx = [];
-            if ~isempty(app.pL)
-                for ii = 1:length(app.pL)
-                    if ishandle(app.pL(ii)) && strcmp(app.pL(ii).LineStyle, ':')
-                        app.pL(ii).LineStyle = '-';
+            delete(app.leftUnitSelectionBox);
+            app.leftUnitAx.UserData.selectedIdx = [];
+            if ~isempty(app.leftUnitLines)
+                for ii = 1:length(app.leftUnitLines)
+                    if ishandle(app.leftUnitLines(ii)) && strcmp(app.leftUnitLines(ii).LineStyle, ':')
+                        app.leftUnitLines(ii).LineStyle = '-';
                     end
                 end
             end
@@ -1167,21 +1190,21 @@
         function MatchunityaxisMenuSelected(app, event)
             % make ylim same on left and right unit plots for ease of comparison
 
-            y = ylim(app.figureHandles(2));
-            y(2,:) = ylim(app.figureHandles(3));
+            y = ylim(app.leftUnitAx);
+            y(2,:) = ylim(app.rightUnitAx);
             yN(1) = min(y(:,1),[],1);
             yN(2) = max(y(:,2),[],1);
-            ylim(app.figureHandles(2), yN);
-            ylim(app.figureHandles(3), yN);
+            ylim(app.leftUnitAx, yN);
+            ylim(app.rightUnitAx, yN);
 
         end
 
         % Value changed function: yLimHighField, yLimLowField
         function yLimLowFieldValueChanged(app, event)
             newYL = sort([app.yLimLowField.Value, app.yLimHighField.Value]);
-            ylim(app.figureHandles(1), newYL);
-            ylim(app.figureHandles(2), newYL);
-            ylim(app.figureHandles(3), newYL);
+            ylim(app.traceAx, newYL);
+            ylim(app.leftUnitAx, newYL);
+            ylim(app.rightUnitAx, newYL);
             app.yLimLowField.Value = newYL(1);
             app.yLimHighField.Value = newYL(2);
 
@@ -1327,8 +1350,8 @@
 
         % Button pushed function: TagmanagementButton
         function TagmanagementButtonPushed(app, event)
-            app.switchButtons(0);
-            app.switchButtons(2);
+            app.switchButtons('menuOff');
+            app.switchButtons('opsOff');
 
             app.tagPop = tagManager(app,app.unitArray);
             app.StatusLabel.Value = "Tag manager open!";
@@ -1340,10 +1363,10 @@
             value = app.ManualartifactremoverButton.Value;
 
             if value == 1
-                manualArtifactRemover(app, app.figureHandles(1));
+                manualArtifactRemover(app, app.traceAx);
             else
-                app.switchButtons(1);
-                app.switchButtons(3);
+                app.switchButtons('menuOn');
+                app.switchButtons('opsOn');
 
                 %                 offset = -app.m.nChans*app.m.dbytes*size(app.xi,2);
                 app.readFilter(app.currentBatch);
@@ -1365,7 +1388,7 @@
             app.StatusLabel.Value = "Loading...";
             drawnow
 
-            app.switchButtons(1)
+            app.switchButtons('menuOn')
 
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as event markers');
             if fN < 1
@@ -1377,8 +1400,8 @@
             [app.t.importedEventBounds, app.StatusLabel.Value] = importEventData([fP, fN]);
             app.VieweventmarkersButton.Enable = 1;
             app.VieweventmarkersButton.Value = 1;
-            for ii = 1:length(app.pEvent)
-                delete(app.pEvent(ii));
+            for ii = 1:length(app.eventMarkerArr)
+                delete(app.eventMarkerArr(ii));
             end
 
             standardUpdate(app);
@@ -1403,7 +1426,7 @@
             app.StatusLabel.Value = "Loading...";
             drawnow
 
-            app.switchButtons(1)
+            app.switchButtons('menuOn')
 
             [fN, fP] = uigetfile('*.mat','Pick *.mat file to load as deviation sample weights');
             if fN < 1
@@ -1521,12 +1544,12 @@
                 return;
             end
             
-            if isempty(app.spT) || ~ishandle(app.spT)
-                app.spT = makeTiledFigure(size(app.xi,1), [50 50 1700 600], 'Data trace multichannel', 'vertical');
+            if isempty(app.dataAllChAx) || ~ishandle(app.dataAllChAx)
+                app.dataAllChAx = makeTiledFigure(size(app.xi,1), [50 50 1700 600], 'Data trace multichannel', 'vertical');
                 app.redrawTracePlot();
             else
-                app.spT.Visible = 'off';
-                app.spT.Visible = 'on';
+                app.dataAllChAx.Visible = 'off';
+                app.dataAllChAx.Visible = 'on';
             end
             
         end
@@ -1537,12 +1560,12 @@
                 return;
             end
             
-            if isempty(app.spL) || ~ishandle(app.spL)
-                app.spL = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Left unit multichannel');
+            if isempty(app.leftUnitAllChAx) || ~ishandle(app.leftUnitAllChAx)
+                app.leftUnitAllChAx = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Left unit multichannel');
                 app.redrawUnitPlots(1);
             else
-                app.spL.Visible = 'off';
-                app.spL.Visible = 'on';
+                app.leftUnitAllChAx.Visible = 'off';
+                app.leftUnitAllChAx.Visible = 'on';
             end
            
         end
@@ -1553,12 +1576,12 @@
                 return;
             end
             
-            if isempty(app.spR) || ~ishandle(app.spR)
-                app.spR = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Right unit multichannel');
+            if isempty(app.rightUnitAllChAx) || ~ishandle(app.rightUnitAllChAx)
+                app.rightUnitAllChAx = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Right unit multichannel');
                 app.redrawUnitPlots(2);
             else
-                app.spR.Visible = 'off';
-                app.spR.Visible = 'on';
+                app.rightUnitAllChAx.Visible = 'off';
+                app.rightUnitAllChAx.Visible = 'on';
             end
             
         end
@@ -1595,10 +1618,27 @@
             
         end
 
-        % Value changed function: MetricDropDown
+        % Value changed function: MetricDropDown_1, MetricDropDown_2, 
+        % ...and 2 other components
         function MetricDropDownValueChanged(app, event)
-            app.redrawMetric();
+            target = event.Source.UserData;
+            app.redrawMetric(target);
             
+        end
+
+        % Menu selected function: ViewmetricsrowMenu
+        function ViewmetricsrowMenuSelected(app, event)
+            if ~event.Source.Checked
+                app.MainGrid.RowHeight = {22,'1x','1x','1x'};
+                event.Source.Checked = 1;
+            else
+                app.MainGrid.RowHeight = {22,'1x',0,'1x'};
+                for ii = 2:length(app.Metrics.dropDownArr)
+                    app.Metrics.dropDownArr(ii).Value = 'None';
+                    app.redrawMetric(ii);
+                end
+                event.Source.Checked = 0;
+            end
         end
     end
 
@@ -1611,7 +1651,7 @@
             % Create UIBase and hide until all components are created
             app.UIBase = uifigure('Visible', 'off');
             app.UIBase.Color = [0.9412 0.9412 0.9412];
-            app.UIBase.Position = [50 50 1750 984];
+            app.UIBase.Position = [50 50 1850 900];
             app.UIBase.Name = 'Dragonsort v0.3';
             app.UIBase.CloseRequestFcn = createCallbackFcn(app, @UIBaseCloseRequest, true);
 
@@ -1622,16 +1662,19 @@
             % Create InitialiseMenu
             app.InitialiseMenu = uimenu(app.SessionMenu);
             app.InitialiseMenu.MenuSelectedFcn = createCallbackFcn(app, @InitialiseButtonPushed, true);
+            app.InitialiseMenu.Accelerator = 'i';
             app.InitialiseMenu.Text = 'Initialise';
 
             % Create LoadMenu
             app.LoadMenu = uimenu(app.SessionMenu);
             app.LoadMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadButtonPushed, true);
+            app.LoadMenu.Accelerator = 'l';
             app.LoadMenu.Text = 'Load';
 
             % Create SaveMenu
             app.SaveMenu = uimenu(app.SessionMenu);
             app.SaveMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveButtonPushed, true);
+            app.SaveMenu.Accelerator = 's';
             app.SaveMenu.Text = 'Save';
 
             % Create AddtimestampMenu
@@ -1643,12 +1686,89 @@
             % Create UndoMenu
             app.UndoMenu = uimenu(app.SessionMenu);
             app.UndoMenu.MenuSelectedFcn = createCallbackFcn(app, @UndoMenuSelected, true);
+            app.UndoMenu.Accelerator = 'z';
             app.UndoMenu.Text = 'Undo';
 
             % Create RedoMenu
             app.RedoMenu = uimenu(app.SessionMenu);
             app.RedoMenu.MenuSelectedFcn = createCallbackFcn(app, @UndoMenuSelected, true);
+            app.RedoMenu.Accelerator = 'y';
             app.RedoMenu.Text = 'Redo';
+
+            % Create PanelsMenu
+            app.PanelsMenu = uimenu(app.UIBase);
+            app.PanelsMenu.Text = 'Panels';
+
+            % Create ViewmetricsrowMenu
+            app.ViewmetricsrowMenu = uimenu(app.PanelsMenu);
+            app.ViewmetricsrowMenu.MenuSelectedFcn = createCallbackFcn(app, @ViewmetricsrowMenuSelected, true);
+            app.ViewmetricsrowMenu.Text = 'View metrics row';
+
+            % Create LZoomMenu
+            app.LZoomMenu = uimenu(app.PanelsMenu);
+            app.LZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
+            app.LZoomMenu.Accelerator = '1';
+            app.LZoomMenu.Text = 'Left unit: zoom';
+
+            % Create LResetMenu
+            app.LResetMenu = uimenu(app.PanelsMenu);
+            app.LResetMenu.MenuSelectedFcn = createCallbackFcn(app, @LResetMenuSelected, true);
+            app.LResetMenu.Accelerator = '2';
+            app.LResetMenu.Text = 'Left unit: reset zoom';
+
+            % Create LPanMenu
+            app.LPanMenu = uimenu(app.PanelsMenu);
+            app.LPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
+            app.LPanMenu.Accelerator = '3';
+            app.LPanMenu.Text = 'Left unit: pan';
+
+            % Create LPointerMenu
+            app.LPointerMenu = uimenu(app.PanelsMenu);
+            app.LPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
+            app.LPointerMenu.Accelerator = '4';
+            app.LPointerMenu.Text = 'Left unit: pointer';
+
+            % Create LUnselectMenu
+            app.LUnselectMenu = uimenu(app.PanelsMenu);
+            app.LUnselectMenu.MenuSelectedFcn = createCallbackFcn(app, @LUnselectMenuSelected, true);
+            app.LUnselectMenu.Accelerator = '5';
+            app.LUnselectMenu.Text = 'Left unit: unselect all';
+
+            % Create TZoomMenu
+            app.TZoomMenu = uimenu(app.PanelsMenu);
+            app.TZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
+            app.TZoomMenu.Accelerator = 'q';
+            app.TZoomMenu.Text = 'Trace: zoom';
+
+            % Create TResetMenu
+            app.TResetMenu = uimenu(app.PanelsMenu);
+            app.TResetMenu.MenuSelectedFcn = createCallbackFcn(app, @TResetMenuSelected, true);
+            app.TResetMenu.Accelerator = 'w';
+            app.TResetMenu.Text = 'Trace: reset zoom';
+
+            % Create TPanMenu
+            app.TPanMenu = uimenu(app.PanelsMenu);
+            app.TPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
+            app.TPanMenu.Accelerator = 'e';
+            app.TPanMenu.Text = 'Trace: pan';
+
+            % Create TPointerMenu
+            app.TPointerMenu = uimenu(app.PanelsMenu);
+            app.TPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
+            app.TPointerMenu.Accelerator = 'r';
+            app.TPointerMenu.Text = 'Trace: pointer';
+
+            % Create TUnselectMenu
+            app.TUnselectMenu = uimenu(app.PanelsMenu);
+            app.TUnselectMenu.MenuSelectedFcn = createCallbackFcn(app, @TUnselectMenuSelected, true);
+            app.TUnselectMenu.Accelerator = 't';
+            app.TUnselectMenu.Text = 'Trace: unselect all';
+
+            % Create MatchunityaxisMenu
+            app.MatchunityaxisMenu = uimenu(app.PanelsMenu);
+            app.MatchunityaxisMenu.MenuSelectedFcn = createCallbackFcn(app, @MatchunityaxisMenuSelected, true);
+            app.MatchunityaxisMenu.Accelerator = 'm';
+            app.MatchunityaxisMenu.Text = 'Match unit Y-axis';
 
             % Create TimelineMenu
             app.TimelineMenu = uimenu(app.UIBase);
@@ -1657,11 +1777,13 @@
             % Create PreviousbatchMenu
             app.PreviousbatchMenu = uimenu(app.TimelineMenu);
             app.PreviousbatchMenu.MenuSelectedFcn = createCallbackFcn(app, @GotobatchButtonPushed, true);
+            app.PreviousbatchMenu.Accelerator = 'o';
             app.PreviousbatchMenu.Text = 'Previous batch';
 
             % Create NextbatchMenu
             app.NextbatchMenu = uimenu(app.TimelineMenu);
             app.NextbatchMenu.MenuSelectedFcn = createCallbackFcn(app, @GotobatchButtonPushed, true);
+            app.NextbatchMenu.Accelerator = 'p';
             app.NextbatchMenu.Text = 'Next batch';
 
             % Create UnitfrequencyMenu
@@ -1672,112 +1794,62 @@
             app.ScrubthroughunitMenu = uimenu(app.TimelineMenu);
             app.ScrubthroughunitMenu.Text = 'Scrub through unit';
 
-            % Create UnitMenu
-            app.UnitMenu = uimenu(app.UIBase);
-            app.UnitMenu.Text = 'Unit';
+            % Create SortingMenu
+            app.SortingMenu = uimenu(app.UIBase);
+            app.SortingMenu.Text = 'Sorting';
 
             % Create NewunitMenu
-            app.NewunitMenu = uimenu(app.UnitMenu);
+            app.NewunitMenu = uimenu(app.SortingMenu);
             app.NewunitMenu.MenuSelectedFcn = createCallbackFcn(app, @NewunitButtonPushed, true);
+            app.NewunitMenu.Accelerator = 'n';
             app.NewunitMenu.Text = 'New unit';
 
             % Create AddspikeMenu
-            app.AddspikeMenu = uimenu(app.UnitMenu);
+            app.AddspikeMenu = uimenu(app.SortingMenu);
             app.AddspikeMenu.MenuSelectedFcn = createCallbackFcn(app, @AddspikeButtonPushed, true);
+            app.AddspikeMenu.Accelerator = 'd';
             app.AddspikeMenu.Text = 'Add spike to left unit';
 
             % Create ForceaddMenu
-            app.ForceaddMenu = uimenu(app.UnitMenu);
+            app.ForceaddMenu = uimenu(app.SortingMenu);
             app.ForceaddMenu.MenuSelectedFcn = createCallbackFcn(app, @AddspikeButtonPushed, true);
+            app.ForceaddMenu.Accelerator = 'g';
             app.ForceaddMenu.Text = 'Force add spike to left unit';
 
             % Create RemovespikeMenu
-            app.RemovespikeMenu = uimenu(app.UnitMenu);
+            app.RemovespikeMenu = uimenu(app.SortingMenu);
             app.RemovespikeMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
+            app.RemovespikeMenu.Accelerator = 'f';
             app.RemovespikeMenu.Text = 'Remove spike from left unit';
 
             % Create SplitMenu
-            app.SplitMenu = uimenu(app.UnitMenu);
+            app.SplitMenu = uimenu(app.SortingMenu);
             app.SplitMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
+            app.SplitMenu.Accelerator = 'v';
             app.SplitMenu.Text = 'Split left unit';
 
             % Create MergeMenu
-            app.MergeMenu = uimenu(app.UnitMenu);
+            app.MergeMenu = uimenu(app.SortingMenu);
             app.MergeMenu.MenuSelectedFcn = createCallbackFcn(app, @basicopsButtonPushed, true);
+            app.MergeMenu.Accelerator = 'c';
             app.MergeMenu.Text = 'Merge units';
 
             % Create AutosplitMenu
-            app.AutosplitMenu = uimenu(app.UnitMenu);
+            app.AutosplitMenu = uimenu(app.SortingMenu);
             app.AutosplitMenu.MenuSelectedFcn = createCallbackFcn(app, @AutosplitButtonPushed, true);
+            app.AutosplitMenu.Accelerator = 'a';
             app.AutosplitMenu.Text = 'Autosplit left unit';
 
             % Create AutomergeMenu
-            app.AutomergeMenu = uimenu(app.UnitMenu);
+            app.AutomergeMenu = uimenu(app.SortingMenu);
+            app.AutomergeMenu.Accelerator = 'b';
             app.AutomergeMenu.Text = 'Automerge left unit';
 
             % Create RefinebatchMenu
-            app.RefinebatchMenu = uimenu(app.UnitMenu);
+            app.RefinebatchMenu = uimenu(app.SortingMenu);
             app.RefinebatchMenu.MenuSelectedFcn = createCallbackFcn(app, @RefinebatchButtonPushed, true);
+            app.RefinebatchMenu.Accelerator = 'x';
             app.RefinebatchMenu.Text = 'Refine batch';
-
-            % Create FigureshortcutsMenu
-            app.FigureshortcutsMenu = uimenu(app.UIBase);
-            app.FigureshortcutsMenu.Text = 'Figure shortcuts';
-
-            % Create LZoomMenu
-            app.LZoomMenu = uimenu(app.FigureshortcutsMenu);
-            app.LZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
-            app.LZoomMenu.Text = 'Left unit: zoom';
-
-            % Create LResetMenu
-            app.LResetMenu = uimenu(app.FigureshortcutsMenu);
-            app.LResetMenu.MenuSelectedFcn = createCallbackFcn(app, @LResetMenuSelected, true);
-            app.LResetMenu.Text = 'Left unit: reset zoom';
-
-            % Create LPanMenu
-            app.LPanMenu = uimenu(app.FigureshortcutsMenu);
-            app.LPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
-            app.LPanMenu.Text = 'Left unit: pan';
-
-            % Create LPointerMenu
-            app.LPointerMenu = uimenu(app.FigureshortcutsMenu);
-            app.LPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
-            app.LPointerMenu.Text = 'Left unit: pointer';
-
-            % Create LUnselectMenu
-            app.LUnselectMenu = uimenu(app.FigureshortcutsMenu);
-            app.LUnselectMenu.MenuSelectedFcn = createCallbackFcn(app, @LUnselectMenuSelected, true);
-            app.LUnselectMenu.Text = 'Left unit: unselect all';
-
-            % Create TZoomMenu
-            app.TZoomMenu = uimenu(app.FigureshortcutsMenu);
-            app.TZoomMenu.MenuSelectedFcn = createCallbackFcn(app, @ZoomMenuSelected, true);
-            app.TZoomMenu.Text = 'Trace: zoom';
-
-            % Create TResetMenu
-            app.TResetMenu = uimenu(app.FigureshortcutsMenu);
-            app.TResetMenu.MenuSelectedFcn = createCallbackFcn(app, @TResetMenuSelected, true);
-            app.TResetMenu.Text = 'Trace: reset zoom';
-
-            % Create TPanMenu
-            app.TPanMenu = uimenu(app.FigureshortcutsMenu);
-            app.TPanMenu.MenuSelectedFcn = createCallbackFcn(app, @PanMenuSelected, true);
-            app.TPanMenu.Text = 'Trace: pan';
-
-            % Create TPointerMenu
-            app.TPointerMenu = uimenu(app.FigureshortcutsMenu);
-            app.TPointerMenu.MenuSelectedFcn = createCallbackFcn(app, @PointerMenuSelected, true);
-            app.TPointerMenu.Text = 'Trace: pointer';
-
-            % Create TUnselectMenu
-            app.TUnselectMenu = uimenu(app.FigureshortcutsMenu);
-            app.TUnselectMenu.MenuSelectedFcn = createCallbackFcn(app, @TUnselectMenuSelected, true);
-            app.TUnselectMenu.Text = 'Trace: unselect all';
-
-            % Create MatchunityaxisMenu
-            app.MatchunityaxisMenu = uimenu(app.FigureshortcutsMenu);
-            app.MatchunityaxisMenu.MenuSelectedFcn = createCallbackFcn(app, @MatchunityaxisMenuSelected, true);
-            app.MatchunityaxisMenu.Text = 'Match unit Y-axis';
 
             % Create OthersMenu
             app.OthersMenu = uimenu(app.UIBase);
@@ -1786,12 +1858,13 @@
             % Create HelpMenu
             app.HelpMenu = uimenu(app.OthersMenu);
             app.HelpMenu.MenuSelectedFcn = createCallbackFcn(app, @HelpMenuSelected, true);
+            app.HelpMenu.Accelerator = 'h';
             app.HelpMenu.Text = 'Help';
 
             % Create MainGrid
             app.MainGrid = uigridlayout(app.UIBase);
-            app.MainGrid.ColumnWidth = {'0.6x', '0.2x', '1x', '1x'};
-            app.MainGrid.RowHeight = {'1x', 22, '1x', '0.05x'};
+            app.MainGrid.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.MainGrid.RowHeight = {22, '1x', 0, '1x'};
             app.MainGrid.ColumnSpacing = 5;
             app.MainGrid.RowSpacing = 5;
             app.MainGrid.Padding = [5 5 5 5];
@@ -1801,51 +1874,38 @@
             app.StatusLabel.Editable = 'off';
             app.StatusLabel.FontColor = [1 1 1];
             app.StatusLabel.BackgroundColor = [0 0 0];
-            app.StatusLabel.Layout.Row = 4;
+            app.StatusLabel.Layout.Row = 1;
             app.StatusLabel.Layout.Column = [1 3];
             app.StatusLabel.Value = 'Ready';
 
             % Create LGrid
             app.LGrid = uigridlayout(app.MainGrid);
-            app.LGrid.ColumnWidth = {60, '1x', 50, 50};
+            app.LGrid.ColumnWidth = {'1x'};
             app.LGrid.RowHeight = {22, '1x'};
             app.LGrid.ColumnSpacing = 2;
             app.LGrid.RowSpacing = 2;
             app.LGrid.Padding = [0 0 0 0];
-            app.LGrid.Layout.Row = 1;
-            app.LGrid.Layout.Column = 3;
+            app.LGrid.Layout.Row = 2;
+            app.LGrid.Layout.Column = [4 6];
 
             % Create LPanel
             app.LPanel = uipanel(app.LGrid);
             app.LPanel.BorderType = 'none';
             app.LPanel.Layout.Row = 2;
-            app.LPanel.Layout.Column = [1 4];
+            app.LPanel.Layout.Column = 1;
 
-            % Create LTitle
-            app.LTitle = uieditfield(app.LGrid, 'text');
-            app.LTitle.Editable = 'off';
-            app.LTitle.FontWeight = 'bold';
-            app.LTitle.BackgroundColor = [0.8 0.8 0.8];
-            app.LTitle.Layout.Row = 1;
-            app.LTitle.Layout.Column = 2;
-
-            % Create LMultiButton
-            app.LMultiButton = uibutton(app.LGrid, 'push');
-            app.LMultiButton.ButtonPushedFcn = createCallbackFcn(app, @LMultiButtonValueChanged, true);
-            app.LMultiButton.Enable = 'off';
-            app.LMultiButton.Layout.Row = 1;
-            app.LMultiButton.Layout.Column = 4;
-            app.LMultiButton.Text = 'Multi';
-
-            % Create LPCAButton
-            app.LPCAButton = uibutton(app.LGrid, 'push');
-            app.LPCAButton.Enable = 'off';
-            app.LPCAButton.Layout.Row = 1;
-            app.LPCAButton.Layout.Column = 3;
-            app.LPCAButton.Text = 'Feat.';
+            % Create GridLayout3_2
+            app.GridLayout3_2 = uigridlayout(app.LGrid);
+            app.GridLayout3_2.ColumnWidth = {50, '1x', 50, 50};
+            app.GridLayout3_2.RowHeight = {'1x'};
+            app.GridLayout3_2.ColumnSpacing = 2;
+            app.GridLayout3_2.RowSpacing = 2;
+            app.GridLayout3_2.Padding = [0 0 0 0];
+            app.GridLayout3_2.Layout.Row = 1;
+            app.GridLayout3_2.Layout.Column = 1;
 
             % Create LeftUnitDropDown
-            app.LeftUnitDropDown = uidropdown(app.LGrid);
+            app.LeftUnitDropDown = uidropdown(app.GridLayout3_2);
             app.LeftUnitDropDown.Items = {'1'};
             app.LeftUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @LeftUnitDropDownValueChanged, true);
             app.LeftUnitDropDown.FontWeight = 'bold';
@@ -1853,18 +1913,57 @@
             app.LeftUnitDropDown.Layout.Column = 1;
             app.LeftUnitDropDown.Value = '1';
 
+            % Create LTitle
+            app.LTitle = uieditfield(app.GridLayout3_2, 'text');
+            app.LTitle.Editable = 'off';
+            app.LTitle.FontWeight = 'bold';
+            app.LTitle.BackgroundColor = [0.8 0.8 0.8];
+            app.LTitle.Layout.Row = 1;
+            app.LTitle.Layout.Column = 2;
+
+            % Create LPCAButton
+            app.LPCAButton = uibutton(app.GridLayout3_2, 'push');
+            app.LPCAButton.Enable = 'off';
+            app.LPCAButton.Layout.Row = 1;
+            app.LPCAButton.Layout.Column = 3;
+            app.LPCAButton.Text = 'Feat.';
+
+            % Create LMultiButton
+            app.LMultiButton = uibutton(app.GridLayout3_2, 'push');
+            app.LMultiButton.ButtonPushedFcn = createCallbackFcn(app, @LMultiButtonValueChanged, true);
+            app.LMultiButton.Enable = 'off';
+            app.LMultiButton.Layout.Row = 1;
+            app.LMultiButton.Layout.Column = 4;
+            app.LMultiButton.Text = 'Multi';
+
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);
-            app.RGrid.ColumnWidth = {60, '1x', 50};
+            app.RGrid.ColumnWidth = {'1x'};
             app.RGrid.RowHeight = {22, '1x'};
             app.RGrid.ColumnSpacing = 2;
             app.RGrid.RowSpacing = 2;
             app.RGrid.Padding = [0 0 0 0];
-            app.RGrid.Layout.Row = 1;
-            app.RGrid.Layout.Column = 4;
+            app.RGrid.Layout.Row = 2;
+            app.RGrid.Layout.Column = [7 9];
+
+            % Create RPanel
+            app.RPanel = uipanel(app.RGrid);
+            app.RPanel.BorderType = 'none';
+            app.RPanel.Layout.Row = 2;
+            app.RPanel.Layout.Column = 1;
+
+            % Create GridLayout3
+            app.GridLayout3 = uigridlayout(app.RGrid);
+            app.GridLayout3.ColumnWidth = {50, '1x', 50};
+            app.GridLayout3.RowHeight = {'1x'};
+            app.GridLayout3.ColumnSpacing = 2;
+            app.GridLayout3.RowSpacing = 2;
+            app.GridLayout3.Padding = [0 0 0 0];
+            app.GridLayout3.Layout.Row = 1;
+            app.GridLayout3.Layout.Column = 1;
 
             % Create RightUnitDropDown
-            app.RightUnitDropDown = uidropdown(app.RGrid);
+            app.RightUnitDropDown = uidropdown(app.GridLayout3);
             app.RightUnitDropDown.Items = {'1'};
             app.RightUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @RightUnitDropDownValueChanged, true);
             app.RightUnitDropDown.FontWeight = 'bold';
@@ -1872,14 +1971,8 @@
             app.RightUnitDropDown.Layout.Column = 1;
             app.RightUnitDropDown.Value = '1';
 
-            % Create RPanel
-            app.RPanel = uipanel(app.RGrid);
-            app.RPanel.BorderType = 'none';
-            app.RPanel.Layout.Row = 2;
-            app.RPanel.Layout.Column = [1 3];
-
             % Create RTitle
-            app.RTitle = uieditfield(app.RGrid, 'text');
+            app.RTitle = uieditfield(app.GridLayout3, 'text');
             app.RTitle.Editable = 'off';
             app.RTitle.FontWeight = 'bold';
             app.RTitle.BackgroundColor = [0.8 0.8 0.8];
@@ -1887,7 +1980,7 @@
             app.RTitle.Layout.Column = 2;
 
             % Create RMultiButton
-            app.RMultiButton = uibutton(app.RGrid, 'push');
+            app.RMultiButton = uibutton(app.GridLayout3, 'push');
             app.RMultiButton.ButtonPushedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
             app.RMultiButton.Enable = 'off';
             app.RMultiButton.Layout.Row = 1;
@@ -1896,8 +1989,8 @@
 
             % Create ControlTabs
             app.ControlTabs = uitabgroup(app.MainGrid);
-            app.ControlTabs.Layout.Row = [2 3];
-            app.ControlTabs.Layout.Column = 1;
+            app.ControlTabs.Layout.Row = 4;
+            app.ControlTabs.Layout.Column = [1 2];
 
             % Create GeneralTab
             app.GeneralTab = uitab(app.ControlTabs);
@@ -2184,21 +2277,6 @@
             app.AllOverviewButton.Layout.Row = [2 3];
             app.AllOverviewButton.Layout.Column = 2;
             app.AllOverviewButton.Text = 'All unit overview';
-
-            % Create LOverviewDropDown
-            app.LOverviewDropDown = uidropdown(app.MiscGrid);
-            app.LOverviewDropDown.Items = {'Waveforms', 'ISI'};
-            app.LOverviewDropDown.Layout.Row = [4 5];
-            app.LOverviewDropDown.Layout.Column = 3;
-            app.LOverviewDropDown.Value = 'Waveforms';
-
-            % Create LeftOverviewButton
-            app.LeftOverviewButton = uibutton(app.MiscGrid, 'push');
-            app.LeftOverviewButton.ButtonPushedFcn = createCallbackFcn(app, @LeftOverviewButtonPushed, true);
-            app.LeftOverviewButton.BackgroundColor = [0.0588 1 1];
-            app.LeftOverviewButton.Layout.Row = [2 3];
-            app.LeftOverviewButton.Layout.Column = 3;
-            app.LeftOverviewButton.Text = 'Left unit overview';
 
             % Create ParametersdataTab
             app.ParametersdataTab = uitab(app.ControlTabs);
@@ -2752,12 +2830,6 @@
             app.MainchannelDropDown.Layout.Column = 2;
             app.MainchannelDropDown.Value = '1';
 
-            % Create dataPanel
-            app.dataPanel = uipanel(app.MainGrid);
-            app.dataPanel.BorderType = 'none';
-            app.dataPanel.Layout.Row = 3;
-            app.dataPanel.Layout.Column = [2 4];
-
             % Create ColourGrid
             app.ColourGrid = uigridlayout(app.MainGrid);
             app.ColourGrid.ColumnWidth = {'1x'};
@@ -2765,21 +2837,66 @@
             app.ColourGrid.ColumnSpacing = 0;
             app.ColourGrid.RowSpacing = 0;
             app.ColourGrid.Padding = [0 0 0 0];
-            app.ColourGrid.Layout.Row = 4;
-            app.ColourGrid.Layout.Column = 4;
+            app.ColourGrid.Layout.Row = 1;
+            app.ColourGrid.Layout.Column = [4 9];
 
-            % Create TTitleRowGrid
-            app.TTitleRowGrid = uigridlayout(app.MainGrid);
-            app.TTitleRowGrid.ColumnWidth = {'1x', 50, 50};
-            app.TTitleRowGrid.RowHeight = {'1x'};
-            app.TTitleRowGrid.ColumnSpacing = 2;
-            app.TTitleRowGrid.RowSpacing = 2;
-            app.TTitleRowGrid.Padding = [0 0 0 0];
-            app.TTitleRowGrid.Layout.Row = 2;
-            app.TTitleRowGrid.Layout.Column = [2 4];
+            % Create MetricGrid_1
+            app.MetricGrid_1 = uigridlayout(app.MainGrid);
+            app.MetricGrid_1.ColumnWidth = {'1x'};
+            app.MetricGrid_1.RowHeight = {22, '1x', '0x'};
+            app.MetricGrid_1.ColumnSpacing = 2;
+            app.MetricGrid_1.RowSpacing = 2;
+            app.MetricGrid_1.Padding = [0 0 0 0];
+            app.MetricGrid_1.Layout.Row = 2;
+            app.MetricGrid_1.Layout.Column = [1 3];
+
+            % Create MetricPanel_1
+            app.MetricPanel_1 = uipanel(app.MetricGrid_1);
+            app.MetricPanel_1.BorderType = 'none';
+            app.MetricPanel_1.Layout.Row = 2;
+            app.MetricPanel_1.Layout.Column = 1;
+
+            % Create MetricDropDown_1
+            app.MetricDropDown_1 = uidropdown(app.MetricGrid_1);
+            app.MetricDropDown_1.Items = {'None'};
+            app.MetricDropDown_1.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
+            app.MetricDropDown_1.FontWeight = 'bold';
+            app.MetricDropDown_1.Layout.Row = 1;
+            app.MetricDropDown_1.Layout.Column = 1;
+            app.MetricDropDown_1.Value = 'None';
+
+            % Create MetricControlGrid_1
+            app.MetricControlGrid_1 = uigridlayout(app.MetricGrid_1);
+            app.MetricControlGrid_1.ColumnWidth = {'1x'};
+            app.MetricControlGrid_1.RowHeight = {'1x'};
+            app.MetricControlGrid_1.ColumnSpacing = 2;
+            app.MetricControlGrid_1.RowSpacing = 2;
+            app.MetricControlGrid_1.Padding = [0 0 0 0];
+            app.MetricControlGrid_1.Layout.Row = 3;
+            app.MetricControlGrid_1.Layout.Column = 1;
+
+            % Create GridLayout
+            app.GridLayout = uigridlayout(app.MainGrid);
+            app.GridLayout.ColumnWidth = {'1x'};
+            app.GridLayout.RowHeight = {22, '1x'};
+            app.GridLayout.ColumnSpacing = 2;
+            app.GridLayout.RowSpacing = 2;
+            app.GridLayout.Padding = [0 0 0 0];
+            app.GridLayout.Layout.Row = 4;
+            app.GridLayout.Layout.Column = [3 9];
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.GridLayout);
+            app.GridLayout2.ColumnWidth = {'1x', 50, 50};
+            app.GridLayout2.RowHeight = {'1x'};
+            app.GridLayout2.ColumnSpacing = 2;
+            app.GridLayout2.RowSpacing = 2;
+            app.GridLayout2.Padding = [0 0 0 0];
+            app.GridLayout2.Layout.Row = 1;
+            app.GridLayout2.Layout.Column = 1;
 
             % Create TTitle
-            app.TTitle = uieditfield(app.TTitleRowGrid, 'text');
+            app.TTitle = uieditfield(app.GridLayout2, 'text');
             app.TTitle.Editable = 'off';
             app.TTitle.HorizontalAlignment = 'center';
             app.TTitle.FontWeight = 'bold';
@@ -2788,63 +2905,131 @@
             app.TTitle.Layout.Column = 1;
             app.TTitle.Value = 'Data Trace';
 
+            % Create TPCAButton
+            app.TPCAButton = uibutton(app.GridLayout2, 'push');
+            app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
+            app.TPCAButton.Layout.Row = 1;
+            app.TPCAButton.Layout.Column = 2;
+            app.TPCAButton.Text = 'Feat.';
+
             % Create TMultiButton
-            app.TMultiButton = uibutton(app.TTitleRowGrid, 'push');
+            app.TMultiButton = uibutton(app.GridLayout2, 'push');
             app.TMultiButton.ButtonPushedFcn = createCallbackFcn(app, @TMultiButtonValueChanged, true);
             app.TMultiButton.Enable = 'off';
             app.TMultiButton.Layout.Row = 1;
             app.TMultiButton.Layout.Column = 3;
             app.TMultiButton.Text = 'Multi';
 
-            % Create TPCAButton
-            app.TPCAButton = uibutton(app.TTitleRowGrid, 'push');
-            app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
-            app.TPCAButton.Layout.Row = 1;
-            app.TPCAButton.Layout.Column = 2;
-            app.TPCAButton.Text = 'Feat.';
+            % Create dataPanel
+            app.dataPanel = uipanel(app.GridLayout);
+            app.dataPanel.BorderType = 'none';
+            app.dataPanel.Layout.Row = 2;
+            app.dataPanel.Layout.Column = 1;
 
-            % Create MetricGrid
-            app.MetricGrid = uigridlayout(app.MainGrid);
-            app.MetricGrid.ColumnWidth = {'1x', 30};
-            app.MetricGrid.RowHeight = {22, '1x', 30};
-            app.MetricGrid.ColumnSpacing = 2;
-            app.MetricGrid.RowSpacing = 2;
-            app.MetricGrid.Padding = [0 0 0 0];
-            app.MetricGrid.Layout.Row = 1;
-            app.MetricGrid.Layout.Column = [1 2];
+            % Create MetricGrid_2
+            app.MetricGrid_2 = uigridlayout(app.MainGrid);
+            app.MetricGrid_2.ColumnWidth = {'1x'};
+            app.MetricGrid_2.RowHeight = {22, '1x', 0};
+            app.MetricGrid_2.ColumnSpacing = 2;
+            app.MetricGrid_2.RowSpacing = 2;
+            app.MetricGrid_2.Padding = [0 0 0 0];
+            app.MetricGrid_2.Layout.Row = 3;
+            app.MetricGrid_2.Layout.Column = [1 3];
 
-            % Create MetricPanel
-            app.MetricPanel = uipanel(app.MetricGrid);
-            app.MetricPanel.BorderType = 'none';
-            app.MetricPanel.Layout.Row = 2;
-            app.MetricPanel.Layout.Column = [1 2];
+            % Create MetricPanel_2
+            app.MetricPanel_2 = uipanel(app.MetricGrid_2);
+            app.MetricPanel_2.BorderType = 'none';
+            app.MetricPanel_2.Layout.Row = 2;
+            app.MetricPanel_2.Layout.Column = 1;
 
-            % Create MetricDropDown
-            app.MetricDropDown = uidropdown(app.MetricGrid);
-            app.MetricDropDown.Items = {'None', 'ISI', 'Waveforms'};
-            app.MetricDropDown.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
-            app.MetricDropDown.FontWeight = 'bold';
-            app.MetricDropDown.Layout.Row = 1;
-            app.MetricDropDown.Layout.Column = 1;
-            app.MetricDropDown.Value = 'None';
+            % Create MetricControlGrid_2
+            app.MetricControlGrid_2 = uigridlayout(app.MetricGrid_2);
+            app.MetricControlGrid_2.ColumnWidth = {'1x'};
+            app.MetricControlGrid_2.RowHeight = {'1x'};
+            app.MetricControlGrid_2.ColumnSpacing = 2;
+            app.MetricControlGrid_2.RowSpacing = 2;
+            app.MetricControlGrid_2.Padding = [0 0 0 0];
+            app.MetricControlGrid_2.Layout.Row = 3;
+            app.MetricControlGrid_2.Layout.Column = 1;
 
-            % Create MetricControlGrid
-            app.MetricControlGrid = uigridlayout(app.MetricGrid);
-            app.MetricControlGrid.ColumnWidth = {'1x'};
-            app.MetricControlGrid.RowHeight = {'1x'};
-            app.MetricControlGrid.ColumnSpacing = 2;
-            app.MetricControlGrid.RowSpacing = 2;
-            app.MetricControlGrid.Padding = [0 0 0 0];
-            app.MetricControlGrid.Layout.Row = 3;
-            app.MetricControlGrid.Layout.Column = [1 2];
+            % Create MetricDropDown_2
+            app.MetricDropDown_2 = uidropdown(app.MetricGrid_2);
+            app.MetricDropDown_2.Items = {'None', 'ISI', 'Waveforms'};
+            app.MetricDropDown_2.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
+            app.MetricDropDown_2.FontWeight = 'bold';
+            app.MetricDropDown_2.Layout.Row = 1;
+            app.MetricDropDown_2.Layout.Column = 1;
+            app.MetricDropDown_2.Value = 'None';
 
-            % Create OFLabel
-            app.OFLabel = uilabel(app.MetricGrid);
-            app.OFLabel.HorizontalAlignment = 'center';
-            app.OFLabel.FontWeight = 'bold';
-            app.OFLabel.Layout.Row = 1;
-            app.OFLabel.Layout.Column = 2;
-            app.OFLabel.Text = 'OF';
+            % Create MetricGrid_3
+            app.MetricGrid_3 = uigridlayout(app.MainGrid);
+            app.MetricGrid_3.ColumnWidth = {'1x'};
+            app.MetricGrid_3.RowHeight = {22, '1x', 0};
+            app.MetricGrid_3.ColumnSpacing = 2;
+            app.MetricGrid_3.RowSpacing = 2;
+            app.MetricGrid_3.Padding = [0 0 0 0];
+            app.MetricGrid_3.Layout.Row = 3;
+            app.MetricGrid_3.Layout.Column = [4 6];
+
+            % Create MetricPanel_3
+            app.MetricPanel_3 = uipanel(app.MetricGrid_3);
+            app.MetricPanel_3.BorderType = 'none';
+            app.MetricPanel_3.Layout.Row = 2;
+            app.MetricPanel_3.Layout.Column = 1;
+
+            % Create MetricDropDown_3
+            app.MetricDropDown_3 = uidropdown(app.MetricGrid_3);
+            app.MetricDropDown_3.Items = {'None', 'ISI', 'Waveforms'};
+            app.MetricDropDown_3.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
+            app.MetricDropDown_3.FontWeight = 'bold';
+            app.MetricDropDown_3.Layout.Row = 1;
+            app.MetricDropDown_3.Layout.Column = 1;
+            app.MetricDropDown_3.Value = 'None';
+
+            % Create MetricControlGrid_3
+            app.MetricControlGrid_3 = uigridlayout(app.MetricGrid_3);
+            app.MetricControlGrid_3.ColumnWidth = {'1x'};
+            app.MetricControlGrid_3.RowHeight = {'1x'};
+            app.MetricControlGrid_3.ColumnSpacing = 2;
+            app.MetricControlGrid_3.RowSpacing = 2;
+            app.MetricControlGrid_3.Padding = [0 0 0 0];
+            app.MetricControlGrid_3.Layout.Row = 3;
+            app.MetricControlGrid_3.Layout.Column = 1;
+
+            % Create MetricGrid_4
+            app.MetricGrid_4 = uigridlayout(app.MainGrid);
+            app.MetricGrid_4.ColumnWidth = {'1x'};
+            app.MetricGrid_4.RowHeight = {22, '1x', 0};
+            app.MetricGrid_4.ColumnSpacing = 2;
+            app.MetricGrid_4.RowSpacing = 2;
+            app.MetricGrid_4.Padding = [0 0 0 0];
+            app.MetricGrid_4.Layout.Row = 3;
+            app.MetricGrid_4.Layout.Column = [7 9];
+
+            % Create MetricPanel_4
+            app.MetricPanel_4 = uipanel(app.MetricGrid_4);
+            app.MetricPanel_4.BorderType = 'none';
+            app.MetricPanel_4.Layout.Row = 2;
+            app.MetricPanel_4.Layout.Column = 1;
+
+            % Create MetricDropDown_4
+            app.MetricDropDown_4 = uidropdown(app.MetricGrid_4);
+            app.MetricDropDown_4.Items = {'None', 'ISI', 'Waveforms'};
+            app.MetricDropDown_4.ValueChangedFcn = createCallbackFcn(app, @MetricDropDownValueChanged, true);
+            app.MetricDropDown_4.FontWeight = 'bold';
+            app.MetricDropDown_4.Layout.Row = 1;
+            app.MetricDropDown_4.Layout.Column = 1;
+            app.MetricDropDown_4.Value = 'None';
+
+            % Create MetricControlGrid_4
+            app.MetricControlGrid_4 = uigridlayout(app.MetricGrid_4);
+            app.MetricControlGrid_4.ColumnWidth = {'1x'};
+            app.MetricControlGrid_4.RowHeight = {'1x'};
+            app.MetricControlGrid_4.ColumnSpacing = 2;
+            app.MetricControlGrid_4.RowSpacing = 2;
+            app.MetricControlGrid_4.Padding = [0 0 0 0];
+            app.MetricControlGrid_4.Layout.Row = 3;
+            app.MetricControlGrid_4.Layout.Column = 1;
 
             % Show the figure after all components are created
             app.UIBase.Visible = 'on';
