@@ -34,7 +34,7 @@ end
 
 %%    callback for selected spikes
 function boxClick(~,evt,app,h)
-if app.interactingFlag(2) ~= 0
+if app.leftUnitAx.UserData.interactionType ~= 'n'
     return;
 end
 % get clicked coordinates

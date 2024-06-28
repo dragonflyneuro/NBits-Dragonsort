@@ -22,15 +22,13 @@ for ii = targetIdx
         case 'ISI (right)'
             showISI(app,ii, 'right');
         case 'Temporal Stability (global)'
-            showTemporalStability(app,ii)
+            showTemporalStability(app,ii);
         case 'Cross-correlogram'
-            showXCorr(app,ii)
+            showXCorr(app,ii);
         case 'Cross-correlogram (global)'
-            showXCorrAll(app,ii)
-        case 'Deviation Template'
-            break;
-        case 'Mean'
-            break;
+            showXCorrAll(app,ii);
+        case 'Templates (batch)'
+            showDeviationTemplate(app,ii);
     end
 end
 

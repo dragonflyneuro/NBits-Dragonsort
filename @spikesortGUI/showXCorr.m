@@ -2,6 +2,8 @@ function [] = showXCorr(app, uiPos)
 delete(app.Metrics.panelArr(uiPos).Children);
 delete(app.Metrics.controlGridArr(uiPos).Children);
 app.Metrics.gridArr(uiPos).RowHeight = {22,'1x',0};
+app.Metrics.controlGridArr(uiPos).UserData = app.Metrics.dropDownArr(uiPos).Value;
+
 uIdx = [str2double(app.LeftUnitDropDown.Value), str2double(app.RightUnitDropDown.Value)];
 t = tiledlayout(app.Metrics.panelArr(uiPos),2,2);
 t.TileSpacing = "tight";

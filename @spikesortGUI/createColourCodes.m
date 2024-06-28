@@ -1,25 +1,26 @@
 function h = createColourCodes(app)
-for ii = 1:length(25)
-    h(ii) = uibutton(app.ColourGrid, 'push');
+app.ColourGrid.ColumnWidth = repmat("1x",max([20,length(app.LeftUnitDropDown.Items)]),1);
+for ii = str2double(app.LeftUnitDropDown.Items)
+    h(ii) = uibutton(app.ColourGrid, 'push', 'Text', string(ii),'ButtonPushedFcn', ...
+        {@colourButtonPushed,app,ii});
     h(ii).BackgroundColor = getColour(ii);
     h(ii).Layout.Column = ii;
-    h(ii).Text = string(ii);
-    h(ii).ButtonPushedFcn = @(src,event)colourButtonPushed(src,event,app,ii,'l');
-    mh = uicontextmenu(app.UIBase);
-    mh.ContextMenuOpeningFcn = @(src,event)colourButtonPushed(src,event,app,ii,'r');
-    h(ii).ContextMenu = mh;
 end
 end
 
-function [] = colourButtonPushed(~, ~, app,num,mode)
-if ~isfield(app.t,'batchLengths') || ~ismember(string(num), app.RightUnitDropDown.Items)
-    return;
-end
-if mode == 'l'
-    app.LeftUnitDropDown.Value = string(num);
-    app.redrawUnitPlots(1);
-elseif mode == 'r'
-    app.RightUnitDropDown.Value = string(num);
+function [] = colourButtonPushed(~, ~, app,uIdx)
+pause(0.25);
+if strcmpi(get(app.UIBase, 'SelectionType'), 'open')
+    app.RightUnitDropDown.Value = string(uIdx);
     app.redrawUnitPlots(2);
+    selection = contains({app.Metrics.dropDownArr.Value},'(left)')...
+        | contains({app.Metrics.dropDownArr.Value},'(global)');
+    app.redrawMetric(find(~selection));
+else
+    app.LeftUnitDropDown.Value = string(uIdx);
+    app.redrawUnitPlots(1);
+    selection = contains({app.Metrics.dropDownArr.Value},'(right)')...
+        | contains({app.Metrics.dropDownArr.Value},'(global)');
+    app.redrawMetric(find(~selection));
 end
 end

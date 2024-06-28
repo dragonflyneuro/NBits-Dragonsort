@@ -18,8 +18,6 @@ else
     app.Metrics.controlGridArr(uiPos).RowHeight = {'1x',22};
     app.Metrics.controlGridArr(uiPos).ColumnWidth = {'1x','1x','1x'};
     ax = axes('Parent',app.Metrics.panelArr(uiPos));
-    xlabel(ax,'ISI (ms)')
-    ylabel(ax,'Frequency per bin')
     xlim(ax,[0 100]);
     app.Metrics.controlGridArr(uiPos).UserData = app.Metrics.dropDownArr(uiPos).Value;
 end
@@ -28,6 +26,8 @@ bE = 0:0.25:100;
 ISI = diff(app.unitArray(uIdx).spikeTimes*1e3/app.m.sRateHz);
 currentXLim = xlim(ax);
 histogram(ax,ISI,bE,'Linestyle','none');
+xlabel(ax,"ISI of Unit " + uIdx + " (ms)")
+ylabel(ax,'Frequency per bin')
 xlim(ax,currentXLim);
 ax.UserData = ISI;
 

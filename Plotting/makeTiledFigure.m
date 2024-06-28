@@ -1,6 +1,6 @@
 function h = makeTiledFigure(nAx, pos, titleTxt, varargin)
    
-h = uifigure;
+h = figure;
 h.Name = titleTxt;
 h.Position = pos;
 

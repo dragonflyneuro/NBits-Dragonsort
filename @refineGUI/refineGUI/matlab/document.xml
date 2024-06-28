@@ -45,7 +45,7 @@
                 app.w = app.p.rawSpikeWaves;
                 app.wTimes = app.p.rawSpikeWavesTimes;
             else
-                [~, ~, app.batchIdx] = app.p.unitArray.getOrphanSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
+                [~, ~, app.batchIdx] = app.p.unitArray.getUnassignedSpikes(app.p.t.rawSpikeSample,getBatchRange(app.CallingApp));
                 app.w = app.p.rawSpikeWaves(app.batchIdx, :, :);
                 app.wTimes = app.p.rawSpikeWavesTimes(app.batchIdx);
             end

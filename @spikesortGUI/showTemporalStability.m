@@ -2,6 +2,8 @@ function [] = showTemporalStability(app, uiPos)
 delete(app.Metrics.panelArr(uiPos).Children);
 delete(app.Metrics.controlGridArr(uiPos).Children);
 app.Metrics.gridArr(uiPos).RowHeight = {22,'1x',0};
+app.Metrics.controlGridArr(uiPos).UserData = app.Metrics.dropDownArr(uiPos).Value;
+
 ax = axes('Parent',app.Metrics.panelArr(uiPos));
 
 % plot number of spikes in each unit in each batch

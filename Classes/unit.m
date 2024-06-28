@@ -61,7 +61,7 @@ classdef unit < handle
             sWaves = obj.waves(inUnitIdx,:,:);
         end
         
-        function [unassignedSpikes, inSortingIdx, inRangeIdx] = getOrphanSpikes(obj, allTimes, range)          
+        function [sTimes, inSortingIdx, inRangeIdx] = getUnassignedSpikes(obj, allTimes, range)          
             allT = [];
             
             for ii = 1:length(obj)
@@ -74,7 +74,7 @@ classdef unit < handle
             assigned = ismember(allTimes(inSortingIdx),allT);
             inSortingIdx(assigned) = [];
             inRangeIdx(assigned) = [];
-            unassignedSpikes = allTimes(inSortingIdx); % unassigned spike sample from beginning of batch
+            sTimes = allTimes(inSortingIdx); % unassigned spike sample from beginning of batch
         end
 
         function [obj, e] = spikeAdder(obj,uIdx,a,b)

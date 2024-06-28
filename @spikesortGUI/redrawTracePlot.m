@@ -15,7 +15,7 @@ cla(ht);
 
 r = getBatchRange(app);
 numSpikes = nnz(r(1) < app.t.rawSpikeSample & app.t.rawSpikeSample <= r(2));
-[~, unassignedInSortingIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+[~, unassignedInSortingIdx] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,r);
 app.TTitle.Value = "Data trace (" + c + "/" + length(bl) + ")     Spikes assigned: " + ...
     string(numSpikes-length(unassignedInSortingIdx)) + "/" + numSpikes;
 
@@ -67,7 +67,7 @@ function boxClick(~,evt,app,h)
 if isempty(app.unassignedSpikeMarkers)
     return;
 end
-if app.interactingFlag(1) ~= 0
+if app.traceAx.UserData.interactionType ~= 'n'
     return;
 end
 % get clicked coordinates

@@ -3,7 +3,7 @@ unassignedLine = [];
 
 r = getBatchRange(app);
 
-[spikes, ~] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+[spikes, ~] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,r);
 
 if isempty(spikes)
     return;

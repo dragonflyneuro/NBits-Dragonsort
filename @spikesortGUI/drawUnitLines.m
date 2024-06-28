@@ -22,14 +22,6 @@ if ~isempty(app.unitArray(uIdx).spikeTimes) % if there are spikes in the unit
 end
 
 unitLines = line(hUnit, -app.m.spikeWidth:app.m.spikeWidth, plottedWaves(:,:,app.m.mainCh)');
-
-ylTemp = [app.yLimLowField.Value, app.yLimHighField.Value];
-yl = [min(min(plottedWaves(:,:,app.m.mainCh)))-50, max(max(plottedWaves(:,:,app.m.mainCh)))+50];
-yl(~isinf(ylTemp)) = ylTemp(~isinf(ylTemp));
-step = 50*ceil((yl(2) - yl(1))/500);
-ticks = unique([0:-step:50*floor(yl(1)/50), 0:step:50*floor(yl(2)/50)]);
-ylim(hUnit,yl);
-yticks(hUnit,ticks);
-set(hUnit, 'YGrid', 'on', 'XGrid', 'off')
+formatWaveAxes(app,hUnit,[min(min(plottedWaves(:,:,app.m.mainCh))),max(max(plottedWaves(:,:,app.m.mainCh)))])
 
 end

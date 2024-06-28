@@ -7,7 +7,7 @@ if ~opt
         app.unitArray = app.unitArray.spikeRemover(ii,idx, 1);
     end
 end
-[sTimes,~,batchIdx] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+[sTimes,~,batchIdx] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,getBatchRange(app));
 sWaves = app.rawSpikeWaves(batchIdx,:,:);
 for ii = 1:length(app.unitArray)
     app.unitArray(ii).refineSettings = d.scaleArray(ii);

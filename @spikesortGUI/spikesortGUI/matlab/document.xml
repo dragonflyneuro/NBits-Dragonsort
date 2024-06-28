@@ -7,6 +7,7 @@
         InitialiseMenu                matlab.ui.container.Menu
         LoadMenu                      matlab.ui.container.Menu
         SaveMenu                      matlab.ui.container.Menu
+        SaveFiguresMenu               matlab.ui.container.Menu
         AddtimestampMenu              matlab.ui.container.Menu
         UndoMenu                      matlab.ui.container.Menu
         RedoMenu                      matlab.ui.container.Menu
@@ -57,7 +58,6 @@
         dataPanel                     matlab.ui.container.Panel
         GridLayout2                   matlab.ui.container.GridLayout
         TMultiButton                  matlab.ui.control.Button
-        TPCAButton                    matlab.ui.control.Button
         TTitle                        matlab.ui.control.EditField
         MetricGrid_1                  matlab.ui.container.GridLayout
         MetricControlGrid_1           matlab.ui.container.GridLayout
@@ -174,15 +174,15 @@
         ImporteventmarkerdataButton   matlab.ui.control.Button
         ManualartifactremoverButton   matlab.ui.control.StateButton
         RGrid                         matlab.ui.container.GridLayout
-        GridLayout3                   matlab.ui.container.GridLayout
-        RMultiButton                  matlab.ui.control.Button
+        RControlGrid                  matlab.ui.container.GridLayout
         RTitle                        matlab.ui.control.EditField
+        RMultiButton                  matlab.ui.control.Button
         RightUnitDropDown             matlab.ui.control.DropDown
         RPanel                        matlab.ui.container.Panel
         LGrid                         matlab.ui.container.GridLayout
-        GridLayout3_2                 matlab.ui.container.GridLayout
+        LControlGrid                  matlab.ui.container.GridLayout
+        SwapButton                    matlab.ui.control.Button
         LMultiButton                  matlab.ui.control.Button
-        LPCAButton                    matlab.ui.control.Button
         LTitle                        matlab.ui.control.EditField
         LeftUnitDropDown              matlab.ui.control.DropDown
         LPanel                        matlab.ui.container.Panel
@@ -221,14 +221,14 @@
         selectionBox = gobjects(1); % temporary objects to show user selection regions
         eventMarkerArr = []; % shaded areas on trace for event marker regions
         dataLine = []; % raw data trace
-        
+
         unassignedSpikeMarkers = []; % markers on trace for unassigned spikes
         selectedSpikeMarkers = []; % markers on trace for selected unassigned spikes
         unassignedFeatureMarkers = [];
         selectedFeatureMarkers = [];
 
         figureHandles = [];
-        
+
         dataFeatureAx
         dataAllChAx = []; % trace subplots
         traceAx
@@ -323,6 +323,7 @@
 
             app.LeftUnitDropDown.Items = string(1:length(app.unitArray));
             app.RightUnitDropDown.Items = app.LeftUnitDropDown.Items;
+            createColourCodes(app);
 
             if nargin < 2
                 return;
@@ -348,7 +349,7 @@
                         app.LeftUnitDropDown.Value = string(str2double(current(2))-1);
                     end
                 end
-                
+
                 app.RightUnitDropDown.Value = app.RightUnitDropDown.Value(1);
             end
         end
@@ -401,7 +402,7 @@
             app.Metrics.dropDownArr = [app.MetricDropDown_1, app.MetricDropDown_2, app.MetricDropDown_3, app.MetricDropDown_4];
             app.Metrics.panelArr = [app.MetricPanel_1, app.MetricPanel_2, app.MetricPanel_3, app.MetricPanel_4];
             app.Metrics.axArr = gobjects(4);
-            
+
         end
 
         % Menu selected function: InitialiseMenu
@@ -573,7 +574,7 @@
             else
                 timeStamp = "";
             end
-            sN = string(app.SavenameEditField.Value)+timeStamp+".mat";
+            sN = app.SavenameEditField.Value+timeStamp+".mat";
             save(app.savePath+string(filesep)+sN,'m', 'unitArray', 't');
             app.StatusLabel.Value = "Saved! (" + sN + ")";
 
@@ -584,7 +585,7 @@
             app.redrawUnitPlots(1);
             selection = contains({app.Metrics.dropDownArr.Value},'(right)')...
                 | contains({app.Metrics.dropDownArr.Value},'(global)');
-            app.redrawMetric(find(~selection))
+            app.redrawMetric(find(~selection));
 
         end
 
@@ -593,7 +594,7 @@
             app.redrawUnitPlots(2);
             selection = contains({app.Metrics.dropDownArr.Value},'(left)')...
                 | contains({app.Metrics.dropDownArr.Value},'(global)');
-            app.redrawMetric(find(~selection))
+            app.redrawMetric(find(~selection));
 
         end
 
@@ -625,7 +626,11 @@
 
             app.readFilter(value);
 
-            standardUpdate(app);
+            app.redrawTracePlot();
+            app.redrawUnitPlots();
+            app.redrawMetric(find(contains({app.Metrics.dropDownArr.Value},'(batch)')));
+            app.StatusLabel.Value = "Ready";
+            app.addHistory();
 
         end
 
@@ -680,7 +685,7 @@
             app.switchButtons('opsOff');
 
             range = getBatchRange(app);
-            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,range);
+            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,range);
             unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
 
             if isempty(unassignedSpikes)
@@ -693,10 +698,10 @@
                 prompt = {'Create k units from spikes with peak amplitude MORE -VE than (uV):',...
                     'k (expected units + a couple)'};
                 d = 0;
-            % else
-            %     prompt = {'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):',...
-            %         'k (expected units + a couple)'};
-            %     d = 1;
+                % else
+                %     prompt = {'Create k JUNK units from spikes with peak amplitude MORE +VE than (uV):',...
+                %         'k (expected units + a couple)'};
+                %     d = 1;
             end
             answer = inputdlg(prompt, 'Create units', [1 35]);
 
@@ -792,7 +797,7 @@
                 return;
             end
 
-            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,getBatchRange(app));
+            [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,getBatchRange(app));
             unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
             templateWaves = unassignedWaves(I,:,:);
 
@@ -958,7 +963,7 @@
                     app.readFilter(ii);
                 end
                 r = getBatchRange(app);
-                [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getOrphanSpikes(app.t.rawSpikeSample,r);
+                [unassignedSpikes, ~, unassignedInBatch] = app.unitArray.getUnassignedSpikes(app.t.rawSpikeSample,r);
                 unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:,:);
 
                 % assign spikes to units, if within deviation threshold
@@ -1051,7 +1056,7 @@
             elseif strcmp(app.OverviewDropDown.Value,'X-correlogram')
                 showXCorr(app.unitArray, unitsToPlot, app.m.sRateHz)
             end
-            
+
             app.StatusLabel.Value = "Ready";
 
         end
@@ -1102,7 +1107,7 @@
             else
                 src = app.traceAx;
             end
-            
+
             if src.UserData.interactionType == 'p'
                 pan(src,'off');
                 src.UserData.interactionType = 'n';
@@ -1124,7 +1129,7 @@
             else
                 src = app.traceAx;
             end
-            
+
             zoom(src,'off');
             pan(src,'off');
             src.UserData.interactionType = 'n';
@@ -1160,7 +1165,7 @@
                     end
                 end
             end
-            
+
             if ~isempty(app.selectedFeatureMarkers)
                 for ii = 1:length(app.selectedFeatureMarkers)
                     if ishandle(app.selectedFeatureMarkers(ii))
@@ -1168,7 +1173,7 @@
                     end
                 end
             end
-            
+
             app.selectedSpikeMarkers = [];
             app.selectedFeatureMarkers = [];
         end
@@ -1260,7 +1265,7 @@
         % Value changed function: FuzzyDetButton
         function FuzzyDetButtonValueChanged(app, event)
             app.t.fuzzyDetFlag = app.FuzzyDetButton.Value;
-            
+
         end
 
         % Value changed function: DetectThr1EditField, DetectThr2EditField
@@ -1522,7 +1527,7 @@
             app.updateSpikeWidth();
 
             standardUpdate(app);
-            
+
         end
 
         % Value changed function: TemplatecropwidthEditField
@@ -1543,7 +1548,7 @@
             if size(app.xi,1) == 1
                 return;
             end
-            
+
             if isempty(app.dataAllChAx) || ~ishandle(app.dataAllChAx)
                 app.dataAllChAx = makeTiledFigure(size(app.xi,1), [50 50 1700 600], 'Data trace multichannel', 'vertical');
                 app.redrawTracePlot();
@@ -1551,7 +1556,7 @@
                 app.dataAllChAx.Visible = 'off';
                 app.dataAllChAx.Visible = 'on';
             end
-            
+
         end
 
         % Button pushed function: LMultiButton
@@ -1559,7 +1564,7 @@
             if size(app.xi,1) == 1
                 return;
             end
-            
+
             if isempty(app.leftUnitAllChAx) || ~ishandle(app.leftUnitAllChAx)
                 app.leftUnitAllChAx = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Left unit multichannel');
                 app.redrawUnitPlots(1);
@@ -1567,7 +1572,7 @@
                 app.leftUnitAllChAx.Visible = 'off';
                 app.leftUnitAllChAx.Visible = 'on';
             end
-           
+
         end
 
         % Button pushed function: RMultiButton
@@ -1575,7 +1580,7 @@
             if size(app.xi,1) == 1
                 return;
             end
-            
+
             if isempty(app.rightUnitAllChAx) || ~ishandle(app.rightUnitAllChAx)
                 app.rightUnitAllChAx = makeTiledFigure(size(app.xi,1), [50 550 1700 500], 'Right unit multichannel');
                 app.redrawUnitPlots(2);
@@ -1583,10 +1588,10 @@
                 app.rightUnitAllChAx.Visible = 'off';
                 app.rightUnitAllChAx.Visible = 'on';
             end
-            
+
         end
 
-        % Button pushed function: TPCAButton
+        % Callback function: not associated with a component
         function TPCAButtonPushed(app, event)
             if isempty(app.dataFeatureAx) || ~ishandle(app.dataFeatureAx)
                 dataFeatureSorter(app, app.unitArray);
@@ -1605,17 +1610,17 @@
             if strcmpi(answer, "CANCEL")
                 return;
             end
-            
-%             prompt = 'Number of samples within which a spike will be detected as the same spike';
-%             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
-            
+
+            %             prompt = 'Number of samples within which a spike will be detected as the same spike';
+            %             answer = inputdlg(prompt, 'Detect assigned spikes', [1 35]);
+
             app.StatusLabel.Value = "Updating main channel...";
             app.m.mainCh = str2double(app.MainchannelDropDown.Value);
-            
+
             app.updateMainCh();
 
             standardUpdate(app);
-            
+
         end
 
         % Value changed function: MetricDropDown_1, MetricDropDown_2, 
@@ -1623,7 +1628,7 @@
         function MetricDropDownValueChanged(app, event)
             target = event.Source.UserData;
             app.redrawMetric(target);
-            
+
         end
 
         % Menu selected function: ViewmetricsrowMenu
@@ -1639,6 +1644,92 @@
                 end
                 event.Source.Checked = 0;
             end
+        end
+
+        % Button pushed function: SwapButton
+        function SwapButtonPushed(app, event)
+            tempUnitName = app.LeftUnitDropDown.Value;
+            app.LeftUnitDropDown.Value = app.RightUnitDropDown.Value;
+            app.RightUnitDropDown.Value = tempUnitName;
+
+            app.redrawUnitPlots();
+            app.redrawMetric(find(~contains({app.Metrics.dropDownArr.Value},'(global)')));
+            app.StatusLabel.Value = "Ready";
+            app.addHistory();
+
+        end
+
+        % Menu selected function: SaveFiguresMenu
+        function SaveFiguresMenuSelected(app, event)
+            msg = 'Save which figures?';
+            msgTitle = 'Save figures';
+            toSave = uiconfirm(app.UIBase,msg,msgTitle,...
+                'Options',{'All','Trace','Units','Metrics'},...
+                'DefaultOption',1,'CancelOption',4);
+
+            msg = 'Saved figure format?';
+            msgTitle = 'Figure format';
+            format = uiconfirm(app.UIBase,msg,msgTitle,...
+                'Options',{'.pdf','.fig','Cancel'},...
+                'DefaultOption',1,'CancelOption',3);
+
+            if strcmpi(format, 'Cancel')
+                return;
+            end
+
+            app.StatusLabel.Value = "Saving...";
+            drawnow
+
+            if app.savePath == 0
+                app.savePath = app.m.fP;
+            end
+            sP = uigetdir(app.savePath,'Select save path');
+
+            figure(app.UIBase);
+            if sP == 0
+                app.StatusLabel.Value = "Ready";
+                return;
+            end
+            app.savePath = sP;
+
+            if app.AddtimestampMenu.Checked
+                timeStamp = "_"+datestr(now,'yymmddHHMM');
+            else
+                timeStamp = "";
+            end
+            pathTimeName = app.savePath+string(filesep)+app.SavenameEditField.Value+timeStamp;
+
+            figH = [];
+            figName = [];
+
+            if strcmpi(toSave,'All') || strcmpi(toSave,'Units')
+                figH = [figH, app.LPanel, app.RPanel];
+                figName = [figName, "Unit"+app.LeftUnitDropDown.Value, "Unit"+app.RightUnitDropDown.Value];
+            end
+            if strcmpi(toSave,'All') || strcmpi(toSave,'Trace')
+                figH = [figH, app.dataPanel];
+                figName = [figName, "Data batch"+app.currentBatch];
+            end
+            if strcmpi(toSave,'All') || strcmpi(toSave,'Metrics')
+                for ii = find(~contains({app.Metrics.dropDownArr.Value},'None'))
+                    figH = [figH, app.Metrics.panelArr(ii)];
+                    figName = [figName, app.Metrics.dropDownArr(ii).Value];
+                end
+            end
+
+            for ii = 1:length(figH)
+                sN = pathTimeName+figName(ii)+string(format);
+                if strcmpi(format, '.pdf')
+                    exportgraphics(figH(ii),sN,'ContentType','vector')
+                else
+                    tempFig = figure;
+                    copyobj(figH(ii), tempFig)
+                    savefig(tempFig, sN);
+                    close(tempFig);
+                end
+                app.StatusLabel.Value = "Saved! (" + sN + ")";
+            end
+
         end
     end
 
@@ -1676,6 +1767,12 @@
             app.SaveMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveButtonPushed, true);
             app.SaveMenu.Accelerator = 's';
             app.SaveMenu.Text = 'Save';
+
+            % Create SaveFiguresMenu
+            app.SaveFiguresMenu = uimenu(app.SessionMenu);
+            app.SaveFiguresMenu.MenuSelectedFcn = createCallbackFcn(app, @SaveFiguresMenuSelected, true);
+            app.SaveFiguresMenu.Accelerator = '`';
+            app.SaveFiguresMenu.Text = 'Save Figures';
 
             % Create AddtimestampMenu
             app.AddtimestampMenu = uimenu(app.SessionMenu);
@@ -1875,7 +1972,7 @@
             app.StatusLabel.FontColor = [1 1 1];
             app.StatusLabel.BackgroundColor = [0 0 0];
             app.StatusLabel.Layout.Row = 1;
-            app.StatusLabel.Layout.Column = [1 3];
+            app.StatusLabel.Layout.Column = [1 5];
             app.StatusLabel.Value = 'Ready';
 
             % Create LGrid
@@ -1894,18 +1991,18 @@
             app.LPanel.Layout.Row = 2;
             app.LPanel.Layout.Column = 1;
 
-            % Create GridLayout3_2
-            app.GridLayout3_2 = uigridlayout(app.LGrid);
-            app.GridLayout3_2.ColumnWidth = {50, '1x', 50, 50};
-            app.GridLayout3_2.RowHeight = {'1x'};
-            app.GridLayout3_2.ColumnSpacing = 2;
-            app.GridLayout3_2.RowSpacing = 2;
-            app.GridLayout3_2.Padding = [0 0 0 0];
-            app.GridLayout3_2.Layout.Row = 1;
-            app.GridLayout3_2.Layout.Column = 1;
+            % Create LControlGrid
+            app.LControlGrid = uigridlayout(app.LGrid);
+            app.LControlGrid.ColumnWidth = {50, 50, '1x', 50};
+            app.LControlGrid.RowHeight = {'1x'};
+            app.LControlGrid.ColumnSpacing = 2;
+            app.LControlGrid.RowSpacing = 2;
+            app.LControlGrid.Padding = [0 0 0 0];
+            app.LControlGrid.Layout.Row = 1;
+            app.LControlGrid.Layout.Column = 1;
 
             % Create LeftUnitDropDown
-            app.LeftUnitDropDown = uidropdown(app.GridLayout3_2);
+            app.LeftUnitDropDown = uidropdown(app.LControlGrid);
             app.LeftUnitDropDown.Items = {'1'};
             app.LeftUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @LeftUnitDropDownValueChanged, true);
             app.LeftUnitDropDown.FontWeight = 'bold';
@@ -1914,27 +2011,28 @@
             app.LeftUnitDropDown.Value = '1';
 
             % Create LTitle
-            app.LTitle = uieditfield(app.GridLayout3_2, 'text');
+            app.LTitle = uieditfield(app.LControlGrid, 'text');
             app.LTitle.Editable = 'off';
             app.LTitle.FontWeight = 'bold';
             app.LTitle.BackgroundColor = [0.8 0.8 0.8];
             app.LTitle.Layout.Row = 1;
-            app.LTitle.Layout.Column = 2;
-
-            % Create LPCAButton
-            app.LPCAButton = uibutton(app.GridLayout3_2, 'push');
-            app.LPCAButton.Enable = 'off';
-            app.LPCAButton.Layout.Row = 1;
-            app.LPCAButton.Layout.Column = 3;
-            app.LPCAButton.Text = 'Feat.';
+            app.LTitle.Layout.Column = 3;
 
             % Create LMultiButton
-            app.LMultiButton = uibutton(app.GridLayout3_2, 'push');
+            app.LMultiButton = uibutton(app.LControlGrid, 'push');
             app.LMultiButton.ButtonPushedFcn = createCallbackFcn(app, @LMultiButtonValueChanged, true);
             app.LMultiButton.Enable = 'off';
             app.LMultiButton.Layout.Row = 1;
-            app.LMultiButton.Layout.Column = 4;
+            app.LMultiButton.Layout.Column = 2;
             app.LMultiButton.Text = 'Multi';
+
+            % Create SwapButton
+            app.SwapButton = uibutton(app.LControlGrid, 'push');
+            app.SwapButton.ButtonPushedFcn = createCallbackFcn(app, @SwapButtonPushed, true);
+            app.SwapButton.BackgroundColor = [0 0.4471 0.7412];
+            app.SwapButton.Layout.Row = 1;
+            app.SwapButton.Layout.Column = 4;
+            app.SwapButton.Text = 'SWAP';
 
             % Create RGrid
             app.RGrid = uigridlayout(app.MainGrid);
@@ -1952,18 +2050,18 @@
             app.RPanel.Layout.Row = 2;
             app.RPanel.Layout.Column = 1;
 
-            % Create GridLayout3
-            app.GridLayout3 = uigridlayout(app.RGrid);
-            app.GridLayout3.ColumnWidth = {50, '1x', 50};
-            app.GridLayout3.RowHeight = {'1x'};
-            app.GridLayout3.ColumnSpacing = 2;
-            app.GridLayout3.RowSpacing = 2;
-            app.GridLayout3.Padding = [0 0 0 0];
-            app.GridLayout3.Layout.Row = 1;
-            app.GridLayout3.Layout.Column = 1;
+            % Create RControlGrid
+            app.RControlGrid = uigridlayout(app.RGrid);
+            app.RControlGrid.ColumnWidth = {50, 50, '1x'};
+            app.RControlGrid.RowHeight = {'1x'};
+            app.RControlGrid.ColumnSpacing = 2;
+            app.RControlGrid.RowSpacing = 2;
+            app.RControlGrid.Padding = [0 0 0 0];
+            app.RControlGrid.Layout.Row = 1;
+            app.RControlGrid.Layout.Column = 1;
 
             % Create RightUnitDropDown
-            app.RightUnitDropDown = uidropdown(app.GridLayout3);
+            app.RightUnitDropDown = uidropdown(app.RControlGrid);
             app.RightUnitDropDown.Items = {'1'};
             app.RightUnitDropDown.ValueChangedFcn = createCallbackFcn(app, @RightUnitDropDownValueChanged, true);
             app.RightUnitDropDown.FontWeight = 'bold';
@@ -1971,21 +2069,21 @@
             app.RightUnitDropDown.Layout.Column = 1;
             app.RightUnitDropDown.Value = '1';
 
+            % Create RMultiButton
+            app.RMultiButton = uibutton(app.RControlGrid, 'push');
+            app.RMultiButton.ButtonPushedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
+            app.RMultiButton.Enable = 'off';
+            app.RMultiButton.Layout.Row = 1;
+            app.RMultiButton.Layout.Column = 2;
+            app.RMultiButton.Text = 'Multi';
+
             % Create RTitle
-            app.RTitle = uieditfield(app.GridLayout3, 'text');
+            app.RTitle = uieditfield(app.RControlGrid, 'text');
             app.RTitle.Editable = 'off';
             app.RTitle.FontWeight = 'bold';
             app.RTitle.BackgroundColor = [0.8 0.8 0.8];
             app.RTitle.Layout.Row = 1;
-            app.RTitle.Layout.Column = 2;
-
-            % Create RMultiButton
-            app.RMultiButton = uibutton(app.GridLayout3, 'push');
-            app.RMultiButton.ButtonPushedFcn = createCallbackFcn(app, @RMultiButtonValueChanged, true);
-            app.RMultiButton.Enable = 'off';
-            app.RMultiButton.Layout.Row = 1;
-            app.RMultiButton.Layout.Column = 3;
-            app.RMultiButton.Text = 'Multi';
+            app.RTitle.Layout.Column = 3;
 
             % Create ControlTabs
             app.ControlTabs = uitabgroup(app.MainGrid);
@@ -2265,7 +2363,7 @@
 
             % Create OverviewDropDown
             app.OverviewDropDown = uidropdown(app.MiscGrid);
-            app.OverviewDropDown.Items = {'Waveforms', 'Temporal stab.', 'Deviation', 'PCA', 'LDA', 'X-correlogram'};
+            app.OverviewDropDown.Items = {'Waveforms', 'Deviation', 'PCA', 'LDA', 'X-correlogram'};
             app.OverviewDropDown.Layout.Row = [4 5];
             app.OverviewDropDown.Layout.Column = 2;
             app.OverviewDropDown.Value = 'Waveforms';
@@ -2276,7 +2374,7 @@
             app.AllOverviewButton.BackgroundColor = [0.0588 1 1];
             app.AllOverviewButton.Layout.Row = [2 3];
             app.AllOverviewButton.Layout.Column = 2;
-            app.AllOverviewButton.Text = 'All unit overview';
+            app.AllOverviewButton.Text = 'Popout Figures';
 
             % Create ParametersdataTab
             app.ParametersdataTab = uitab(app.ControlTabs);
@@ -2838,7 +2936,7 @@
             app.ColourGrid.RowSpacing = 0;
             app.ColourGrid.Padding = [0 0 0 0];
             app.ColourGrid.Layout.Row = 1;
-            app.ColourGrid.Layout.Column = [4 9];
+            app.ColourGrid.Layout.Column = [6 9];
 
             % Create MetricGrid_1
             app.MetricGrid_1 = uigridlayout(app.MainGrid);
@@ -2887,7 +2985,7 @@
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.GridLayout);
-            app.GridLayout2.ColumnWidth = {'1x', 50, 50};
+            app.GridLayout2.ColumnWidth = {50, '1x'};
             app.GridLayout2.RowHeight = {'1x'};
             app.GridLayout2.ColumnSpacing = 2;
             app.GridLayout2.RowSpacing = 2;
@@ -2902,22 +3000,15 @@
             app.TTitle.FontWeight = 'bold';
             app.TTitle.BackgroundColor = [0.8 0.8 0.8];
             app.TTitle.Layout.Row = 1;
-            app.TTitle.Layout.Column = 1;
+            app.TTitle.Layout.Column = 2;
             app.TTitle.Value = 'Data Trace';
-
-            % Create TPCAButton
-            app.TPCAButton = uibutton(app.GridLayout2, 'push');
-            app.TPCAButton.ButtonPushedFcn = createCallbackFcn(app, @TPCAButtonPushed, true);
-            app.TPCAButton.Layout.Row = 1;
-            app.TPCAButton.Layout.Column = 2;
-            app.TPCAButton.Text = 'Feat.';
 
             % Create TMultiButton
             app.TMultiButton = uibutton(app.GridLayout2, 'push');
             app.TMultiButton.ButtonPushedFcn = createCallbackFcn(app, @TMultiButtonValueChanged, true);
             app.TMultiButton.Enable = 'off';
             app.TMultiButton.Layout.Row = 1;
-            app.TMultiButton.Layout.Column = 3;
+            app.TMultiButton.Layout.Column = 1;
             app.TMultiButton.Text = 'Multi';
 
             % Create dataPanel

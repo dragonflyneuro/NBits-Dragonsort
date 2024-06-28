@@ -14,7 +14,7 @@ selection = 1:length(u);
 
 waves = cell(length(selection),1);
 r = getBatchRange(app);
-[~,~,unassignedInBatch] = u.getOrphanSpikes(app.t.rawSpikeSample,r);
+[~,~,unassignedInBatch] = u.getUnassignedSpikes(app.t.rawSpikeSample,r);
 
 unassignedWaves = app.rawSpikeWaves(unassignedInBatch,:);
 allClust = unassignedWaves;
