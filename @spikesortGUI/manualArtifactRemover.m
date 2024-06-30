@@ -43,7 +43,7 @@ end
 
 %% callback
 function selectTimeblock(~,evt,app,h)
-if app.interactingFlag(1)
+if app.leftUnitAx.UserData.interactionType  ~= 'n'
     return;
 end
 % get clicked coordinates

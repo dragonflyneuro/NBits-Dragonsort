@@ -1,27 +1,31 @@
 function [] = setupFigures(app)
+app.dataPanel.AutoResizeChildren = 'off';
 xlabel(app.traceAx, 'Time (ms)')
 ylabel(app.traceAx, 'Amplitude (uV)')
 app.traceAx.FontName = 'Arial';
-app.traceAx.Position = [0.04, 0.1, 0.95, 0.85];
+app.traceAx.Units = 'normalized';
+app.traceAx.Position = [0.03, 0.1, 0.96, 0.85];
 app.traceAx.Toolbar.Visible = 'off';
 app.traceAx.UserData.selectedUnassigned = [];
 app.traceAx.UserData.interactionType = 'n';
 disableDefaultInteractivity(app.traceAx)
 
+app.LPanel.AutoResizeChildren = 'off';
 xlabel(app.leftUnitAx, 'Samples')
-ylabel(app.leftUnitAx, 'Amplitude (uV)')
 app.leftUnitAx.FontName = 'Arial';
-app.leftUnitAx.Position = [0.1, 0.1, 0.85, 0.86];
+app.leftUnitAx.Units = 'normalized';
+app.leftUnitAx.Position = [0.05, 0.1, 0.92, 0.85];
 app.leftUnitAx.Toolbar.Visible = 'off';
 app.leftUnitAx.UserData.selectedIdx = [];
 app.leftUnitAx.UserData.inBatchIdx = [];
 app.leftUnitAx.UserData.interactionType = 'n';
 disableDefaultInteractivity(app.leftUnitAx)
 
+app.RPanel.AutoResizeChildren = 'off';
 xlabel(app.rightUnitAx, 'Samples')
-ylabel(app.rightUnitAx, 'Amplitude (uV)')
 app.rightUnitAx.FontName = 'Arial';
-app.rightUnitAx.Position = [0.1, 0.1, 0.85, 0.86];
+app.rightUnitAx.Units = 'normalized';
+app.rightUnitAx.Position = [0.05, 0.1, 0.92, 0.85];
 app.rightUnitAx.Toolbar.Visible = 'off';
 disableDefaultInteractivity(app.rightUnitAx)
 

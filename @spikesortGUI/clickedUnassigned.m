@@ -1,5 +1,5 @@
 function clickedUnassigned(app,~,evt,h)
-if app.interactingFlag(1) ~= 0
+if app.leftUnitAx.UserData.interactionType ~= 'n'
     return;
 end
 u = evt.IntersectionPoint;

@@ -44,12 +44,6 @@ if ~isSameMetric
     violationThrField.Layout.Column = 2;
     violationThrField.Layout.Row = 2;
 
-    slider = uislider(app.Metrics.controlGridArr(uiPos), "range", ...
-        'Value',[1 100], 'Limits',[0 100],...
-        'ValueChangingFcn',{@scrubSliderMoving, ax});
-    slider.Layout.Row = 1;
-    slider.Layout.Column = [1 3];
-
     if strcmp(whichSide, 'left')
         autosplitButton = uibutton(app.Metrics.controlGridArr(uiPos),...
             'Text', 'Autosplit violations below (ms):',...
@@ -57,6 +51,13 @@ if ~isSameMetric
         autosplitButton.Layout.Column = 1;
         autosplitButton.Layout.Row = 2;
     end
+
+    slider = uislider(app.Metrics.controlGridArr(uiPos), "range", ...
+        'Value',[1 100], 'Limits',[0 100],...
+        'ValueChangingFcn',{@scrubSliderMoving, ax});
+    slider.Layout.Row = 1;
+    slider.Layout.Column = [1 3];
+
 else
     app.Metrics.controlGridArr(uiPos).Children(1).Text =...
          "# violations: " + string(sum(ISI ...

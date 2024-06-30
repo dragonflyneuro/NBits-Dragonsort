@@ -773,7 +773,7 @@
                 I = pWI(app.leftUnitAx.UserData.selectedIdx);
             end
 
-            [temp, e] = basicUnitOp(app.unitArray, event.Source.UserData.fnc, value, I);
+            [temp, e] = basicUnitOp(app.unitArray, event.Source.UserData.fcn, value, I);
             if isempty(e)
                 app.unitArray = temp;
                 app.updateDropdown(event.Source.UserData.label);
@@ -1463,12 +1463,6 @@
             standardUpdate(app);
         end
 
-        % Menu selected function: HelpMenu
-        function HelpMenuSelected(app, event)
-            open('Dragonsort Documentation.docx');
-
-        end
-
         % Close request function: UIBase
         function UIBaseCloseRequest(app, event)
             % exit dragonsort after confirmation and cleanup
@@ -1729,6 +1723,12 @@
                 end
                 app.StatusLabel.Value = "Saved! (" + sN + ")";
             end
+
+        end
+
+        % Menu selected function: HelpMenu
+        function HelpMenuSelected(app, event)
+            open('Dragonsort Documentation.docx');
 
         end
     end

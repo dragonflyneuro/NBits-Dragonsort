@@ -3,7 +3,7 @@ function clickedAssigned(app,src,evt)
 if ~strcmp(app.LeftUnitDropDown.Value, string(src.UserData.uIdx))
     return;
 end
-if app.interactingFlag(1) ~= 0
+if app.leftUnitAx.UserData.interactionType ~= 'n'
     return;
 end
 

@@ -1,5 +1,5 @@
 function [] = updateAssignedSelection(app, selection)
-if app.interactingFlag(2) ~= 0
+if app.traceAx.UserData.interactionType ~= 'n'
     return;
 end
 

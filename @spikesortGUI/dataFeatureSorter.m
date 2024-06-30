@@ -88,7 +88,7 @@ end
 
 function ROIClick(~, ~, app, choices, sldr, posData, selection)
 %return if interaction happening with the left figure
-if app.interactingFlag(1) ~= 0
+if app.leftUnitAx.UserData.interactionType ~= 'n'
     return;
 end
 
